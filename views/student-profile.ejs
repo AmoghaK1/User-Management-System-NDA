@@ -17,14 +17,20 @@
                 <button class="absolute top-4 right-4 bg-white/90 hover:bg-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105" onclick="openEditModal()">
                     ✏️
                 </button>
-                
+            
                 <div class="flex flex-col items-center justify-center h-full space-y-6">
                     <div class="profile-container w-32 h-32 md:w-40 md:h-40 relative">
-                        <div class="w-full h-full rounded-full overflow-hidden border-4 border-white/90 shadow-lg">
-                            <img id="profileImage" src=<%= user.profilePicture %> alt="Profile Picture" 
+                        <!-- Profile Picture -->
+                        <div class="w-full h-full rounded-full overflow-hidden border-4 border-white/90 shadow-lg relative">
+                            <img id="profileImage" src="<%= user.profilePicture %>" alt="Profile Picture" 
                                  class="w-full h-full object-cover transition-transform duration-300">
+                            
+                            <!-- Spinner (Initially Hidden) -->
+                            <div id="loadingSpinner" class="absolute inset-0 bg-white/70 flex items-center justify-center hidden">
+                                <div class="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                            </div>
                         </div>
-                        
+            
                         <!-- Camera Icon -->
                         <label for="profilePicture" class="camera-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
@@ -32,13 +38,11 @@
                                 <circle cx="12" cy="13" r="4"></circle>
                             </svg>
                         </label>
-                        
-                        <input type="file" 
-                               id="profilePicture" 
-                               name="profilePicture" 
-                               accept="image/png,image/jpeg,image/jpg">
+            
+                        <!-- File Input -->
+                        <input type="file" id="profilePicture" name="profilePicture" accept="image/png,image/jpeg,image/jpg">
                     </div>
-                    
+            
                     <div class="text-center text-white space-y-2">
                         <h2 class="text-2xl md:text-3xl font-bold" data-field="name"><%= user.name %></h2>
                         <p class="text-white/90"><%= user.exam_level %></p>

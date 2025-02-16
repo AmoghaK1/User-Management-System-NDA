@@ -4,6 +4,9 @@ const multer = require('multer')
 const path = require('path')
 const bcrypt = require('bcrypt');
 const fs = require('fs');
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+require("dotenv").config();
 
 const loadRegister = async(req,res)=> {
     try {
@@ -202,79 +205,79 @@ const updateProfile = async(req, res) => {
     }
 };
 
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        const uploadDir = './public/uploads/profile-pictures';
-        // Create directory if it doesn't exist
-        if (!fs.existsSync(uploadDir)){
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  
+  // Cloudinary Storage Configuration
+  const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: "profile_pictures", // Folder name in Cloudinary
+      allowed_formats: ["jpg", "jpeg", "png"],
+      transformation: [{ width: 500, height: 500, crop: "limit" }],
     },
-    filename: function(req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
-// Configure multer upload
-const upload = multer({
-    storage: storage,
-    limits: {
-        fileSize: 5 * 1024 * 1024  // 5MB limit
+  });
+  
+  const upload = multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: function (req, file, cb) {
+      const filetypes = /jpeg|jpg|png/;
+      const mimetype = filetypes.test(file.mimetype);
+      const extname = filetypes.test(file.originalname.toLowerCase());
+  
+      if (mimetype && extname) {
+        return cb(null, true);
+      }
+      cb(new Error("Only .png, .jpg, and .jpeg formats allowed!"));
     },
-    fileFilter: function(req, file, cb) {
-        const filetypes = /jpeg|jpg|png/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-
-        if (mimetype && extname) {
-            return cb(null, true);
+  }).single("profilePicture");
+  
+  // Controller for updating profile picture
+  const updateProfilePicture = async (req, res) => {
+    upload(req, res, async function (err) {
+      try {
+        if (err instanceof multer.MulterError) {
+          return res.status(400).json({ error: "File upload error: " + err.message });
+        } else if (err) {
+          return res.status(400).json({ error: err.message });
         }
-        cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
-    }
-}).single('profilePicture');
-
-const updateProfilePicture = async(req, res) => {
-    upload(req, res, async function(err) {
-        try {
-            if (err instanceof multer.MulterError) {
-                return res.status(400).json({ error: 'File upload error: ' + err.message });
-            } else if (err) {
-                return res.status(400).json({ error: err.message });
-            }
-
-            if (!req.file) {
-                return res.status(400).json({ error: 'No file uploaded' });
-            }
-
-            const user = await User.findById(req.user._id);
-            if (!user) {
-                return res.status(404).json({ error: 'User not found' });
-            }
-
-            // Delete old profile picture if it exists and isn't the default
-            if (user.profilePicture && 
-                user.profilePicture !== '../images/pfp_final_1.png' && 
-                fs.existsSync(`./public${user.profilePicture}`)) {
-                fs.unlinkSync(`./public${user.profilePicture}`);
-            }
-
-            // Update profile picture path
-            user.profilePicture = `/uploads/profile-pictures/${req.file.filename}`;
-            await user.save();
-
-            res.json({ 
-                success: true, 
-                message: 'Profile picture updated successfully',
-                profilePicture: user.profilePicture 
-            });
-        } catch (error) {
-            console.error("Profile picture update error:", error);
-            res.status(500).json({ error: 'Server error' });
+  
+        if (!req.file) {
+          return res.status(400).json({ error: "No file uploaded" });
         }
+  
+        const user = await User.findById(req.user._id);
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+  
+        // Delete old Cloudinary image if it exists (excluding default profile pic)
+        if (user.profilePicture && user.profilePicture !== "../images/pfp_final_1.png") {
+          const publicId = user.profilePicture.split("/").pop().split(".")[0]; // Extract public ID
+          await cloudinary.uploader.destroy(`profile_pictures/${publicId}`);
+        }
+  
+        // Update profile picture URL from Cloudinary
+        user.profilePicture = req.file.path;
+        await user.save();
+  
+        res.json({
+          success: true,
+          message: "Profile picture updated successfully",
+          profilePicture: user.profilePicture,
+        });
+      } catch (error) {
+        console.error("Profile picture update error:", error);
+        res.status(500).json({ error: "Server error" });
+      }
     });
-};
+  };
 
 const changePassword = async(req, res) => {
     try {

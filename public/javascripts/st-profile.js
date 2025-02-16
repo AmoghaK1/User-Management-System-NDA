@@ -20,27 +20,36 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profilePicture').addEventListener('change', async function(e) {
         const file = e.target.files[0];
         if (!file) return;
-    
+
+        const profileImage = document.getElementById('profileImage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
         const formData = new FormData();
         formData.append('profilePicture', file);
-    
+
+        // Show loading spinner and fade out current image
+        loadingSpinner.classList.remove('hidden');
+        profileImage.style.opacity = "0.5";
+
         try {
             const response = await fetch('/api/profile/update-picture', {
                 method: 'POST',
                 body: formData
             });
-    
+
             const data = await response.json();
             if (data.success) {
-                document.getElementById('profileImage').src = data.profilePicture;
-                // Optional: Show success message
-                alert('Profile picture updated successfully!');
+                profileImage.src = data.profilePicture; // Update profile picture
             } else {
                 alert(data.error || 'Failed to update profile picture');
             }
         } catch (error) {
             console.error('Error uploading profile picture:', error);
             alert('Failed to upload profile picture');
+        } finally {
+            // Hide loading spinner and restore opacity
+            loadingSpinner.classList.add('hidden');
+            profileImage.style.opacity = "1";
         }
     });
 

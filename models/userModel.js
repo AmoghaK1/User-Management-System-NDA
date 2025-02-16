@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema ({
     },
     profilePicture: {
         type: String,
-        default: '../images/pfp_final_1.png'  // Default profile picture
+        default: "https://res.cloudinary.com/dy2kitfup/image/upload/v1700000000/profile_pictures/rkygumnj1dwhtudgf8zg",
     }
     }, {
     timestamps: true  // This will automatically add createdAt and updatedAt fields

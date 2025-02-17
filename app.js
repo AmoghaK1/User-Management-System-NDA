@@ -57,9 +57,8 @@ app.get('/accounts',(req,res)=>{
     res.render('accounts2');
 })
 
-app.get('/paynow',(req,res)=>{
-    res.render('paynow');
-})
+app.use('/',paymentRoutes);
+
 app.listen(port, ()=>{
     console.log(`Server started on Port ${port}`);
 })

@@ -1,3 +1,5 @@
+const Razorpay = require("razorpay");
+
 const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -44,7 +46,7 @@ function createMonthCard(month, year) {
             </div>
             ${status.showButton ? `
                 <button class="pay-button bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                   <a href="paynow"> Pay now </a>
+                   <a href="paynow" class="pay-form">Pay now </a>
                 </button>
             ` : ''}
         </div>
@@ -97,4 +99,50 @@ function changeYear(change) {
 document.addEventListener('DOMContentLoaded', function() {
     updateMonthsGrid(currentYear);
     updateYearSummary(currentYear);
+});
+
+
+
+//payment gateway
+$(document).ready(function(){
+    $('.pay-form').submit(function(e){
+        e.preventDefault();
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+            url:"/createOrder",
+            type:"POST",
+            data: formData,
+            success: function(res){
+                if(res.success){
+                    var options = {
+                        "key": ""+res.key_id+"",
+                        "amount": ""+res.amount+"",
+                        "currency":"INR",
+                        "order_id":""+res.order_id+"",
+                        "handler":function (response){
+                            alert("Payment Successfull");
+                        },
+                        "prefill":{
+                            "contact":""+res.contact+"",
+                            "name": ""+res.name+"",
+                            "email":""+res.email+""
+                        },
+                        "theme":{
+                            "color": "#2300a3"
+                        }
+                    };
+                    var razorpayObject = new Razorpay(options);
+                    razorpayObject.on('payment-failed',function(response){
+                        alert("Payment Failed");
+                    });
+                    razorpayObject.open();
+                }
+                else{
+                    alert(res.msg);
+                }
+            }
+        })
+    });
 });

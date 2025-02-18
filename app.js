@@ -7,6 +7,7 @@ const session = require("express-session");
 const passport = require("passport");
 const config = require("./config/config")
 const paymentRoutes = require('./routes/payment');
+require('dotenv').config();
 
 
 require("./config/passport")(passport);

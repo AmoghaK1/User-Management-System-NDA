@@ -1,9 +1,12 @@
 const Razorpay = require('razorpay');
 const {RAZORPAY_ID_KEY , RAZORPAY_SECRET_KEY} = process.env;
 
+console.log('Razorpay Key ID:', RAZORPAY_ID_KEY); // Debugging line
+console.log('Razorpay Secret Key:', RAZORPAY_SECRET_KEY); // Debugging line
+
 const razorpayInstance = new Razorpay({
-    key_id: RAZORPAY_ID_KEY,
-    key_secret: RAZORPAY_SECRET_KEY
+    key_id: 'rzp_test_5foUVb3KuKkoeQ',
+    key_secret: 'APYxWo4kIPOlQxjG1X1u6pq2'
 });
 
 const renderProductPage = async(req,res)=>{
@@ -24,7 +27,7 @@ const createOrder = async(req,res)=>{
             receipt: 'hetavimodi29@gmail.com'
         }
 
-        razorpayInstance.order.create(options,
+        razorpayInstance.orders.create(options,
             (err,order)=>{
                 if(!err){
                     res.status(200).send({
@@ -46,4 +49,9 @@ const createOrder = async(req,res)=>{
     }catch(error){
         console.log(error.message);
     }
+}
+
+module.exports = {
+    renderProductPage,
+    createOrder
 }

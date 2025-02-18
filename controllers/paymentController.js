@@ -32,11 +32,11 @@ const createOrder = async(req,res)=>{
                 if(!err){
                     res.status(200).send({
                         success:true,
-                        msg: 'Order Creater',
+                        msg: 'Order Created',
                         order_id: order.id,
                         amount: amount,
                         key_id: RAZORPAY_ID_KEY,
-                        contact: req.body.student_ph_no,
+                        contact: req.body.contact,
                         name: req.body.name,
                         email: req.body.email
                     });

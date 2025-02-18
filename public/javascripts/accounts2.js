@@ -1,4 +1,4 @@
-const Razorpay = require("razorpay");
+// const Razorpay = require("razorpay");
 
 const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -46,16 +46,16 @@ function createMonthCard(month, year) {
             </div>
             ${status.showButton ? `
                 <button class="pay-button bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                   <a href="paynow" class="pay-form">Pay now </a>
+                  Pay now 
                 </button>
             ` : ''}
         </div>
     `;
     
-    // if(status.showButton){
-    //     const payButton = monthCard.querySelector('.pay-button');
-    //     payButton.addEventListener('click',()=>processPayment(month,year));
-    // }
+    if(status.showButton){
+        const payButton = monthCard.querySelector('.pay-button');
+        payButton.addEventListener('click',()=>processPayment(month,year));
+    }
     return monthCard;
 }
 
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-
+function processPayment(month,year){
 //payment gateway
 $(document).ready(function(){
     $('.pay-form').submit(function(e){
@@ -142,7 +142,12 @@ $(document).ready(function(){
                 else{
                     alert(res.msg);
                 }
+            },
+            error: function(err) {
+                console.error('Error creating order:', err);
+                alert("Something went wrong. Please try again.");
             }
         })
     });
 });
+}

@@ -359,3 +359,59 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up the pending payment button
     document.getElementById('payPendingBtn').addEventListener('click', processAllPendingPayment);
 });
+
+// accounts2.js
+document.addEventListener('DOMContentLoaded', function() {
+    const monthlyPaymentBtn = document.getElementById('monthlyPaymentBtn');
+    const quarterlyPaymentBtn = document.getElementById('quarterlyPaymentBtn');
+    const monthlySection = document.getElementById('monthlySection');
+    const quarterlySection = document.getElementById('quarterlySection');
+
+    // Initially hide both sections
+    monthlySection.style.display = 'none';
+    quarterlySection.style.display = 'none';
+
+    // Function to save the active tab in localStorage
+    function saveActiveTab(tab) {
+        localStorage.setItem('activePaymentTab', tab);
+    }
+
+    // Function to load and set active tab from localStorage
+    function loadActiveTab() {
+        const activeTab = localStorage.getItem('activePaymentTab');
+        if (activeTab === 'quarterly') {
+            quarterlyPaymentBtn.click();
+        } else {
+            monthlyPaymentBtn.click();
+        }
+    }
+
+    monthlyPaymentBtn.addEventListener('click', () => {
+        // Highlight the active button
+        monthlyPaymentBtn.classList.add('bg-purple-800');
+        quarterlyPaymentBtn.classList.remove('bg-purple-800');
+        
+        // Show the monthly section and hide the quarterly section
+        monthlySection.style.display = 'block';
+        quarterlySection.style.display = 'none';
+        
+        // Save the active tab preference
+        saveActiveTab('monthly');
+    });
+
+    quarterlyPaymentBtn.addEventListener('click', () => {
+        // Highlight the active button
+        quarterlyPaymentBtn.classList.add('bg-purple-800');
+        monthlyPaymentBtn.classList.remove('bg-purple-800');
+        
+        // Show the quarterly section and hide the monthly section
+        monthlySection.style.display = 'none';
+        quarterlySection.style.display = 'block';
+        
+        // Save the active tab preference
+        saveActiveTab('quarterly');
+    });
+
+    // Load the last active tab or default to monthly
+    loadActiveTab();
+});

@@ -6,15 +6,11 @@ const flash = require("connect-flash");
 const session = require("express-session");
 const passport = require("passport");
 const config = require("./config/config")
-const paymentRoutes = require('./routes/payment');
+const paymentRoutes = require('./routes/paymentRoutes');
 require('dotenv').config();
-
-
-
 
 require("./config/passport")(passport);
 
-//dummy message
 const app = express();
 port = 7000;
 
@@ -55,10 +51,6 @@ app.use((req, res, next) => {
 
 const userRoutes = require('./routes/userRoutes');
 app.use('/', userRoutes);
-
-app.get('/accounts',(req,res)=>{
-    res.render('accounts2');
-})
 
 app.use('/',paymentRoutes);
 

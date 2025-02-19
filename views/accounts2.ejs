@@ -48,7 +48,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="p-3 bg-purple-50 rounded-lg">
                     <p class="text-sm text-purple-600">Total Fees Paid</p>
-                    <p class="text-lg font-semibold text-purple-800" id="totalPaid">₹48,000</p>
+                    <p class="text-lg font-semibold text-purple-800" id="totalPaid">₹8,000</p>
                 </div>
                 <div class="p-3 bg-purple-50 rounded-lg">
                     <p class="text-sm text-purple-600">Pending Amount</p>
@@ -56,11 +56,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Payment Button -->
+        <div class="text-center mt-6">
+            <form id="fee-payment-form" class="inline-block">
+                <input type="hidden" name="name" value="Fee Payment">
+                <input type="hidden" name="amount" value="4000">
+                <input type="hidden" name="description" value="Pending Fee Payment">
+                <button type="submit" class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium">
+                    Pay Pending Amount
+                </button>
+            </form>
+        </div>
     </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="../javascripts/accounts2.js"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="../javascripts/accounts2.js"></script>
 </body>
 </html>

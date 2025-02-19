@@ -1,5 +1,3 @@
-// const Razorpay = require("razorpay");
-
 const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -54,11 +52,10 @@ function createMonthCard(month, year) {
     
     if(status.showButton){
         const payButton = monthCard.querySelector('.pay-button');
-        payButton.addEventListener('click',()=>processPayment(month,year));
+        payButton.addEventListener('click', () => processPayment(month, year));
     }
     return monthCard;
 }
-
 
 function updateMonthsGrid(year) {
     const grid = document.getElementById('monthsGrid');
@@ -77,11 +74,11 @@ function updateYearSummary(year) {
         totalPaid = '₹96,000';
         pendingAmount = '₹0';
     } else if (year === currentDate.getFullYear()) {
-        totalPaid = '₹48,000';
+        totalPaid = '₹8,000';
         pendingAmount = '₹4,000';
     } else {
         totalPaid = '₹0';
-        pendingAmount = '₹96,000';
+        pendingAmount = '₹12,000';
     }
     
     document.getElementById('totalPaid').textContent = totalPaid;
@@ -95,59 +92,118 @@ function changeYear(change) {
     updateYearSummary(currentYear);
 }
 
-// Initialize the dashboard
+// Initialize when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     updateMonthsGrid(currentYear);
     updateYearSummary(currentYear);
+    
+    // Set up the fee payment form event listener
+    const feePaymentForm = document.getElementById('fee-payment-form');
+    if (feePaymentForm) {
+        feePaymentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = {
+                name: 'Monthly Fee Payment',
+                amount: 4000,
+                description: 'Monthly Fee Payment',
+                email: 'amogha.khare@example.com',
+                contact: '9876543210'
+            };
+            processFormPayment(formData);
+        });
+    }
 });
 
-
-function processPayment(month,year){
-//payment gateway
-$(document).ready(function(){
-    $('.pay-form').submit(function(e){
-        e.preventDefault();
-
-        var formData = $(this).serialize();
-
-        $.ajax({
-            url:"/createOrder",
-            type:"POST",
-            data: formData,
-            success: function(res){
-                if(res.success){
-                    var options = {
-                        "key": ""+res.key_id+"",
-                        "amount": ""+res.amount+"",
-                        "currency":"INR",
-                        "order_id":""+res.order_id+"",
-                        "handler":function (response){
-                            alert("Payment Successfull");
-                        },
-                        "prefill":{
-                            "contact":""+res.contact+"",
-                            "name": ""+res.name+"",
-                            "email":""+res.email+""
-                        },
-                        "theme":{
-                            "color": "#2300a3"
-                        }
-                    };
-                    var razorpayObject = new Razorpay(options);
-                    razorpayObject.on('payment-failed',function(response){
-                        alert("Payment Failed");
-                    });
-                    razorpayObject.open();
-                }
-                else{
-                    alert(res.msg);
-                }
-            },
-            error: function(err) {
-                console.error('Error creating order:', err);
-                alert("Something went wrong. Please try again.");
+function processPayment(month, year) {
+    const feeAmount = 1000; // ₹1000 per month
+    
+    $.ajax({
+        url: "/createOrder",
+        type: "POST",
+        data: {
+            name: `Fee for ${month} ${year}`,
+            amount: feeAmount,
+            description: `Monthly fee payment for ${month} ${year}`,
+            email: 'amogha.khare@example.com',
+            contact: '9876543210'
+        },
+        success: function(res) {
+            if (res.success) {
+                var options = {
+                    "key": res.key_id,
+                    "amount": res.amount,
+                    "currency": "INR",
+                    "order_id": res.order_id,
+                    "handler": function (response) {
+                        alert(`Payment Successful for ${month} ${year}`);
+                        // Refresh the display after successful payment
+                        updateMonthsGrid(currentYear);
+                        updateYearSummary(currentYear);
+                    },
+                    "prefill": {
+                        "contact": res.contact,
+                        "name": "Amogha Khare",
+                        "email": res.email
+                    },
+                    "theme": {
+                        "color": "#6B46C1" // Purple color matching the theme
+                    }
+                };
+                var razorpayObject = new Razorpay(options);
+                razorpayObject.on('payment.failed', function(response) {
+                    alert(`Payment Failed for ${month} ${year}`);
+                });
+                razorpayObject.open();
+            } else {
+                alert(res.msg);
             }
-        })
+        },
+        error: function(err) {
+            console.error('Error creating order:', err);
+            alert("Something went wrong. Please try again.");
+        }
     });
-});
+}
+
+function processFormPayment(formData) {
+    $.ajax({
+        url: "/createOrder",
+        type: "POST",
+        data: formData,
+        success: function(res) {
+            if (res.success) {
+                var options = {
+                    "key": res.key_id,
+                    "amount": res.amount,
+                    "currency": "INR",
+                    "order_id": res.order_id,
+                    "handler": function (response) {
+                        alert("Payment Successful");
+                        // Refresh the display after successful payment
+                        updateMonthsGrid(currentYear);
+                        updateYearSummary(currentYear);
+                    },
+                    "prefill": {
+                        "contact": res.contact,
+                        "name": "Amogha Khare",
+                        "email": res.email
+                    },
+                    "theme": {
+                        "color": "#6B46C1" // Purple color matching the theme
+                    }
+                };
+                var razorpayObject = new Razorpay(options);
+                razorpayObject.on('payment.failed', function(response) {
+                    alert("Payment Failed");
+                });
+                razorpayObject.open();
+            } else {
+                alert(res.msg);
+            }
+        },
+        error: function(err) {
+            console.error('Error creating order:', err);
+            alert("Something went wrong. Please try again.");
+        }
+    });
 }

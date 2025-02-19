@@ -9,7 +9,7 @@ const config = require("./config/config")
 const paymentRoutes = require('./routes/payment');
 require('dotenv').config();
 
-console.log('hello world');
+
 
 
 require("./config/passport")(passport);

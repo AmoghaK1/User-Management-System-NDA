@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/NDA_db");
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require('body-parser');
 const flash = require("connect-flash");
@@ -7,13 +7,17 @@ const session = require("express-session");
 const passport = require("passport");
 const config = require("./config/config")
 const paymentRoutes = require('./routes/paymentRoutes');
-require('dotenv').config();
+
 
 require("./config/passport")(passport);
 
 const app = express();
 port = 7000;
-
+mongoose.connect(process.env.MONGO_URI).then(() => {
+    console.log("Connected to MongoDB!");
+  }).catch(err => {
+    console.error("MongoDB connection error:", err);
+  });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

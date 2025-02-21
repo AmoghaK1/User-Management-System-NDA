@@ -1,10 +1,4 @@
-const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-];
-
-let currentYear = new Date().getFullYear();
-const quarterlyFee = 2400; // 3 months fee
+const quarterlyFee = 2400; // 3 months fee at 800 per month
 
 // Store payment status in local storage to persist between page loads
 const quarterlyPaymentStatus = JSON.parse(localStorage.getItem('quarterlyPaymentStatus')) || {};
@@ -25,7 +19,7 @@ function getQuarterlyFeeStatus(quarter, year) {
     const currentDate = getCurrentDate();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
-    const quarterStartMonth = (quarter - 1) * 3;
+    const currentQuarter = Math.floor(currentMonth / 3) + 1;
 
     // Check if this quarter has been paid (from local storage)
     const paymentKey = `${year}-Q${quarter}`;
@@ -51,7 +45,7 @@ function getQuarterlyFeeStatus(quarter, year) {
     // Current year logic
     if (year === currentYear) {
         // Current quarter
-        if (Math.floor(currentMonth / 3) + 1 === quarter) {
+        if (currentQuarter === quarter) {
             return {
                 status: 'Pending',
                 statusClass: 'pending-status',
@@ -60,7 +54,7 @@ function getQuarterlyFeeStatus(quarter, year) {
             };
         }
         // Past quarters in current year
-        else if (Math.floor(currentMonth / 3) + 1 > quarter) {
+        else if (currentQuarter > quarter) {
             return {
                 status: 'Pending',
                 statusClass: 'pending-status',
@@ -101,24 +95,16 @@ function createQuarterlyCard(quarter, year) {
             Pay now
         </button>` : '';
 
-    // Create HTML for included months
-    const monthsHtml = quarterObj.months.map(month => 
-        `<span class="inline-block text-xs bg-gray-100 rounded px-2 py-1 mr-1 mb-1">${month}</span>`
-    ).join('');
+    // Create HTML for included months - similar to monthly card layout
+    const monthsList = quarterObj.months.join(', ');
 
     quarterlyCard.innerHTML = `
-        <div class="flex justify-between items-start">
+        <div class="flex justify-between items-center">
             <div>
-                <h3 class="font-semibold">Q${quarter} ${year}</h3>
-                <span class="text-sm font-medium ${status.textColor} mb-2 block">${status.status}</span>
-                <div class="mt-2 flex flex-wrap">
-                    ${monthsHtml}
-                </div>
+                <h3 class="font-semibold">Q${quarter} ${year} (${monthsList})</h3>
+                <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
             </div>
-            <div>
-                <span class="block text-sm font-semibold mb-2">₹${quarterlyFee}</span>
-                ${buttonHtml}
-            </div>
+            ${buttonHtml}
         </div>
     `;
 
@@ -132,6 +118,8 @@ function createQuarterlyCard(quarter, year) {
 
 function updateQuarterlyGrid() {
     const grid = document.getElementById('quarterlyGrid');
+    if (!grid) return; // Safety check
+    
     grid.innerHTML = '';
 
     // Show all 4 quarters for the current year
@@ -180,7 +168,7 @@ function calculatePaidQuarterlyAmount() {
 
     // Count actually paid quarters for current year
     if (currentYear === currentDate.getFullYear()) {
-        for (let quarter = 1; quarter <= currentQuarter; quarter++) {
+        for (let quarter = 1; quarter <= 4; quarter++) {
             const paymentKey = `${currentYear}-Q${quarter}`;
             if (quarterlyPaymentStatus[paymentKey]) {
                 paidQuarters++;
@@ -199,23 +187,29 @@ function updateQuarterlySummary() {
     const totalPaid = calculatePaidQuarterlyAmount();
     const pendingAmount = calculatePendingQuarterlyAmount();
 
-    document.getElementById('totalPaidQuarterly').textContent = `₹${totalPaid}`;
-    document.getElementById('pendingAmountQuarterly').textContent = `₹${pendingAmount}`;
+    const totalPaidElement = document.getElementById('totalPaidQuarterly');
+    const pendingAmountElement = document.getElementById('pendingAmountQuarterly');
+    
+    if (totalPaidElement) totalPaidElement.textContent = `₹${totalPaid}`;
+    if (pendingAmountElement) pendingAmountElement.textContent = `₹${pendingAmount}`;
 
     // Disable pay button if nothing is pending
     const payButton = document.getElementById('payPendingQuarterlyBtn');
-    if (pendingAmount <= 0) {
-        payButton.disabled = true;
-        payButton.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-        payButton.disabled = false;
-        payButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    if (payButton) {
+        if (pendingAmount <= 0) {
+            payButton.disabled = true;
+            payButton.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            payButton.disabled = false;
+            payButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
     }
 }
 
 function changeQuarterlyYear(change) {
     currentYear += change;
-    document.getElementById('currentYearQuarterly').textContent = currentYear;
+    const yearElement = document.getElementById('currentYearQuarterly');
+    if (yearElement) yearElement.textContent = currentYear;
     updateQuarterlyGrid();
     updateQuarterlySummary();
 }
@@ -359,18 +353,14 @@ function processAllPendingQuarterlyPayment() {
 
 // Initialize when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Set current year from actual date
-    currentYear = getCurrentDate().getFullYear();
-    document.getElementById('currentYearQuarterly').textContent = currentYear;
-
-    // Initialize grid and summary
-    updateQuarterlyGrid();
-    updateQuarterlySummary();
-
     // Set up year navigation
-    document.getElementById('prevYearQuarterly').addEventListener('click', () => changeQuarterlyYear(-1));
-    document.getElementById('nextYearQuarterly').addEventListener('click', () => changeQuarterlyYear(1));
-
-    // Set up the pending payment button
-    document.getElementById('payPendingQuarterlyBtn').addEventListener('click', processAllPendingQuarterlyPayment);
+    const prevYearBtn = document.getElementById('prevYearQuarterly');
+    const nextYearBtn = document.getElementById('nextYearQuarterly');
+    const payPendingBtn = document.getElementById('payPendingQuarterlyBtn');
+    
+    if (prevYearBtn) prevYearBtn.addEventListener('click', () => changeQuarterlyYear(-1));
+    if (nextYearBtn) nextYearBtn.addEventListener('click', () => changeQuarterlyYear(1));
+    if (payPendingBtn) payPendingBtn.addEventListener('click', processAllPendingQuarterlyPayment);
+    
+    // The main initialization now happens in accounts2.js
 });

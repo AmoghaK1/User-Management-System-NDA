@@ -121,6 +121,8 @@ function createMonthCard(month, year) {
 
 function updateMonthsGrid() {
     const grid = document.getElementById('monthsGrid');
+    if (!grid) return; // Safety check
+    
     grid.innerHTML = '';
 
     // Show all 12 months for the current year
@@ -186,23 +188,29 @@ function updateYearSummary() {
     const totalPaid = calculatePaidAmount();
     const pendingAmount = calculatePendingAmount();
 
-    document.getElementById('totalPaid').textContent = `₹${totalPaid}`;
-    document.getElementById('pendingAmount').textContent = `₹${pendingAmount}`;
+    const totalPaidElement = document.getElementById('totalPaid');
+    const pendingAmountElement = document.getElementById('pendingAmount');
+    
+    if (totalPaidElement) totalPaidElement.textContent = `₹${totalPaid}`;
+    if (pendingAmountElement) pendingAmountElement.textContent = `₹${pendingAmount}`;
     
     // Disable pay button if nothing is pending
     const payButton = document.getElementById('payPendingBtn');
-    if (pendingAmount <= 0) {
-        payButton.disabled = true;
-        payButton.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-        payButton.disabled = false;
-        payButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    if (payButton) {
+        if (pendingAmount <= 0) {
+            payButton.disabled = true;
+            payButton.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            payButton.disabled = false;
+            payButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
     }
 }
 
 function changeYear(change) {
     currentYear += change;
-    document.getElementById('currentYear').textContent = currentYear;
+    const yearElement = document.getElementById('currentYear');
+    if (yearElement) yearElement.textContent = currentYear;
     updateMonthsGrid();
     updateYearSummary();
 }
@@ -342,76 +350,72 @@ function processAllPendingPayment() {
     });
 }
 
+// Payment method selection function after initial selection
+function setPaymentMethod(method) {
+    const monthlySection = document.getElementById('monthlySection');
+    const quarterlySection = document.getElementById('quarterlySection');
+    const monthlyBtn = document.getElementById('monthlyPaymentBtn');
+    const quarterlyBtn = document.getElementById('quarterlyPaymentBtn');
+    
+    if (method === 'monthly') {
+        // Update button styles
+        monthlyBtn.classList.add('bg-purple-800');
+        quarterlyBtn.classList.remove('bg-purple-800');
+        
+        // Show monthly section
+        monthlySection.style.display = 'block';
+        quarterlySection.style.display = 'none';
+        
+        // Update monthly UI
+        updateMonthsGrid();
+        updateYearSummary();
+        
+        // Save preference
+        localStorage.setItem('paymentMethod', 'monthly');
+    } else {
+        // Update button styles
+        quarterlyBtn.classList.add('bg-purple-800');
+        monthlyBtn.classList.remove('bg-purple-800');
+        
+        // Show quarterly section
+        monthlySection.style.display = 'none';
+        quarterlySection.style.display = 'block';
+        
+        // Update quarterly UI (from quarterlyPayment.js)
+        updateQuarterlyGrid();
+        updateQuarterlySummary();
+        
+        // Save preference
+        localStorage.setItem('paymentMethod', 'quarterly');
+    }
+}
+
 // Initialize when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Set current year from actual date
     currentYear = getCurrentDate().getFullYear();
-    document.getElementById('currentYear').textContent = currentYear;
     
-    // Initialize grid and summary
-    updateMonthsGrid();
-    updateYearSummary();
-
-    // Set up year navigation
-    document.getElementById('prevYear').addEventListener('click', () => changeYear(-1));
-    document.getElementById('nextYear').addEventListener('click', () => changeYear(1));
+    // Set up year navigation for monthly view
+    const prevYearBtn = document.getElementById('prevYear');
+    const nextYearBtn = document.getElementById('nextYear');
+    const payPendingBtn = document.getElementById('payPendingBtn');
+    const yearElement = document.getElementById('currentYear');
     
-    // Set up the pending payment button
-    document.getElementById('payPendingBtn').addEventListener('click', processAllPendingPayment);
-});
-
-// accounts2.js
-document.addEventListener('DOMContentLoaded', function() {
+    if (yearElement) yearElement.textContent = currentYear;
+    if (prevYearBtn) prevYearBtn.addEventListener('click', () => changeYear(-1));
+    if (nextYearBtn) nextYearBtn.addEventListener('click', () => changeYear(1));
+    if (payPendingBtn) payPendingBtn.addEventListener('click', processAllPendingPayment);
+    
+    // Get payment method selection buttons (once user has already made an initial choice)
     const monthlyPaymentBtn = document.getElementById('monthlyPaymentBtn');
     const quarterlyPaymentBtn = document.getElementById('quarterlyPaymentBtn');
-    const monthlySection = document.getElementById('monthlySection');
-    const quarterlySection = document.getElementById('quarterlySection');
-
-    // Initially hide both sections
-    monthlySection.style.display = 'none';
-    quarterlySection.style.display = 'none';
-
-    // Function to save the active tab in localStorage
-    function saveActiveTab(tab) {
-        localStorage.setItem('activePaymentTab', tab);
+    
+    // Add event listeners for payment method buttons (secondary navigation)
+    if (monthlyPaymentBtn) {
+        monthlyPaymentBtn.addEventListener('click', () => setPaymentMethod('monthly'));
     }
-
-    // Function to load and set active tab from localStorage
-    function loadActiveTab() {
-        const activeTab = localStorage.getItem('activePaymentTab');
-        if (activeTab === 'quarterly') {
-            quarterlyPaymentBtn.click();
-        } else {
-            monthlyPaymentBtn.click();
-        }
+    
+    if (quarterlyPaymentBtn) {
+        quarterlyPaymentBtn.addEventListener('click', () => setPaymentMethod('quarterly'));
     }
-
-    monthlyPaymentBtn.addEventListener('click', () => {
-        // Highlight the active button
-        monthlyPaymentBtn.classList.add('bg-purple-800');
-        quarterlyPaymentBtn.classList.remove('bg-purple-800');
-        
-        // Show the monthly section and hide the quarterly section
-        monthlySection.style.display = 'block';
-        quarterlySection.style.display = 'none';
-        
-        // Save the active tab preference
-        saveActiveTab('monthly');
-    });
-
-    quarterlyPaymentBtn.addEventListener('click', () => {
-        // Highlight the active button
-        quarterlyPaymentBtn.classList.add('bg-purple-800');
-        monthlyPaymentBtn.classList.remove('bg-purple-800');
-        
-        // Show the quarterly section and hide the monthly section
-        monthlySection.style.display = 'none';
-        quarterlySection.style.display = 'block';
-        
-        // Save the active tab preference
-        saveActiveTab('quarterly');
-    });
-
-    // Load the last active tab or default to monthly
-    loadActiveTab();
 });

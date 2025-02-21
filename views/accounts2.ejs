@@ -37,137 +37,162 @@
             </div>
         </div>
 
-        <!-- Payment Type Selection -->
-        <div class="flex justify-center space-x-4 mb-6">
-            <button id="monthlyPaymentBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium">
-                Monthly Payment
-            </button>
-            <button id="quarterlyPaymentBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium">
-                Quarterly Payment
-            </button>
-        </div>
-
-        <!-- Monthly Payment Section -->
-        <div id="monthlySection">
-            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-3xl font-bold text-gray-800">Monthly Fee Status</h2>
-                    <div class="flex items-center space-x-4">
-                        <button id="prevYear" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <svg class="w-6 h-6 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="15 18 9 12 15 6"></polyline>
-                            </svg>
-                        </button>
-                        <span id="currentYear" class="text-xl font-semibold text-gray-800">2025</span>
-                        <button id="nextYear" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <svg class="w-6 h-6 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="flex gap-6 mb-5 text-sm text-gray-600">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-green-400 mr-1"></div>
-                        <span>Paid</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-yellow-400 mr-1"></div>
-                        <span>Pending</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-red-400 mr-1"></div>
-                        <span>Missed</span>
-                    </div>
-                </div>
-                <!-- Months Grid -->
-                <div id="monthsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Months will be dynamically inserted here -->
-                </div>
-            </div>
-
-            <!-- Monthly Summary Section -->
-            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Year Summary</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <p class="text-sm text-gray-600">Total Fees Paid</p>
-                        <p class="text-lg font-semibold text-gray-800" id="totalPaid">₹0</p>
-                    </div>
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <p class="text-sm text-gray-600">Pending Amount</p>
-                        <p class="text-lg font-semibold text-gray-800" id="pendingAmount">₹0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Monthly Payment Button -->
-            <div class="text-center mt-6">
-                <button id="payPendingBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium">
-                    Pay Pending Amount
+        <!-- Initial Payment Type Selection Screen -->
+        <div id="initialPaymentOptions" class="flex flex-col items-center justify-center py-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-10">Select Payment Schedule</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl">
+                <button id="initialMonthlyBtn" class="bg-white border-2 border-purple-600 hover:bg-purple-50 rounded-xl shadow-md p-8 flex flex-col items-center transition-all duration-300">
+                    <svg class="w-16 h-16 text-purple-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Monthly Payments</h3>
+                    <p class="text-gray-600 text-center">Pay ₹800 each month</p>
+                </button>
+                
+                <button id="initialQuarterlyBtn" class="bg-white border-2 border-purple-600 hover:bg-purple-50 rounded-xl shadow-md p-8 flex flex-col items-center transition-all duration-300">
+                    <svg class="w-16 h-16 text-purple-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Quarterly Payments</h3>
+                    <p class="text-gray-600 text-center">Pay ₹2,400 every three months</p>
                 </button>
             </div>
         </div>
 
-        <!-- Quarterly Payment Section -->
-        <div id="quarterlySection" style="display: none;">
-            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-3xl font-bold text-gray-800">Quarterly Fee Status</h2>
-                    <div class="flex items-center space-x-4">
-                        <button id="prevYearQuarterly" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <svg class="w-6 h-6 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="15 18 9 12 15 6"></polyline>
-                            </svg>
-                        </button>
-                        <span id="currentYearQuarterly" class="text-xl font-semibold text-gray-800">2025</span>
-                        <button id="nextYearQuarterly" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <svg class="w-6 h-6 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="flex gap-6 mb-5 text-sm text-gray-600">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-green-400 mr-1"></div>
-                        <span>Paid</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-yellow-400 mr-1"></div>
-                        <span>Pending</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 rounded-full bg-red-400 mr-1"></div>
-                        <span>Missed</span>
-                    </div>
-                </div>
-                <!-- Quarters Grid -->
-                <div id="quarterlyGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Quarters will be dynamically inserted here -->
-                </div>
-            </div>
-
-            <!-- Quarterly Summary Section -->
-            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Year Summary</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <p class="text-sm text-gray-600">Total Fees Paid</p>
-                        <p class="text-lg font-semibold text-gray-800" id="totalPaidQuarterly">₹0</p>
-                    </div>
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <p class="text-sm text-gray-600">Pending Amount</p>
-                        <p class="text-lg font-semibold text-gray-800" id="pendingAmountQuarterly">₹0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quarterly Payment Button -->
-            <div class="text-center mt-6">
-                <button id="payPendingQuarterlyBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium">
-                    Pay Pending Amount
+        <!-- Payment Sections Container -->
+        <div id="paymentSectionsContainer" style="display: none;">
+            <!-- Payment Type Selection (Secondary Navigation) -->
+            <div class="flex justify-center space-x-4 mb-6">
+                <button id="monthlyPaymentBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium">
+                    Monthly Payment
                 </button>
+                <button id="quarterlyPaymentBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium">
+                    Quarterly Payment
+                </button>
+            </div>
+
+            <!-- Monthly Payment Section -->
+            <div id="monthlySection" style="display: none;">
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">Monthly Fee Status</h2>
+                        <div class="flex items-center space-x-4">
+                            <button id="prevYear" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <svg class="w-6 h-6 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                            </button>
+                            <span id="currentYear" class="text-xl font-semibold text-gray-800">2025</span>
+                            <button id="nextYear" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <svg class="w-6 h-6 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 mb-5 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-green-400 mr-1"></div>
+                            <span>Paid</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-yellow-400 mr-1"></div>
+                            <span>Pending</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-red-400 mr-1"></div>
+                            <span>Missed</span>
+                        </div>
+                    </div>
+                    <!-- Months Grid -->
+                    <div id="monthsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Months will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- Monthly Summary Section -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Year Summary</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Total Fees Paid</p>
+                            <p class="text-lg font-semibold text-gray-800" id="totalPaid">₹0</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Pending Amount</p>
+                            <p class="text-lg font-semibold text-gray-800" id="pendingAmount">₹0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Payment Button -->
+                <div class="text-center mt-6">
+                    <button id="payPendingBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium">
+                        Pay Pending Amount
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quarterly Payment Section -->
+            <div id="quarterlySection" style="display: none;">
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">Quarterly Fee Status</h2>
+                        <div class="flex items-center space-x-4">
+                            <button id="prevYearQuarterly" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <svg class="w-6 h-6 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                            </button>
+                            <span id="currentYearQuarterly" class="text-xl font-semibold text-gray-800">2025</span>
+                            <button id="nextYearQuarterly" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <svg class="w-6 h-6 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 mb-5 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-green-400 mr-1"></div>
+                            <span>Paid</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-yellow-400 mr-1"></div>
+                            <span>Pending</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-red-400 mr-1"></div>
+                            <span>Missed</span>
+                        </div>
+                    </div>
+                    <!-- Quarters Grid -->
+                    <div id="quarterlyGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Quarters will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- Quarterly Summary Section -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Year Summary</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Total Fees Paid</p>
+                            <p class="text-lg font-semibold text-gray-800" id="totalPaidQuarterly">₹0</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Pending Amount</p>
+                            <p class="text-lg font-semibold text-gray-800" id="pendingAmountQuarterly">₹0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quarterly Payment Button -->
+                <div class="text-center mt-6">
+                    <button id="payPendingQuarterlyBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium">
+                        Pay Pending Amount
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -176,5 +201,58 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="../javascripts/accounts2.js"></script>
     <script src="../javascripts/quarterlyPayment.js"></script>
+    
+    <script>
+        // Initial selection screen handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial option buttons
+            const initialMonthlyBtn = document.getElementById('initialMonthlyBtn');
+            const initialQuarterlyBtn = document.getElementById('initialQuarterlyBtn');
+            
+            // Sections
+            const initialPaymentOptions = document.getElementById('initialPaymentOptions');
+            const paymentSectionsContainer = document.getElementById('paymentSectionsContainer');
+            const monthlySection = document.getElementById('monthlySection');
+            const quarterlySection = document.getElementById('quarterlySection');
+            
+            // Secondary navigation buttons
+            const monthlyPaymentBtn = document.getElementById('monthlyPaymentBtn');
+            const quarterlyPaymentBtn = document.getElementById('quarterlyPaymentBtn');
+            
+            // Handle initial monthly button click
+            initialMonthlyBtn.addEventListener('click', function() {
+                // Hide initial options screen
+                initialPaymentOptions.style.display = 'none';
+                // Show payment sections container
+                paymentSectionsContainer.style.display = 'block';
+                // Show monthly section
+                monthlySection.style.display = 'block';
+                quarterlySection.style.display = 'none';
+                // Update button styles
+                monthlyPaymentBtn.classList.add('bg-purple-800');
+                quarterlyPaymentBtn.classList.remove('bg-purple-800');
+                // Update the UI
+                updateMonthsGrid();
+                updateYearSummary();
+            });
+            
+            // Handle initial quarterly button click
+            initialQuarterlyBtn.addEventListener('click', function() {
+                // Hide initial options screen
+                initialPaymentOptions.style.display = 'none';
+                // Show payment sections container
+                paymentSectionsContainer.style.display = 'block';
+                // Show quarterly section
+                monthlySection.style.display = 'none';
+                quarterlySection.style.display = 'block';
+                // Update button styles
+                quarterlyPaymentBtn.classList.add('bg-purple-800');
+                monthlyPaymentBtn.classList.remove('bg-purple-800');
+                // Update the UI
+                updateQuarterlyGrid();
+                updateQuarterlySummary();
+            });
+        });
+    </script>
 </body>
 </html>

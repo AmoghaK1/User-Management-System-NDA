@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Payment Schedule</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            margin-right: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #333;
+            font-weight: 600;
+        }
+        .payment-options {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .payment-card {
+            width: 250px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .payment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: #974bf0;
+        }
+        .payment-card.selected {
+            border: 2px solid #8a2be2;
+            background-color: #f5f0ff;
+        }
+        .icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #8a2be2;
+        }
+        h2 {
+            margin-bottom: 10px;
+            color: #444;
+        }
+        .price {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .submit-btn {
+            display: block;
+            width: 200px;
+            margin: 0 auto;
+            padding: 12px;
+            background-color: #8a2be2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #7623c9;
+        }
+        .submit-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .note {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+           
+                <img class="avatar"src="<%= user.profilePicture %>" alt="Avatar">
+            
+            <h2><%= user.name %></h2>
+        </div>
+
+        <h1>Select Payment Schedule</h1>
+
+        <form action="/select-payment" method="POST" id="paymentForm">
+            <div class="payment-options">
+                <div class="payment-card" data-method="monthly" onclick="selectPaymentMethod('monthly')">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19,4H17V3a1,1,0,0,0-2,0V4H9V3A1,1,0,0,0,7,3V4H5A3,3,0,0,0,2,7V19a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V7A3,3,0,0,0,19,4Zm1,15a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V12H20Zm0-9H4V7A1,1,0,0,1,5,6H7V7A1,1,0,0,0,9,7V6h6V7a1,1,0,0,0,2,0V6h2a1,1,0,0,1,1,1Z"/>
+                        </svg>
+                    </div>
+                    <h2>Monthly Payments</h2>
+                    <p class="price">Pay ₹800 each month</p>
+                </div>
+                
+                <div class="payment-card" data-method="quarterly" onclick="selectPaymentMethod('quarterly')">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.29,4.71a1,1,0,0,0-1.42,0L16,6.59V5a1,1,0,0,0-2,0V9a1,1,0,0,0,.08.38,1,1,0,0,0,.54.54A1,1,0,0,0,15,10h4a1,1,0,0,0,0-2H17.41l1.88-1.87A1,1,0,0,0,19.29,4.71Z"/>
+                            <path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"/>
+                        </svg>
+                    </div>
+                    <h2>Quarterly Payments</h2>
+                    <p class="price">Pay ₹2,400 every three months</p>
+                </div>
+            </div>
+
+            <input type="hidden" name="method" id="selectedMethod" value="">
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>Confirm Selection</button>
+        </form>
+
+        <p class="note">Note: This is a one-time selection. Your payment schedule cannot be changed later.</p>
+    </div>
+
+    <script>
+        function selectPaymentMethod(method) {
+            // Update hidden input
+            document.getElementById('selectedMethod').value = method;
+            
+            // Update UI
+            document.querySelectorAll('.payment-card').forEach(card => {
+                if (card.dataset.method === method) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+            
+            // Enable submit button
+            document.getElementById('submitBtn').disabled = false;
+        }
+    </script>
+</body>
+</html>

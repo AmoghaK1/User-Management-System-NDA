@@ -56,6 +56,7 @@ app.use((req, res, next) => {
 const userRoutes = require('./routes/userRoutes');
 app.use('/', userRoutes);
 
+
 app.use('/',paymentRoutes);
 
 app.listen(port, ()=>{

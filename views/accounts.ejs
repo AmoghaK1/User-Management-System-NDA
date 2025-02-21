@@ -1,115 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Accounts Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="../stylesheets/accounts.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts | NDA</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="my-navbar">
-        <div class="user-profile">
-            <img id="user-pfp" src="../images/pfp_final_1.png" alt="user-pfp">
-            <div class="user-name">Amogha Khare</div>
+    <style>
+        .month-card, .quarterly-card {
+            transition: all 0.3s ease;
+        }
+        .month-card:hover, .quarterly-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .paid-status {
+            background-color: #ecfdf5;
+            border-color: #d1fae5;
+        }
+        .pending-status {
+            background-color: #fff7ed;
+            border-color: #ffedd5;
+        }
+        .upcoming-status {
+            background-color: #f3f4f6;
+            border-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center">
+                <img class="w-12 h-12 rounded-full bg-gray-200" src="../images/pfp_final_1.png" alt="Profile">
+                <span class="ml-3 text-2xl font-bold text-gray-800"><%= user.name %></span>
+            </div>
         </div>
-        <div class="navbar-center-section">
-            <div>Accounts Dashboard</div>
-        </div>
-        <div class="navbar-icons">
-            <i class="fa-solid fa-bell nav-icon"></i>
-            <i class="fa-solid fa-phone"></i>
-        </div>
-    </div>
-    <div class="navbar-mobile">
-        <div class="exam-name">Accounts Dashboard</div>
-    </div>
 
-    <div class="thought-section">
-        <div class="thought-box">"Financial wisdom begins with understanding your educational investment."</div>
-    </div>
-
-   <div class="main-section">
-    <div class="card">
-        <div class="card-image">
-            <img src="../images/bank.png" alt="payment img">
+        <!-- Initial Payment Type Selection Screen -->
+        <div id="initialPaymentOptions" class="flex flex-col items-center justify-center py-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-10">Select Payment Schedule</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl">
+                <a href="/accounts/monthly"><button id="initialMonthlyBtn" class="bg-white border-2 border-purple-600 hover:bg-purple-50 rounded-xl shadow-md p-8 flex flex-col items-center transition-all duration-300">
+                    <svg class="w-16 h-16 text-purple-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Monthly Payments</h3>
+                    <p class="text-gray-600 text-center">Pay ₹800 each month</p>
+                </button></a>
+                
+                <a href="/accounts/quaterly"><button id="initialQuarterlyBtn" class="bg-white border-2 border-purple-600 hover:bg-purple-50 rounded-xl shadow-md p-8 flex flex-col items-center transition-all duration-300">
+                    <svg class="w-16 h-16 text-purple-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Quarterly Payments</h3>
+                    <p class="text-gray-600 text-center">Pay ₹2,400 every three months</p>
+                </button></a>
+            </div>
         </div>
-        <div class="card-text">Fee Payment</div>
-    </div>
-    <div class="card">
-        <div class="card-image">
-            <img src="../images/due-date.png" alt="dues img">
-        </div>
-        <div class="card-text">Pending Dues</div>
-    </div>
-    <div class="card">
-        <div class="card-image">
-            <img src="../images/online-learning.png" alt="course fee img">
-        </div>
-        <div class="card-text">Current Course Fee</div>
-    </div>
-    <div class="card">
-        <div class="card-image">
-            <img src="../images/due-date.png" alt="due date img">
-        </div>
-        <div class="card-text">Next Fee Due</div>
-    </div>
-    <div class="card">
-        <div class="card-image">
-            <img src="../images/payment.png" alt="receipt img">
-        </div>
-        <div class="card-text">Payment History</div>
-    </div>
-   </div>
-
-   <footer class="bg-gray-200 text-gray-600 py-6">
-    <div class="container mx-auto flex flex-wrap justify-center text-center">
-      <div class="w-full sm:w-1/4 mb-4 sm:mb-0 px-4">
-        <h3 class="text-lg font-medium mb-2">Financial Support</h3>
-        <p class="text-sm">Need help with payment options?</p>
-        <a href="#" class="text-blue-500 hover:text-blue-600 text-sm">Contact Finance Office</a>
-      </div>
-      <div class="w-full sm:w-1/4 mb-4 sm:mb-0 px-4">
-        <h3 class="text-lg font-medium mb-2">Quick Links</h3>
-        <ul class="list-none text-sm">
-          <li><a href="#" class="text-gray-500 hover:text-gray-600">Dashboard</a></li>
-          <li><a href="#" class="text-gray-500 hover:text-gray-600">Accounts</a></li>
-          <li><a href="#" class="text-gray-500 hover:text-gray-600">Support</a></li>
-        </ul>
-      </div>
-      <div class="w-full sm:w-1/4 mb-4 sm:mb-0 px-4">
-        <h3 class="text-lg font-medium mb-2">Contact Finance</h3>
-        <p class="text-sm text-gray-500">
-          Finance Department<br>
-          Nrutyashree Dance Academy<br>
-          BT Kawade Road, Pune<br>
-          Phone: +91 9822155819
-        </p>
-      </div>
-      <div class="w-full sm:w-1/4 mb-4 sm:mb-0 px-4">
-        <h3 class="text-lg font-medium mb-2">Follow Us</h3>
-        <div class="flex justify-center">
-          <a href="#" class="text-gray-500 hover:text-gray-600 mx-2">
-            <i class="fab fa-facebook-f"></i>
-          </a>
-          <a href="#" class="text-gray-500 hover:text-gray-600 mx-2">
-            <i class="fab fa-twitter"></i>
-          </a>
-          <a href="#" class="text-gray-500 hover:text-gray-600 mx-2">
-            <i class="fab fa-linkedin-in"></i>
-          </a>
-          <a href="#" class="text-gray-500 hover:text-gray-600 mx-2">
-            <i class="fab fa-instagram"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-    <div class="bg-gray-300 py-4 mt-6">
-      <div class="container mx-auto text-center text-gray-500 text-sm">
-        &copy; 2008 Nrutyashree Dance Academy. All rights reserved.
-      </div>
-    </div>
-  </footer>
 </body>
 </html>

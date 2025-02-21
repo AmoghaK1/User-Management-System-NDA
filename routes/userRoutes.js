@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const user_route = express();
 const config = require("../config/config")
 const auth = require('../middlewares/auth');
-const User = require('../models/userModel');
+
 
 user_route.use(bodyParser.json());
 user_route.use(bodyParser.urlencoded({extended: true}));

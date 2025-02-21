@@ -20,15 +20,14 @@ const renderDashboard = async (req, res) => {
 const createOrder = async (req, res) => {
     try {
         // Extract data from request
-        const { name, description, email, contact } = req.body;
-        const userId = req.user._id; // Ensure userId is extracted correctly
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).send({ success: false, msg: 'User not found' });
-        }
-        const amount = user.exam_fee;
+        const { name, amount, description, email, contact } = req.body;
+        
+        // Validate required fields
         if (!amount) {
-            return res.status(400).send({ success: false, msg: 'Invalid exam level fee' });
+            return res.status(400).send({ 
+                success: false, 
+                msg: 'Amount is required' 
+            });
         }
         
         // Convert amount to paise (Razorpay uses smallest currency unit)
@@ -61,9 +60,9 @@ const createOrder = async (req, res) => {
                 key_id: RAZORPAY_ID_KEY,
                 product_name: name || 'Fee Payment',
                 description: description || 'Monthly Fee Payment',
-                contact: contact || user.contact,
-                name: user.name,
-                email: email || user.email
+                contact: contact || '9876543210',
+                name: 'Amogha Khare',
+                email: email || 'amogha.khare@example.com'
             });
         });
     } catch (error) {

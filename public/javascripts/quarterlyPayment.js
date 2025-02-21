@@ -1,4 +1,27 @@
-const quarterlyFee = 2400; // 3 months fee at 800 per month
+// const quarterlyFee = 2400; // 3 months fee at 800 per month
+async function fetchExamFee() {
+    try {
+        const response = await fetch('/getUserFee');
+        const data = await response.json();
+        return data.exam_fee || 800;
+    } catch (error) {
+        console.error("Error fetching exam fee:", error);
+        return 800;
+    }
+}
+
+async function calculatePendingQuarterlyAmount() {
+    const examFee = await fetchExamFee();
+    const quarterlyFee = examFee * 3; // Update quarterly fee dynamically
+    let pendingQuarters = 0;
+    for (let quarter = 1; quarter <= Math.floor(new Date().getMonth() / 3) + 1; quarter++) {
+        if (!quarterlyPaymentStatus[`${currentYear}-Q${quarter}`]) {
+            pendingQuarters++;
+        }
+    }
+    return pendingQuarters * quarterlyFee;
+}
+
 
 // Store payment status in local storage to persist between page loads
 const quarterlyPaymentStatus = JSON.parse(localStorage.getItem('quarterlyPaymentStatus')) || {};
@@ -83,7 +106,7 @@ function getQuarterlyFeeStatus(quarter, year) {
 }
 
 function createQuarterlyCard(quarter, year) {
-    const quarterObj = quarters.find(q => q.id === quarter);
+    const quarterObj = quarters.find(q => q.id === quarter)
     const status = getQuarterlyFeeStatus(quarter, year);
 
     const quarterlyCard = document.createElement('div');
@@ -129,23 +152,19 @@ function updateQuarterlyGrid() {
     }
 }
 
-function calculatePendingQuarterlyAmount() {
-    const currentDate = getCurrentDate();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    const currentQuarter = Math.floor(currentMonth / 3) + 1;
+async function calculatePendingQuarterlyAmount() {
+    const examFee = await fetchExamFee();
+    const quarterlyFee = examFee * 3;
 
     let pendingQuarters = 0;
 
     // If current year matches the displayed year
     if (currentYear === currentYear) {
         // Count pending quarters from Q1 to current quarter
-        for (let quarter = 1; quarter <= currentQuarter; quarter++) {
-            const paymentKey = `${currentYear}-Q${quarter}`;
-            if (!quarterlyPaymentStatus[paymentKey]) {
-                pendingQuarters++;
-            }
+        if (!quarterlyPaymentStatus[`${currentYear}-Q${quarter}`]) {
+            pendingQuarters++;
         }
+        
     }
     // If displayed year is in the past, all quarters should be paid
     else if (currentYear < currentYear) {
@@ -159,7 +178,9 @@ function calculatePendingQuarterlyAmount() {
     return pendingQuarters * quarterlyFee;
 }
 
-function calculatePaidQuarterlyAmount() {
+async function calculatePaidQuarterlyAmount() {
+    const examFee = await fetchExamFee();
+    const quarterlyFee = examFee * 3; // Calculate quarterly fee dynamically
     const currentDate = getCurrentDate();
     const currentMonth = currentDate.getMonth();
     const currentQuarter = Math.floor(currentMonth / 3) + 1;

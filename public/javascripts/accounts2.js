@@ -4,7 +4,29 @@ const months = [
 ];
 
 let currentYear = new Date().getFullYear();
-const monthlyFee = 800;
+// const monthlyFee = 800;
+async function fetchExamFee() {
+    try {
+        const response = await fetch('/getUserFee'); // Assume this route returns the user's fee
+        const data = await response.json();
+        return data.exam_fee || 800; // Default fee
+    } catch (error) {
+        console.error("Error fetching exam fee:", error);
+        return 800; // Default fallback fee
+    }
+}
+
+async function calculatePendingAmount() {
+    const examFee = await fetchExamFee();
+    let pendingMonths = 0;
+    for (let i = 0; i <= new Date().getMonth(); i++) {
+        if (!paymentStatus[`${currentYear}-${i}`]) {
+            pendingMonths++;
+        }
+    }
+    return pendingMonths * examFee;
+}
+
 
 // Store payment status in local storage to persist between page loads
 const paymentStatus = JSON.parse(localStorage.getItem('paymentStatus')) || {};
@@ -88,17 +110,16 @@ function getFeeStatus(month, year) {
         showButton: false
     };
 }
-
-function createMonthCard(month, year) {
+async function createMonthCard(month, year) {
     const status = getFeeStatus(month, year);
-    
+    const examFee = await fetchExamFee();
     const monthCard = document.createElement('div');
     monthCard.className = `month-card p-4 rounded-lg border ${status.statusClass}`;
     monthCard.id = `month-${month.toLowerCase()}-${year}`;
 
     const buttonHtml = status.showButton ? 
         `<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-            Pay now
+            Pay now (₹${examFee}) <!-- Display the fee here -->
         </button>` : '';
 
     monthCard.innerHTML = `
@@ -118,7 +139,6 @@ function createMonthCard(month, year) {
     
     return monthCard;
 }
-
 function updateMonthsGrid() {
     const grid = document.getElementById('monthsGrid');
     if (!grid) return; // Safety check
@@ -132,7 +152,8 @@ function updateMonthsGrid() {
     });
 }
 
-function calculatePendingAmount() {
+async function calculatePendingAmount() {
+    const examFee = await fetchExamFee();
     const currentDate = getCurrentDate();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
@@ -158,10 +179,11 @@ function calculatePendingAmount() {
         pendingMonths = 12;
     }
     
-    return pendingMonths * monthlyFee;
+    return pendingMonths * examFee;
 }
 
-function calculatePaidAmount() {
+async function calculatePaidAmount() {
+    const examFee = await fetchExamFee();
     const currentDate = getCurrentDate();
     const currentMonth = currentDate.getMonth();
     
@@ -181,12 +203,12 @@ function calculatePaidAmount() {
         paidMonths = 12;
     }
     
-    return paidMonths * monthlyFee;
+    return paidMonths * examFee;
 }
 
-function updateYearSummary() {
-    const totalPaid = calculatePaidAmount();
-    const pendingAmount = calculatePendingAmount();
+async function updateYearSummary() {
+    const totalPaid = await calculatePaidAmount();
+    const pendingAmount = await calculatePendingAmount();
 
     const totalPaidElement = document.getElementById('totalPaid');
     const pendingAmountElement = document.getElementById('pendingAmount');
@@ -224,10 +246,10 @@ function processPayment(month, year) {
         type: "POST",
         data: {
             name: `Fee for ${month} ${year}`,
-            amount: monthlyFee,
+            amount: fetchExamFee(), // Ensure this returns the correct fee
             description: `Monthly fee payment for ${month} ${year}`,
-            email: 'amogha.khare@example.com',
-            contact: '9876543210'
+            email: userEmail, // Use the logged-in user's email
+            contact: userContact // Use the logged-in user's phone number
         },
         success: function(res) {
             if (res.success) {
@@ -249,7 +271,7 @@ function processPayment(month, year) {
                     },
                     "prefill": {
                         "contact": res.contact,
-                        "name": "Amogha Khare",
+                        "name": res.name,
                         "email": res.email
                     },
                     "theme": {

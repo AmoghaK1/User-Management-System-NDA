@@ -46,7 +46,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">Monthly Payments</h3>
-                    <p class="text-gray-600 text-center">Pay ₹800 each month</p>
+                    <p class="text-gray-600 text-center">Pay <%= user.exam_fee %> each month</p>
                 </button>
                 
                 <button id="initialQuarterlyBtn" class="bg-white border-2 border-purple-600 hover:bg-purple-50 rounded-xl shadow-md p-8 flex flex-col items-center transition-all duration-300">
@@ -54,23 +54,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                     </svg>
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">Quarterly Payments</h3>
-                    <p class="text-gray-600 text-center">Pay ₹2,400 every three months</p>
+                    <p class="text-gray-600 text-center">Pay <%= user.exam_fee * 3%> every three months</p>
                 </button>
             </div>
         </div>
 
         <!-- Payment Sections Container -->
         <div id="paymentSectionsContainer" style="display: none;">
-            <!-- Payment Type Selection (Secondary Navigation) -->
-            <div class="flex justify-center space-x-4 mb-6">
-                <button id="monthlyPaymentBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium">
-                    Monthly Payment
-                </button>
-                <button id="quarterlyPaymentBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium">
-                    Quarterly Payment
-                </button>
-            </div>
-
             <!-- Monthly Payment Section -->
             <div id="monthlySection" style="display: none;">
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -127,9 +117,12 @@
 
                 <!-- Monthly Payment Button -->
                 <div class="text-center mt-6">
-                    <button id="payPendingBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium">
-                        Pay Pending Amount
-                    </button>
+                    <button 
+                    id="backToHomeBtn" 
+                        class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium"
+                    onclick="window.location.href = '/st-dashboard'">
+                    Back to Home
+                </button>
                 </div>
             </div>
 
@@ -189,9 +182,12 @@
 
                 <!-- Quarterly Payment Button -->
                 <div class="text-center mt-6">
-                    <button id="payPendingQuarterlyBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium">
-                        Pay Pending Amount
-                    </button>
+                    <button 
+                    id="backToHomeBtn" 
+                        class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium"
+                    onclick="window.location.href = '/st-dashboard'">
+                    Back to Home
+                </button>
                 </div>
             </div>
         </div>
@@ -206,6 +202,7 @@
         // Initial selection screen handling
         document.addEventListener('DOMContentLoaded', function() {
             // Initial option buttons
+            window.userId = "<%= user._id %>"; // For EJS
             const initialMonthlyBtn = document.getElementById('initialMonthlyBtn');
             const initialQuarterlyBtn = document.getElementById('initialQuarterlyBtn');
             
@@ -214,10 +211,6 @@
             const paymentSectionsContainer = document.getElementById('paymentSectionsContainer');
             const monthlySection = document.getElementById('monthlySection');
             const quarterlySection = document.getElementById('quarterlySection');
-            
-            // Secondary navigation buttons
-            const monthlyPaymentBtn = document.getElementById('monthlyPaymentBtn');
-            const quarterlyPaymentBtn = document.getElementById('quarterlyPaymentBtn');
             
             // Handle initial monthly button click
             initialMonthlyBtn.addEventListener('click', function() {
@@ -228,9 +221,6 @@
                 // Show monthly section
                 monthlySection.style.display = 'block';
                 quarterlySection.style.display = 'none';
-                // Update button styles
-                monthlyPaymentBtn.classList.add('bg-purple-800');
-                quarterlyPaymentBtn.classList.remove('bg-purple-800');
                 // Update the UI
                 updateMonthsGrid();
                 updateYearSummary();
@@ -245,9 +235,6 @@
                 // Show quarterly section
                 monthlySection.style.display = 'none';
                 quarterlySection.style.display = 'block';
-                // Update button styles
-                quarterlyPaymentBtn.classList.add('bg-purple-800');
-                monthlyPaymentBtn.classList.remove('bg-purple-800');
                 // Update the UI
                 updateQuarterlyGrid();
                 updateQuarterlySummary();

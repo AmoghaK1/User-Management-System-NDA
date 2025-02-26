@@ -7,6 +7,7 @@ const fs = require('fs');
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 require("dotenv").config();
+const PaymentStatus = require('../models/paymentModel');
 
 const loadRegister = async(req,res)=> {
     try {
@@ -15,6 +16,17 @@ const loadRegister = async(req,res)=> {
         console.log(error.message);
     }
 
+}
+
+async function initializePaymentStatus(userId) {
+    const currentYear = new Date().getFullYear();
+    for (let month = 0; month < 12; month++) {
+        await PaymentStatus.findOneAndUpdate(
+            { userId, year: currentYear, month },
+            { status: 'Pending' }, // Default status
+            { upsert: true } // Create the document if it doesn't exist
+        );
+    }
 }
 
 const addUser = async (req, res) => {
@@ -64,6 +76,7 @@ const addUser = async (req, res) => {
 
         const userData = await user.save();
         if (userData) {
+            await initializePaymentStatus(user._id); // Initialize payment status for the new user
             res.render('login', { success: "Registration successful! Please login." });
         } else {
             res.render('signup', {

@@ -4,7 +4,7 @@ const months = [
 ];
 
 let currentYear = new Date().getFullYear();
-const monthlyFee = 800;
+
 
 // Store payment status in local storage as a backup
 let paymentStatus = {};
@@ -273,7 +273,7 @@ function processPayment(month, year) {
         type: "POST",
         data: {
             name: `Fee for ${month} ${year}`,
-            amount: monthlyFee,
+            amount: window.monthlyFee,
             description: `Monthly fee payment for ${month} ${year}`,
             email: 'amogha.khare@example.com',
             contact: '9876543210',

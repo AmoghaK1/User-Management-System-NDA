@@ -203,6 +203,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initial option buttons
             window.userId = "<%= user._id %>"; // For EJS
+            window.monthlyFee = "<%= user.exam_fee %>"; 
+            window.quarterlyFee = "<%= user.exam_fee * 3 %>"; 
             const initialMonthlyBtn = document.getElementById('initialMonthlyBtn');
             const initialQuarterlyBtn = document.getElementById('initialQuarterlyBtn');
             

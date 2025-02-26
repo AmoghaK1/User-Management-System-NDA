@@ -268,6 +268,14 @@ async function changeYear(change) {
 function processPayment(month, year) {
     const monthIndex = months.indexOf(month);
 
+    // Check if the corresponding quarter has been paid
+    const quarter = Math.floor(monthIndex / 3) + 1;
+    const quarterPaymentKey = `${year}-Q${quarter}`;
+    if (quarterlyPaymentStatus[quarterPaymentKey]) {
+        alert('Cannot pay for this month as the corresponding quarter has already been paid.');
+        return;
+    }
+
     $.ajax({
         url: "/createOrder",
         type: "POST",
@@ -343,7 +351,6 @@ function processPayment(month, year) {
         }
     });
 }
-
 
 // Payment method selection function after initial selection
 function setPaymentMethod(method) {

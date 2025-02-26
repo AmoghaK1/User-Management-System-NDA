@@ -32,6 +32,7 @@ const createOrder = async (req, res) => {
                 quarters: new Map() // Initialize quarters as an empty Map
             });
         }
+
         if (isQuarterly) {
             // Check if any of the months in the quarter have been paid
             const startMonth = (month - 1) * 3;
@@ -121,7 +122,6 @@ const updatePaymentMonth = async (req, res) => {
         res.status(500).json({ success: false, msg: 'Internal Server Error' });
     }
 };
-
 const updatePaymentQuarter = async (req, res) => {
     try {
         const { userId, year, quarter } = req.body;
@@ -132,6 +132,17 @@ const updatePaymentQuarter = async (req, res) => {
             { [`quarters.${quarter}`]: 'Paid' }, // Update the status for the specific quarter
             { upsert: true }
         );
+
+        // Update the corresponding months
+        const startMonth = (quarter - 1) * 3;
+        const endMonth = startMonth + 3;
+        for (let i = startMonth; i < endMonth; i++) {
+            await PaymentStatus.findOneAndUpdate(
+                { userId, year },
+                { [`months.${i}`]: 'Paid' }, // Update the status for the specific month
+                { upsert: true }
+            );
+        }
 
         res.status(200).json({ success: true, msg: 'Payment status updated successfully' });
     } catch (error) {

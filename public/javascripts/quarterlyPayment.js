@@ -1,6 +1,5 @@
 // Use the same currentYear from the monthly code instead of redefining it
 
-const quarterlyFee = 2400; // 3 months fee at 800 per month
 
 // Store quarterly payment status separately
 let quarterlyPaymentStatus = {};
@@ -290,7 +289,7 @@ function processQuarterlyPayment(quarter, year) {
         type: "POST",
         data: {
             name: `Fee for Q${quarter} ${year}`,
-            amount: quarterlyFee,
+            amount: window.quarterlyFee,
             description: `Quarterly fee payment for Q${quarter} (${monthsList}) ${year}`,
             email: 'amogha.khare@example.com',
             contact: '9876543210',

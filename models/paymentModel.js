@@ -1,21 +1,36 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const PaymentSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    method: { type: String, enum: ["monthly", "quarterly"], required: true }, // Payment method
-    monthsPaid: [{ type: Number }], // Array storing paid months (e.g., [1, 2] for Jan, Feb)
-    quartersPaid: [{ type: Number }], // Array storing paid quarters (e.g., [1] for Q1)
-    amount: { type: Number, required: true },
-    paymentDate: { type: Date, default: Date.now },
-});
-
-// Automatically mark payments before 2024 as paid
-PaymentSchema.pre("save", function (next) {
-    if (this.paymentDate.getFullYear() < 2024) {
-        this.monthsPaid = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // Mark all months as paid
-        this.quartersPaid = [1, 2, 3, 4]; // Mark all quarters as paid
+const paymentStatusSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Link to the user
+    year: { type: Number, required: true }, // Year of payment
+    months: {
+        type: Map,
+        of: String, // Payment status for each month (e.g., 'Paid', 'Pending', 'Upcoming')
+        default: {
+            0: 'Pending', // January
+            1: 'Pending', // February
+            2: 'Pending', // March
+            3: 'Pending', // April
+            4: 'Pending', // May
+            5: 'Pending', // June
+            6: 'Pending', // July
+            7: 'Pending', // August
+            8: 'Pending', // September
+            9: 'Pending', // October
+            10: 'Pending', // November
+            11: 'Pending' // December
+        }
+    },
+    quarters: {
+        type: Map,
+        of: String, // Payment status for each quarter (e.g., 'Paid', 'Pending', 'Upcoming')
+        default: {
+            1: 'Pending', // Q1 (January, February, March)
+            2: 'Pending', // Q2 (April, May, June)
+            3: 'Pending', // Q3 (July, August, September)
+            4: 'Pending'  // Q4 (October, November, December)
+        }
     }
-    next();
 });
 
-module.exports = mongoose.model("Payment", PaymentSchema);
+module.exports = mongoose.model('PaymentStatus', paymentStatusSchema);

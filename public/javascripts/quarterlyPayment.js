@@ -1,7 +1,8 @@
-const quarterlyFee = 2400; // 3 months fee at 800 per month
+// Use the same currentYear from the monthly code instead of redefining it
 
-// Store payment status in local storage to persist between page loads
-const quarterlyPaymentStatus = JSON.parse(localStorage.getItem('quarterlyPaymentStatus')) || {};
+
+// Store quarterly payment status separately
+let quarterlyPaymentStatus = {};
 
 // Define quarters with their respective months
 const quarters = [
@@ -11,21 +12,87 @@ const quarters = [
     { id: 4, name: 'Q4', months: ['October', 'November', 'December'] }
 ];
 
-function getCurrentDate() {
-    return new Date();
+// We'll use the same getCurrentDate() function from the monthly code
+
+// Fetch quarterly payment status - improved to work with the existing monthly data
+async function fetchQuarterlyPaymentStatus() {
+    try {
+        const response = await fetch('/payment-status', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include' // Include cookies for session-based authentication
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch payment status');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.paymentStatus) {
+            // Convert server data to a more usable format for our client
+            const formattedStatus = {};
+            data.paymentStatus.forEach(item => {
+                for (const [quarter, status] of item.quarters.entries()) {
+                    formattedStatus[`${item.year}-Q${quarter}`] = status === 'Paid';
+                }
+            });
+
+            // Update our local cache
+            quarterlyPaymentStatus = formattedStatus;
+            localStorage.setItem('quarterlyPaymentStatus', JSON.stringify(formattedStatus));
+            return formattedStatus;
+        } else {
+            // If no data from server, try to use cached data
+            const cachedStatus = JSON.parse(localStorage.getItem('quarterlyPaymentStatus')) || {};
+            quarterlyPaymentStatus = cachedStatus;
+            return cachedStatus;
+        }
+    } catch (error) {
+        console.error('Error fetching quarterly payment status:', error);
+        // Fallback to cached data if server request fails
+        const cachedStatus = JSON.parse(localStorage.getItem('quarterlyPaymentStatus')) || {};
+        quarterlyPaymentStatus = cachedStatus;
+        return cachedStatus;
+    }
 }
 
-function getQuarterlyFeeStatus(quarter, year) {
+async function getQuarterlyFeeStatus(quarter, year) {
+    await fetchQuarterlyPaymentStatus(); // Ensure payment status is loaded
+    
     const currentDate = getCurrentDate();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
     const currentQuarter = Math.floor(currentMonth / 3) + 1;
 
-    // Check if this quarter has been paid (from local storage)
+    // Check if this quarter has been paid (from our data)
     const paymentKey = `${year}-Q${quarter}`;
     if (quarterlyPaymentStatus[paymentKey]) {
         return {
             status: 'Paid',
+            statusClass: 'paid-status',
+            textColor: 'text-green-700',
+            showButton: false
+        };
+    }
+
+    // Check if any of the months in this quarter have been paid
+    const startMonth = (quarter - 1) * 3;
+    const endMonth = startMonth + 3;
+    let anyMonthPaid = false;
+    for (let i = startMonth; i < endMonth; i++) {
+        const monthPaymentKey = `${year}-${i}`;
+        if (paymentStatus[monthPaymentKey]) {
+            anyMonthPaid = true;
+            break;
+        }
+    }
+
+    if (anyMonthPaid) {
+        return {
+            status: 'Paid (Monthly)',
             statusClass: 'paid-status',
             textColor: 'text-green-700',
             showButton: false
@@ -45,7 +112,7 @@ function getQuarterlyFeeStatus(quarter, year) {
     // Current year logic
     if (year === currentYear) {
         // Current quarter
-        if (currentQuarter === quarter) {
+        if (quarter === currentQuarter) {
             return {
                 status: 'Pending',
                 statusClass: 'pending-status',
@@ -54,7 +121,7 @@ function getQuarterlyFeeStatus(quarter, year) {
             };
         }
         // Past quarters in current year
-        else if (currentQuarter > quarter) {
+        else if (quarter < currentQuarter) {
             return {
                 status: 'Pending',
                 statusClass: 'pending-status',
@@ -82,9 +149,9 @@ function getQuarterlyFeeStatus(quarter, year) {
     };
 }
 
-function createQuarterlyCard(quarter, year) {
+async function createQuarterlyCard(quarter, year) {
     const quarterObj = quarters.find(q => q.id === quarter);
-    const status = getQuarterlyFeeStatus(quarter, year);
+    const status = await getQuarterlyFeeStatus(quarter, year);
 
     const quarterlyCard = document.createElement('div');
     quarterlyCard.className = `quarterly-card p-4 rounded-lg border ${status.statusClass}`;
@@ -95,7 +162,7 @@ function createQuarterlyCard(quarter, year) {
             Pay now
         </button>` : '';
 
-    // Create HTML for included months - similar to monthly card layout
+    // Create HTML for included months
     const monthsList = quarterObj.months.join(', ');
 
     quarterlyCard.innerHTML = `
@@ -116,7 +183,7 @@ function createQuarterlyCard(quarter, year) {
     return quarterlyCard;
 }
 
-function updateQuarterlyGrid() {
+async function updateQuarterlyGrid() {
     const grid = document.getElementById('quarterlyGrid');
     if (!grid) return; // Safety check
     
@@ -124,7 +191,7 @@ function updateQuarterlyGrid() {
 
     // Show all 4 quarters for the current year
     for (let quarter = 1; quarter <= 4; quarter++) {
-        const quarterlyCard = createQuarterlyCard(quarter, currentYear);
+        const quarterlyCard = await createQuarterlyCard(quarter, currentYear);
         grid.appendChild(quarterlyCard);
     }
 }
@@ -143,8 +210,8 @@ function calculatePendingQuarterlyAmount() {
         for (let quarter = 1; quarter <= currentQuarter; quarter++) {
             const paymentKey = `${currentYear}-Q${quarter}`;
             if (!quarterlyPaymentStatus[paymentKey]) {
-            pendingQuarters++;
-        }
+                pendingQuarters++;
+            }
         }
     }
     // If displayed year is in the past, all quarters should be paid
@@ -161,8 +228,7 @@ function calculatePendingQuarterlyAmount() {
 
 function calculatePaidQuarterlyAmount() {
     const currentDate = getCurrentDate();
-    const currentMonth = currentDate.getMonth();
-    const currentQuarter = Math.floor(currentMonth / 3) + 1;
+    const currentQuarter = Math.floor(currentDate.getMonth() / 3) + 1;
 
     let paidQuarters = 0;
 
@@ -206,28 +272,47 @@ function updateQuarterlySummary() {
     }
 }
 
-function changeQuarterlyYear(change) {
+async function changeQuarterlyYear(change) {
     currentYear += change;
     const yearElement = document.getElementById('currentYearQuarterly');
     if (yearElement) yearElement.textContent = currentYear;
-    updateQuarterlyGrid();
+    await updateQuarterlyGrid();
     updateQuarterlySummary();
 }
 
 function processQuarterlyPayment(quarter, year) {
-    const paymentKey = `${year}-Q${quarter}`;
     const quarterObj = quarters.find(q => q.id === quarter);
     const monthsList = quarterObj.months.join(', ');
+
+    // Check if any of the months in this quarter have already been paid
+    const startMonth = (quarter - 1) * 3;
+    const endMonth = startMonth + 3;
+    let anyMonthPaid = false;
+    for (let i = startMonth; i < endMonth; i++) {
+        const monthPaymentKey = `${year}-${i}`;
+        if (paymentStatus[monthPaymentKey]) {
+            anyMonthPaid = true;
+            break;
+        }
+    }
+
+    if (anyMonthPaid) {
+        alert('Cannot pay quarterly because some months in this quarter have already been paid.');
+        return;
+    }
 
     $.ajax({
         url: "/createOrder",
         type: "POST",
         data: {
             name: `Fee for Q${quarter} ${year}`,
-            amount: quarterlyFee,
+            amount: window.quarterlyFee,
             description: `Quarterly fee payment for Q${quarter} (${monthsList}) ${year}`,
             email: 'amogha.khare@example.com',
-            contact: '9876543210'
+            contact: '9876543210',
+            year: year,
+            quarter: quarter,
+            isQuarterly: true
         },
         success: function(res) {
             if (res.success) {
@@ -237,19 +322,46 @@ function processQuarterlyPayment(quarter, year) {
                     "currency": "INR",
                     "order_id": res.order_id,
                     "handler": function (response) {
-                        // Update payment status in local storage
+                        // Update quarterly payment status
+                        const paymentKey = `${year}-Q${quarter}`;
                         quarterlyPaymentStatus[paymentKey] = true;
                         localStorage.setItem('quarterlyPaymentStatus', JSON.stringify(quarterlyPaymentStatus));
 
-                        // Update the UI
-                        updateQuarterlyGrid();
-                        updateQuarterlySummary();
+                        // Update monthly payment status for the corresponding months
+                        for (let i = startMonth; i < endMonth; i++) {
+                            const monthPaymentKey = `${year}-${i}`;
+                            paymentStatus[monthPaymentKey] = true;
+                        }
+                        localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
 
-                        alert(`Payment Successful for Q${quarter} ${year}`);
+                        // Call the backend to update the payment status in the database
+                        $.ajax({
+                            url: "/update-payment-quarter",
+                            type: "POST",
+                            data: {
+                                userId: window.userId,
+                                year: year,
+                                quarter: quarter
+                            },
+                            success: function(res) {
+                                if (res.success) {
+                                    // Update UI
+                                    updateQuarterlyGrid();
+                                    updateQuarterlySummary();
+                                    alert(`Payment Successful for Q${quarter} ${year}`);
+                                } else {
+                                    alert('Failed to update payment status');
+                                }
+                            },
+                            error: function(err) {
+                                console.error('Error updating payment status:', err);
+                                alert("Something went wrong. Please try again.");
+                            }
+                        });
                     },
                     "prefill": {
                         "contact": res.contact,
-                        "name": "Amogha Khare",
+                        "name": res.name,
                         "email": res.email
                     },
                     "theme": {
@@ -272,95 +384,24 @@ function processQuarterlyPayment(quarter, year) {
     });
 }
 
-function processAllPendingQuarterlyPayment() {
-    const pendingAmount = calculatePendingQuarterlyAmount();
 
-    if (pendingAmount <= 0) {
-        alert("No pending payments to process");
-        return;
-    }
 
-    $.ajax({
-        url: "/createOrder",
-        type: "POST",
-        data: {
-            name: "Pending Quarterly Fee Payment",
-            amount: pendingAmount,
-            description: `Pending quarterly fee payment for ${currentYear}`,
-            email: 'amogha.khare@example.com',
-            contact: '9876543210'
-        },
-        success: function(res) {
-            if (res.success) {
-                var options = {
-                    "key": res.key_id,
-                    "amount": res.amount,
-                    "currency": "INR",
-                    "order_id": res.order_id,
-                    "handler": function (response) {
-                        // Mark all pending quarters as paid
-                        const currentDate = getCurrentDate();
-                        const currentMonth = currentDate.getMonth();
-                        const currentQuarter = Math.floor(currentMonth / 3) + 1;
-
-                        // If current year, mark all quarters until current quarter as paid
-                        if (currentYear === currentDate.getFullYear()) {
-                            for (let quarter = 1; quarter <= currentQuarter; quarter++) {
-                                const paymentKey = `${currentYear}-Q${quarter}`;
-                                quarterlyPaymentStatus[paymentKey] = true;
-                            }
-                        }
-                        // For past years, mark all quarters as paid
-                        else if (currentYear < currentDate.getFullYear()) {
-                            for (let quarter = 1; quarter <= 4; quarter++) {
-                                const paymentKey = `${currentYear}-Q${quarter}`;
-                                quarterlyPaymentStatus[paymentKey] = true;
-                            }
-                        }
-
-                        localStorage.setItem('quarterlyPaymentStatus', JSON.stringify(quarterlyPaymentStatus));
-
-                        // Update the UI
-                        updateQuarterlyGrid();
-                        updateQuarterlySummary();
-
-                        alert("All pending quarterly payments processed successfully");
-                    },
-                    "prefill": {
-                        "contact": res.contact,
-                        "name": "Amogha Khare",
-                        "email": res.email
-                    },
-                    "theme": {
-                        "color": "#6B46C1"
-                    }
-                };
-                var razorpayObject = new Razorpay(options);
-                razorpayObject.on('payment.failed', function(response) {
-                    alert("Payment Failed");
-                });
-                razorpayObject.open();
-            } else {
-                alert(res.msg);
-            }
-        },
-        error: function(err) {
-            console.error('Error creating order:', err);
-            alert("Something went wrong. Please try again.");
-        }
-    });
-}
-
-// Initialize when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up year navigation
+// Initialize quarterly payment view
+function initQuarterlyPayments() {
+    // Set current year in UI
+    const yearElement = document.getElementById('currentYearQuarterly');
+    if (yearElement) yearElement.textContent = currentYear;
+    
+    // Set up event listeners for year navigation
     const prevYearBtn = document.getElementById('prevYearQuarterly');
     const nextYearBtn = document.getElementById('nextYearQuarterly');
-    const payPendingBtn = document.getElementById('payPendingQuarterlyBtn');
+   
     
     if (prevYearBtn) prevYearBtn.addEventListener('click', () => changeQuarterlyYear(-1));
     if (nextYearBtn) nextYearBtn.addEventListener('click', () => changeQuarterlyYear(1));
-    if (payPendingBtn) payPendingBtn.addEventListener('click', processAllPendingQuarterlyPayment);
+   
     
-    // The main initialization now happens in accounts2.js
-});
+    // Update the UI
+    updateQuarterlyGrid();
+    updateQuarterlySummary();
+}

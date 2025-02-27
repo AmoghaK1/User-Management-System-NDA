@@ -6,6 +6,7 @@ payment_route.use(bodyParser.json());
 payment_route.use(bodyParser.urlencoded({ extended: true }));
 const auth = require('../middlewares/auth');
 const paymentController = require('../controllers/paymentController');
+const { ensureAuthenticated } = require('../middlewares/auth');
 
 // Update the route name to match the dashboard purpose
 // payment_route.get('/accounts', auth.ensureAuthenticated ,paymentController.renderDashboard); 

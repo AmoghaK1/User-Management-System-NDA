@@ -284,23 +284,6 @@ function processQuarterlyPayment(quarter, year) {
     const quarterObj = quarters.find(q => q.id === quarter);
     const monthsList = quarterObj.months.join(', ');
 
-    // Check if any of the months in this quarter have already been paid
-    const startMonth = (quarter - 1) * 3;
-    const endMonth = startMonth + 3;
-    let anyMonthPaid = false;
-    for (let i = startMonth; i < endMonth; i++) {
-        const monthPaymentKey = `${year}-${i}`;
-        if (paymentStatus[monthPaymentKey]) {
-            anyMonthPaid = true;
-            break;
-        }
-    }
-
-    if (anyMonthPaid) {
-        alert('Cannot pay quarterly because some months in this quarter have already been paid.');
-        return;
-    }
-
     $.ajax({
         url: "/createOrder",
         type: "POST",
@@ -311,8 +294,8 @@ function processQuarterlyPayment(quarter, year) {
             email: 'amogha.khare@example.com',
             contact: '9876543210',
             year: year,
-            quarter: quarter,
-            isQuarterly: true
+            quarter: quarter, // Add quarter info for backend
+            isQuarterly: true // Flag to identify quarterly payments
         },
         success: function(res) {
             if (res.success) {
@@ -327,19 +310,12 @@ function processQuarterlyPayment(quarter, year) {
                         quarterlyPaymentStatus[paymentKey] = true;
                         localStorage.setItem('quarterlyPaymentStatus', JSON.stringify(quarterlyPaymentStatus));
 
-                        // Update monthly payment status for the corresponding months
-                        for (let i = startMonth; i < endMonth; i++) {
-                            const monthPaymentKey = `${year}-${i}`;
-                            paymentStatus[monthPaymentKey] = true;
-                        }
-                        localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
-
                         // Call the backend to update the payment status in the database
                         $.ajax({
                             url: "/update-payment-quarter",
                             type: "POST",
                             data: {
-                                userId: window.userId,
+                                userId: window.userId, // Pass the userId from your session or state
                                 year: year,
                                 quarter: quarter
                             },

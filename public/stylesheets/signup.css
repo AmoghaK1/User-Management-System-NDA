@@ -9,6 +9,12 @@ body {
     overflow: hidden;
 }
 
+@media (max-width: 768px) {
+    body {
+        overflow-y: auto;
+    }
+}
+
 .container {
     display: flex;
     width: 100%;
@@ -262,7 +268,7 @@ button:active {
 
     .welcome-section {
         padding: 2rem;
-        min-height: 200px;
+        min-height: 150px; /* Reduced height on mobile */
     }
 
     .form-section {
@@ -272,6 +278,53 @@ button:active {
 
     .form-group {
         grid-template-columns: 1fr;
+    }
+    
+    /* Increase touchable area for inputs on mobile */
+    .form-group input,
+    .form-group select {
+        padding: 14px; /* Fixed larger padding for mobile */
+        min-height: 48px; /* Minimum touch target size */
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+    
+    button {
+        padding: 14px; /* Larger button for easier touch */
+        min-height: 48px;
+        font-size: 16px;
+    }
+    
+    /* Better spacing between form elements */
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+}
+
+/* Even smaller screens */
+@media (max-width: 480px) {
+    .container {
+        padding: 0.8rem;
+    }
+    
+    .welcome-section {
+        padding: 1.5rem;
+        min-height: 120px;
+    }
+    
+    .form-section {
+        padding: 1.2rem;
+    }
+    
+    /* Even larger touch targets for very small screens */
+    .form-group input,
+    .form-group select,
+    button {
+        min-height: 50px;
     }
 }
 

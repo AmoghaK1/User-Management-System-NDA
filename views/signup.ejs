@@ -9,7 +9,9 @@
 </head>
 <body>
     <% if (error) { %>
-        <p class="error-message"><%= error %></p>
+        <div class="error-message">
+            <span><%= error %></span>
+        </div>
     <% } %>
 
     <div class="container">
@@ -94,6 +96,6 @@
         </div>
     </div>
 
-    <script src="../javascripts/signup.js"></script>
+    <script src="../javascripts/notifications.js"></script>
 </body>
 </html>

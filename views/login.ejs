@@ -9,11 +9,15 @@
 </head>
 <body>
     <% if (error) { %>
-        <p class="error-message"><%= error %></p>
+        <div class="error-message">
+            <span><%= error %></span>
+        </div>
     <% } %>
-
+    
     <% if (success) { %>
-        <p class="success-message"><%= success %></p>
+        <div class="success-message">
+            <span><%= success %></span>
+        </div>
     <% } %>
        <!-- Rest of your HTML remains the same -->
        <div class="login-container">
@@ -52,7 +56,7 @@
             </div>
         </div>
     </div>
-    <script src="../javascripts/login.js"></script>
+    <script src="../javascripts/notifications.js"></script>
 </body>
 
 </html>

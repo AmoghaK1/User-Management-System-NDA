@@ -20,133 +20,94 @@ const renderDashboard = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-        const { name, amount, description, email, contact, userId, year, month, isQuarterly } = req.body;
+        const { name, amount, description, email, contact, year, month, quarter, isQuarterly } = req.body;
+        const userId = req.user._id; // Assuming authentication middleware
 
-        // Fetch the payment status for the user
-        let paymentStatus = await PaymentStatus.findOne({ userId, year });
-        if (!paymentStatus) {
-            paymentStatus = new PaymentStatus({
-                userId,
-                year,
-                months: new Map(), // Initialize months as an empty Map
-                quarters: new Map() // Initialize quarters as an empty Map
-            });
-        }
+        let paymentStatus = await PaymentStatus.findOne({ userId, year }) || new PaymentStatus({ userId, year });
+
         if (isQuarterly) {
-            // Check if any of the months in the quarter have been paid
-            const startMonth = (month - 1) * 3;
-            const endMonth = startMonth + 3;
-            let anyMonthPaid = false;
-            for (let i = startMonth; i < endMonth; i++) {
-                if (paymentStatus.months.get(i) === 'Paid') {
-                    anyMonthPaid = true;
-                    break;
+            const startMonth = (quarter - 1) * 3;
+            for (let i = startMonth; i < startMonth + 3; i++) {
+                if (paymentStatus.months.get(String(i)) === 'Paid') {
+                    return res.status(400).json({ success: false, msg: 'Some months in this quarter are already paid.' });
                 }
             }
-
-            if (anyMonthPaid) {
-                return res.status(400).json({
-                    success: false,
-                    msg: 'Cannot pay quarterly because some months in this quarter have already been paid.'
-                });
-            }
         } else {
-            // Check if the corresponding quarter has been paid
             const quarter = Math.floor(month / 3) + 1;
-            if (paymentStatus.quarters.get(quarter) === 'Paid') {
-                return res.status(400).json({
-                    success: false,
-                    msg: 'Cannot pay monthly because the corresponding quarter has already been paid.'
-                });
+            if (paymentStatus.quarters.get(String(quarter)) === 'Paid') {
+                return res.status(400).json({ success: false, msg: 'This quarter is already paid.' });
             }
         }
 
-        // Convert amount to paise (Razorpay uses smallest currency unit)
         const amountInPaise = Math.round(amount * 100);
-
         const options = {
             amount: amountInPaise,
             currency: 'INR',
             receipt: `receipt_${Date.now()}`,
-            notes: {
-                paymentFor: description || 'Fee Payment',
-                userEmail: email || 'user@example.com'
-            }
+            notes: { paymentFor: description, userEmail: email }
         };
 
-        razorpayInstance.orders.create(options, async (err, order) => {
+        razorpayInstance.orders.create(options, (err, order) => {
             if (err) {
-                console.error('Razorpay order creation error:', err);
-                return res.status(500).json({ 
-                    success: false, 
-                    msg: 'Failed to create payment order' 
-                });
+                console.error('Razorpay error:', err);
+                return res.status(500).json({ success: false, msg: 'Failed to create order' });
             }
-
             res.status(200).json({
                 success: true,
-                msg: 'Order Created Successfully',
                 order_id: order.id,
                 amount: amountInPaise,
                 key_id: RAZORPAY_ID_KEY,
-                product_name: name || 'Fee Payment',
-                description: description || 'Monthly Fee Payment',
-                contact: contact || '9876543210',
+                product_name: name,
+                description,
+                contact,
                 name: 'Amogha Khare',
-                email: email || 'amogha.khare@example.com'
+                email
             });
         });
     } catch (error) {
-        console.error('Error in createOrder:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            msg: 'Internal Server Error' 
-        });
-    }
-};
-const updatePaymentMonth = async (req, res) => {
-    try {
-        const { userId, year, month } = req.body;
-
-        // Update payment status for the specific month
-        await PaymentStatus.findOneAndUpdate(
-            { userId, year },
-            { [`months.${month}`]: 'Paid' }, // Update the status for the specific month
-            { upsert: true }
-        );
-
-        res.status(200).json({ success: true, msg: 'Payment status updated successfully' });
-    } catch (error) {
-        console.error('Error updating payment status:', error);
+        console.error('createOrder error:', error);
         res.status(500).json({ success: false, msg: 'Internal Server Error' });
     }
 };
 
-const updatePaymentQuarter = async (req, res) => {
+const updatePayment = async (req, res) => {
     try {
-        const { userId, year, quarter } = req.body;
+        const { userId, year, month, quarter, isQuarterly } = req.body;
+        let paymentStatus = await PaymentStatus.findOne({ userId, year }) || new PaymentStatus({ userId, year });
 
-        // Update payment status for the specific quarter
-        await PaymentStatus.findOneAndUpdate(
-            { userId, year },
-            { [`quarters.${quarter}`]: 'Paid' }, // Update the status for the specific quarter
-            { upsert: true }
-        );
+        if (isQuarterly) {
+            paymentStatus.quarters.set(String(quarter), 'Paid');
+            const startMonth = (quarter - 1) * 3;
+            for (let i = startMonth; i < startMonth + 3; i++) {
+                paymentStatus.months.set(String(i), 'Paid');
+            }
+        } else {
+            paymentStatus.months.set(String(month), 'Paid');
+        }
 
-        res.status(200).json({ success: true, msg: 'Payment status updated successfully' });
+        await paymentStatus.save();
+        res.status(200).json({ success: true, msg: 'Payment status updated' });
     } catch (error) {
-        console.error('Error updating payment status:', error);
+        console.error('updatePayment error:', error);
         res.status(500).json({ success: false, msg: 'Internal Server Error' });
     }
 };
 
 const getPaymentStatus = async (req, res) => {
     try {
-        const userId = req.user._id; // Assuming you have user authentication middleware
-        const paymentStatus = await PaymentStatus.find({ userId });
-        res.status(200).json({ success: true, paymentStatus });
+        const userId = req.user._id;
+        const paymentStatus = await PaymentStatus.findOne({ userId, year: new Date().getFullYear() }) || 
+            new PaymentStatus({ userId, year: new Date().getFullYear() });
+        res.status(200).json({
+            success: true,
+            paymentStatus: {
+                year: paymentStatus.year,
+                months: Object.fromEntries(paymentStatus.months),
+                quarters: Object.fromEntries(paymentStatus.quarters)
+            }
+        });
     } catch (error) {
-        console.error('Error fetching payment status:', error);
+        console.error('getPaymentStatus error:', error);
         res.status(500).json({ success: false, msg: 'Internal Server Error' });
     }
 };
@@ -154,7 +115,6 @@ const getPaymentStatus = async (req, res) => {
 module.exports = {
     renderDashboard,
     createOrder,
-    updatePaymentMonth,
-    updatePaymentQuarter,
+    updatePayment,
     getPaymentStatus
 };

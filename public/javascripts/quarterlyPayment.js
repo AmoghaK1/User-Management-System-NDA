@@ -310,6 +310,14 @@ function processQuarterlyPayment(quarter, year) {
                         quarterlyPaymentStatus[paymentKey] = true;
                         localStorage.setItem('quarterlyPaymentStatus', JSON.stringify(quarterlyPaymentStatus));
 
+                        // Update monthly payment status for the months in the paid quarter
+                        const startMonth = (quarter - 1) * 3;
+                        for (let i = startMonth; i < startMonth + 3; i++) {
+                            const monthPaymentKey = `${year}-${i}`;
+                            paymentStatus[monthPaymentKey] = true;
+                        }
+                        localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
+
                         // Call the backend to update the payment status in the database
                         $.ajax({
                             url: "/update-payment-quarter",
@@ -324,6 +332,7 @@ function processQuarterlyPayment(quarter, year) {
                                     // Update UI
                                     updateQuarterlyGrid();
                                     updateQuarterlySummary();
+                                    updateMonthsGrid(); // Ensure the monthly grid is also updated
                                     alert(`Payment Successful for Q${quarter} ${year}`);
                                 } else {
                                     alert('Failed to update payment status');
@@ -359,7 +368,6 @@ function processQuarterlyPayment(quarter, year) {
         }
     });
 }
-
 
 
 // Initialize quarterly payment view

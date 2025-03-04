@@ -20,13 +20,30 @@ const loadRegister = async(req,res)=> {
 
 async function initializePaymentStatus(userId) {
     const currentYear = new Date().getFullYear();
-    for (let month = 0; month < 12; month++) {
-        await PaymentStatus.findOneAndUpdate(
-            { userId, year: currentYear, month },
-            { status: 'Pending' }, // Default status
-            { upsert: true } // Create the document if it doesn't exist
-        );
-    }
+    
+    // Create a new PaymentStatus document for the current year
+    await PaymentStatus.findOneAndUpdate(
+        { 
+            userId, 
+            year: currentYear 
+        },
+        {
+            $setOnInsert: {
+                months: {
+                    0: 'Pending', 1: 'Pending', 2: 'Pending', 3: 'Pending',
+                    4: 'Pending', 5: 'Pending', 6: 'Pending', 7: 'Pending',
+                    8: 'Pending', 9: 'Pending', 10: 'Pending', 11: 'Pending'
+                },
+                quarters: {
+                    1: 'Pending', 2: 'Pending', 3: 'Pending', 4: 'Pending'
+                }
+            }
+        }, 
+        { 
+            upsert: true, 
+            new: true 
+        }
+    );
 }
 
 const addUser = async (req, res) => {

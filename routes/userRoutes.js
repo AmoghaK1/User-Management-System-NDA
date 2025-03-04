@@ -41,21 +41,6 @@ user_route.put('/api/profile/update', auth.ensureAuthenticated, userController.u
 user_route.post('/api/profile/update-picture', auth.ensureAuthenticated, userController.updateProfilePicture);
 user_route.post('/api/profile/change-password', auth.ensureAuthenticated, userController.changePassword);
 
-user_route.get('/getUserFee', async (req, res) => {
-    try {
-        if (!req.user) {
-            return res.status(401).json({ msg: "Unauthorized" });
-        }
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            return res.status(404).json({ msg: "User not found" });
-        }
-        res.json({ exam_fee: user.exam_fee });
-    } catch (error) {
-        console.error("Error fetching exam fee:", error);
-        res.status(500).json({ msg: "Internal Server Error" });
-    }
-});
 
 
 

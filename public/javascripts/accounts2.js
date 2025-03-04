@@ -16,171 +16,81 @@ function getCurrentDate() {
 // Fetch payment status from the server
 async function fetchPaymentStatus() {
     try {
-        const response = await fetch('/payment-status', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include' // Include cookies for session-based authentication
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch payment status');
-        }
-
+        const response = await fetch('/payment-status', { credentials: 'include' });
+        if (!response.ok) throw new Error('Network error');
         const data = await response.json();
-
-        if (data.success && data.paymentStatus) {
-            // Convert server data to a more usable format for our client
-            const formattedStatus = {};
-            data.paymentStatus.forEach(item => {
-                for (const [month, status] of item.months.entries()) {
-                    formattedStatus[`${item.year}-${month}`] = status === 'Paid';
-                }
-            });
-
-            // Update our local cache
-            paymentStatus = formattedStatus;
-            localStorage.setItem('paymentStatus', JSON.stringify(formattedStatus));
-            return formattedStatus;
-        } else {
-            // If no data from server, try to use cached data
-            const cachedStatus = JSON.parse(localStorage.getItem('paymentStatus')) || {};
-            paymentStatus = cachedStatus;
-            return cachedStatus;
-        }
+        paymentStatus = data.success ? data.paymentStatus : JSON.parse(localStorage.getItem('paymentStatus')) || {};
+        localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
+        return paymentStatus;
     } catch (error) {
-        console.error('Error fetching payment status:', error);
-        // Fallback to cached data if server request fails
-        const cachedStatus = JSON.parse(localStorage.getItem('paymentStatus')) || {};
-        paymentStatus = cachedStatus;
-        return cachedStatus;
+        console.error('Fetch error:', error);
+        paymentStatus = JSON.parse(localStorage.getItem('paymentStatus')) || {};
+        return paymentStatus;
     }
 }
 
 async function getFeeStatus(month, year) {
-    await fetchPaymentStatus(); // Ensure payment status is loaded
-    
+    await fetchPaymentStatus();
     const monthIndex = months.indexOf(month);
-    const currentDate = getCurrentDate();
+    const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
-    
-    // Check if this month has been paid (from our data)
+
     const paymentKey = `${year}-${monthIndex}`;
-    if (paymentStatus[paymentKey]) {
-        return {
-            status: 'Paid',
-            statusClass: 'paid-status',
-            textColor: 'text-green-700',
-            showButton: false
-        };
+    if (paymentStatus.months?.[monthIndex] === 'Paid') {
+        return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-700', showButton: false };
     }
 
-    // Check if the corresponding quarter has been paid
-    const quarter = Math.floor(monthIndex / 3) + 1; // Calculate the quarter for the month
-    const quarterPaymentKey = `${year}-Q${quarter}`;
-    if (paymentStatus[quarterPaymentKey]) {
-        return {
-            status: 'Paid (Quarterly)',
-            statusClass: 'paid-status',
-            textColor: 'text-green-700',
-            showButton: false
-        };
+    const quarter = Math.floor(monthIndex / 3) + 1;
+    if (paymentStatus.quarters?.[quarter] === 'Paid') {
+        return { status: 'Paid (Quarterly)', statusClass: 'paid-status', textColor: 'text-green-700', showButton: false };
     }
 
-    // Handle previous years - all should be paid
-    if (year < currentYear) {
-        return {
-            status: 'Paid',
-            statusClass: 'paid-status',
-            textColor: 'text-green-700',
-            showButton: false
-        };
+    if (year < currentYear || (year === currentYear && monthIndex < currentMonth)) {
+        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-700', showButton: true };
     }
-
-    // Current year logic
-    if (year === currentYear) {
-        // Current month
-        if (monthIndex === currentMonth) {
-            return {
-                status: 'Pending',
-                statusClass: 'pending-status',
-                textColor: 'text-orange-700',
-                showButton: true
-            };
-        }
-        // Past months in current year
-        else if (monthIndex < currentMonth) {
-            return {
-                status: 'Pending',
-                statusClass: 'pending-status',
-                textColor: 'text-orange-700',
-                showButton: true
-            };
-        }
-        // Future months in current year
-        else {
-            return {
-                status: 'Upcoming',
-                statusClass: 'upcoming-status',
-                textColor: 'text-gray-600',
-                showButton: false
-            };
-        }
+    if (year === currentYear && monthIndex === currentMonth) {
+        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-700', showButton: true };
     }
-
-    // Future years
-    return {
-        status: 'Upcoming',
-        statusClass: 'upcoming-status',
-        textColor: 'text-gray-600',
-        showButton: false
-    };
+    return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
 }
 
 async function createMonthCard(month, year) {
     const status = await getFeeStatus(month, year);
-    
     const monthCard = document.createElement('div');
     monthCard.className = `month-card p-4 rounded-lg border ${status.statusClass}`;
     monthCard.id = `month-${month.toLowerCase()}-${year}`;
-
-    const buttonHtml = status.showButton ? 
-        `<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-            Pay now
-        </button>` : '';
-
     monthCard.innerHTML = `
         <div class="flex justify-between items-center">
             <div>
                 <h3 class="font-semibold">${month} ${year}</h3>
                 <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
             </div>
-            ${buttonHtml}
+            ${status.showButton ? '<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Pay now</button>' : ''}
         </div>
     `;
-
     if (status.showButton) {
-        const payButton = monthCard.querySelector('.pay-now-btn');
-        payButton.addEventListener('click', () => processPayment(month, year));
+        monthCard.querySelector('.pay-now-btn').addEventListener('click', () => processPayment(month, year));
     }
-    
     return monthCard;
 }
-
 async function updateMonthsGrid() {
     const grid = document.getElementById('monthsGrid');
-    if (!grid) return; // Safety check
-    
+    if (!grid) return;
     grid.innerHTML = '';
-
-    // Show all 12 months for the current year
     for (const month of months) {
-        const monthCard = await createMonthCard(month, currentYear);
-        grid.appendChild(monthCard);
+        grid.appendChild(await createMonthCard(month, currentYear));
     }
 }
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchPaymentStatus();
+    document.getElementById('currentYear').textContent = currentYear;
+    document.getElementById('prevYear')?.addEventListener('click', () => changeYear(-1));
+    document.getElementById('nextYear')?.addEventListener('click', () => changeYear(1));
+    await updateMonthsGrid();
+});
+
 
 function calculatePendingAmount() {
     const currentDate = getCurrentDate();
@@ -265,94 +175,40 @@ async function changeYear(change) {
     updateYearSummary();
 }
 
-function processPayment(month, year, isQuarterly = false) {
+function processPayment(month, year) {
     const monthIndex = months.indexOf(month);
-    const amount = isQuarterly ? window.quarterlyFee : window.monthlyFee;
-    const description = isQuarterly ? `Quarterly fee payment for Q${Math.floor(monthIndex / 3) + 1} ${year}` : `Monthly fee payment for ${month} ${year}`;
-
     $.ajax({
-        url: "/createOrder",
-        type: "POST",
-        data: {
-            name: description,
-            amount: amount,
-            description: description,
-            email: 'amogha.khare@example.com',
-            contact: '9876543210',
-            year: year,
-            month: monthIndex,
-            isQuarterly: isQuarterly
-        },
-        success: function(res) {
+        url: '/createOrder',
+        type: 'POST',
+        data: { name: `Fee for ${month} ${year}`, amount: window.monthlyFee, description: `Fee for ${month} ${year}`, email: 'amogha.khare@example.com', contact: '9876543210', year, month: monthIndex, isQuarterly: false },
+        success: (res) => {
             if (res.success) {
-                var options = {
-                    "key": res.key_id,
-                    "amount": res.amount,
-                    "currency": "INR",
-                    "order_id": res.order_id,
-                    "handler": function (response) {
-                        // Update local payment status
-                        if (isQuarterly) {
-                            const quarter = Math.floor(monthIndex / 3) + 1;
-                            for (let i = (quarter - 1) * 3; i < quarter * 3; i++) {
-                                const paymentKey = `${year}-${i}`;
-                                paymentStatus[paymentKey] = true;
-                            }
-                        } else {
-                            const paymentKey = `${year}-${monthIndex}`;
-                            paymentStatus[paymentKey] = true;
-                        }
-                        localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
-
-                        // Call the backend to update the payment status in the database
-                        $.ajax({
-                            url: "/update-payment-month",
-                            type: "POST",
-                            data: {
-                                userId: window.userId, // Pass the userId from your session or state
-                                year: year,
-                                month: monthIndex,
-                                isQuarterly: isQuarterly
-                            },
-                            success: function(res) {
-                                if (res.success) {
-                                    // Update UI
-                                    updateMonthsGrid();
-                                    updateYearSummary();
-                                    alert(`Payment Successful for ${description}`);
-                                } else {
-                                    alert('Failed to update payment status');
-                                }
-                            },
-                            error: function(err) {
-                                console.error('Error updating payment status:', err);
-                                alert("Something went wrong. Please try again.");
+                const options = {
+                    key: res.key_id,
+                    amount: res.amount,
+                    currency: 'INR',
+                    order_id: res.order_id,
+                    handler: async (response) => {
+                        await $.ajax({
+                            url: '/update-payment',
+                            type: 'POST',
+                            data: { userId: window.userId, year, month: monthIndex, isQuarterly: false },
+                            success: async () => {
+                                paymentStatus.months[monthIndex] = 'Paid';
+                                localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
+                                await updateMonthsGrid();
+                                alert(`Payment Successful for ${month} ${year}`);
                             }
                         });
                     },
-                    "prefill": {
-                        "contact": res.contact,
-                        "name": res.name,
-                        "email": res.email
-                    },
-                    "theme": {
-                        "color": "#6B46C1"
-                    }
+                    prefill: { contact: res.contact, name: res.name, email: res.email },
+                    theme: { color: '#6B46C1' }
                 };
-                var razorpayObject = new Razorpay(options);
-                razorpayObject.on('payment.failed', function(response) {
-                    alert(`Payment Failed for ${description}`);
-                });
-                razorpayObject.open();
-            } else {
-                alert(res.msg);
+                new Razorpay(options).open();
             }
         },
-        error: function(err) {
-            console.error('Error creating order:', err);
-            alert("Something went wrong. Please try again.");
-        }
-    });
+        error: (err) => console.error(err)
+    })
 }
 
 

@@ -80,7 +80,7 @@ async function getFeeStatus(month, year) {
     // Check if the corresponding quarter has been paid
     const quarter = Math.floor(monthIndex / 3) + 1; // Calculate the quarter for the month
     const quarterPaymentKey = `${year}-Q${quarter}`;
-    if (quarterlyPaymentStatus[quarterPaymentKey]) {
+    if (paymentStatus[quarterPaymentKey]) {
         return {
             status: 'Paid (Quarterly)',
             statusClass: 'paid-status',
@@ -265,21 +265,23 @@ async function changeYear(change) {
     updateYearSummary();
 }
 
-function processPayment(month, year) {
+function processPayment(month, year, isQuarterly = false) {
     const monthIndex = months.indexOf(month);
+    const amount = isQuarterly ? window.quarterlyFee : window.monthlyFee;
+    const description = isQuarterly ? `Quarterly fee payment for Q${Math.floor(monthIndex / 3) + 1} ${year}` : `Monthly fee payment for ${month} ${year}`;
 
     $.ajax({
         url: "/createOrder",
         type: "POST",
         data: {
-            name: `Fee for ${month} ${year}`,
-            amount: window.monthlyFee,
-            description: `Monthly fee payment for ${month} ${year}`,
+            name: description,
+            amount: amount,
+            description: description,
             email: 'amogha.khare@example.com',
             contact: '9876543210',
             year: year,
             month: monthIndex,
-            isQuarterly: false
+            isQuarterly: isQuarterly
         },
         success: function(res) {
             if (res.success) {
@@ -290,8 +292,16 @@ function processPayment(month, year) {
                     "order_id": res.order_id,
                     "handler": function (response) {
                         // Update local payment status
-                        const paymentKey = `${year}-${monthIndex}`;
-                        paymentStatus[paymentKey] = true;
+                        if (isQuarterly) {
+                            const quarter = Math.floor(monthIndex / 3) + 1;
+                            for (let i = (quarter - 1) * 3; i < quarter * 3; i++) {
+                                const paymentKey = `${year}-${i}`;
+                                paymentStatus[paymentKey] = true;
+                            }
+                        } else {
+                            const paymentKey = `${year}-${monthIndex}`;
+                            paymentStatus[paymentKey] = true;
+                        }
                         localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
 
                         // Call the backend to update the payment status in the database
@@ -301,14 +311,15 @@ function processPayment(month, year) {
                             data: {
                                 userId: window.userId, // Pass the userId from your session or state
                                 year: year,
-                                month: monthIndex
+                                month: monthIndex,
+                                isQuarterly: isQuarterly
                             },
                             success: function(res) {
                                 if (res.success) {
                                     // Update UI
                                     updateMonthsGrid();
                                     updateYearSummary();
-                                    alert(`Payment Successful for ${month} ${year}`);
+                                    alert(`Payment Successful for ${description}`);
                                 } else {
                                     alert('Failed to update payment status');
                                 }
@@ -330,7 +341,7 @@ function processPayment(month, year) {
                 };
                 var razorpayObject = new Razorpay(options);
                 razorpayObject.on('payment.failed', function(response) {
-                    alert(`Payment Failed for ${month} ${year}`);
+                    alert(`Payment Failed for ${description}`);
                 });
                 razorpayObject.open();
             } else {

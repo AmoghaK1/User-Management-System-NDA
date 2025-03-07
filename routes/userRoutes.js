@@ -40,8 +40,7 @@ user_route.get('/st-profile', auth.ensureAuthenticated, userController.loadProfi
 user_route.put('/api/profile/update', auth.ensureAuthenticated, userController.updateProfile);
 user_route.post('/api/profile/update-picture', auth.ensureAuthenticated, userController.updateProfilePicture);
 user_route.post('/api/profile/change-password', auth.ensureAuthenticated, userController.changePassword);
-
-
-
+user_route.get('/events', auth.ensureAuthenticated, userController.loadEventsPage);
+user_route.get('/tr-dashboard', auth.ensureAuthenticated, userController.load_trDashboard);
 
 module.exports = user_route;

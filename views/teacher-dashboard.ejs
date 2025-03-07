@@ -1,156 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../stylesheets/trdashboard.css">
-</head>
-<body class="bg-gray-50">
-    <!-- Header Section -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <img class="h-8 w-8 rounded-full" src="/api/placeholder/32/32" alt="Teacher">
-                    <span class="ml-3 text-xl font-semibold">Teacher Dashboard</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="relative">
-                        <i class="fas fa-bell text-gray-600 text-xl cursor-pointer"></i>
-                        <span class="notification-badge absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
-                    </div>
-                    <i class="fas fa-phone text-gray-600 text-xl cursor-pointer"></i>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Quote Section -->
-        <div class="bg-gray-100 rounded-lg p-6 mb-8 fade-in">
-            <p class="text-lg italic text-gray-700">"Education is not the filling of a pail, but the lighting of a fire."</p>
-        </div>
-
-        <!-- Grid Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left Column - Updates -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-lg shadow-lg p-6 slide-in">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-bell-on mr-2"></i>Updates
-                    </h2>
-                    <div class="updates-container space-y-4">
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <p class="font-medium">New Fee Payment</p>
-                            <p class="text-sm text-gray-600">Student John Doe paid semester fees</p>
-                            <span class="text-xs text-gray-500">2 minutes ago</span>
-                        </div>
-                        <div class="bg-orange-50 p-4 rounded-lg">
-                            <p class="font-medium">Attendance Alert</p>
-                            <p class="text-sm text-gray-600">3 students below 75% attendance</p>
-                            <span class="text-xs text-gray-500">1 hour ago</span>
-                        </div>
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <p class="font-medium">New Admission</p>
-                            <p class="text-sm text-gray-600">2 new students enrolled today</p>
-                            <span class="text-xs text-gray-500">3 hours ago</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column - Quick Actions -->
-            <div class="lg:col-span-2">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Attendance Card -->
-                    <div class="card bg-purple-100 rounded-lg p-6 cursor-pointer">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-semibold">Attendance</h3>
-                                <p class="text-sm text-gray-600">Today's Status</p>
-                            </div>
-                            <i class="fas fa-users text-3xl text-purple-600"></i>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-sm">
-                                <span>Present: 42</span>
-                                <span>Total: 45</span>
-                            </div>
-                            <div class="w-full bg-purple-200 rounded-full h-2.5 mt-2">
-                                <div class="bg-purple-600 h-2.5 rounded-full" style="width: 93%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fees Card -->
-                    <div class="card bg-blue-100 rounded-lg p-6 cursor-pointer">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-semibold">Fees Collection</h3>
-                                <p class="text-sm text-gray-600">This Month</p>
-                            </div>
-                            <i class="fas fa-dollar-sign text-3xl text-blue-600"></i>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-sm">
-                                <span>Collected: ₹85,000</span>
-                                <span>Pending: ₹15,000</span>
-                            </div>
-                            <div class="w-full bg-blue-200 rounded-full h-2.5 mt-2">
-                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: 85%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Timetable Card -->
-                    <div class="card bg-green-100 rounded-lg p-6 cursor-pointer">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-semibold">Today's Schedule</h3>
-                                <p class="text-sm text-gray-600">4 Classes Remaining</p>
-                            </div>
-                            <i class="fas fa-calendar text-3xl text-green-600"></i>
-                        </div>
-                        <div class="mt-4 space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span>Next: Mathematics</span>
-                                <span>10:30 AM</span>
-                            </div>
-                            <div class="w-full bg-green-200 rounded-full h-2.5">
-                                <div class="bg-green-600 h-2.5 rounded-full" style="width: 60%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Performance Card -->
-                    <div class="card bg-yellow-100 rounded-lg p-6 cursor-pointer">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-semibold">Class Performance</h3>
-                                <p class="text-sm text-gray-600">This Semester</p>
-                            </div>
-                            <i class="fas fa-chart-line text-3xl text-yellow-600"></i>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-sm">
-                                <span>Average Score: 85%</span>
-                                <span>Target: 90%</span>
-                            </div>
-                            <div class="w-full bg-yellow-200 rounded-full h-2.5 mt-2">
-                                <div class="bg-yellow-600 h-2.5 rounded-full" style="width: 85%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard | Nrutyashree Dance Academy</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="icon" type="image/x-icon" href="../images/nda-favicon-v2.png">
+  <link rel="stylesheet" href="../stylesheets/trdashboard.css">
+  </head>
+<body>
+  <!-- Navbar -->
+  <div class="my-navbar">
+    <div class="user-profile">
+      <a href="/teacher-profile"><img id="user-pfp" src="/api/placeholder/40/40" alt="user-pfp"></a>
+      <div class="user-name">Rajshree Khare</div>
     </div>
-
-<script src="../javascripts/tr-dashboard.js"></script>
+    <div class="navbar-center-section">
+      <div>Teacher Dashboard</div>
+    </div>
+    <div class="navbar-icons">
+      <i class="fa-solid fa-bell nav-icon"></i>
+      <i class="fa-solid fa-phone nav-icon"></i>
+      <button id="logout-btn"><a href="logout">Logout</a></button>
+    </div>
+  </div>
+  <div class="navbar-mobile">
+    <div class="exam-name">Teacher Dashboard</div>
+  </div>
+  
+  <!-- Thought of the Day -->
+  <div class="thought-section">
+    <div class="thought-box">
+      <p>Dance is the hidden language of the soul. The body says what words cannot.</p>
+      <span class="author">Martha Graham</span>
+    </div>
+  </div>
+  
+  <!-- Dashboard Container -->
+  <div class="dashboard-container">
+    <!-- Stats Section -->
+    <div class="stats-section">
+      <!-- Fees Collection Card -->
+      <div class="stat-card fees">
+        <div class="stat-header">
+          <div class="stat-title">Fees Collection</div>
+          <div class="stat-icon fees">
+            <i class="fa-solid fa-rupee-sign"></i>
+          </div>
+        </div>
+        <div class="stat-value">₹85,200</div>
+        <div class="stat-trend">
+          <i class="fa-solid fa-arrow-up trending-up"></i>
+          <span class="trend-value">+8% this month</span>
+        </div>
+        <div class="stat-progress">
+          <div class="progress-bar">
+            <div class="progress-fill fees"></div>
+          </div>
+          <div class="progress-label">
+            <span>Target: ₹100,000</span>
+            <span>85%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Quick Access Section -->
+    <div class="quick-access-section">
+      <div class="quick-card">
+        <div class="quick-icon">
+          <i class="fa-solid fa-user-plus"></i>
+        </div>
+        <div class="quick-title">Add Student</div>
+      </div>
+      
+      <div class="quick-card">
+        <div class="quick-icon">
+          <i class="fa-solid fa-clipboard-list"></i>
+        </div>
+        <div class="quick-title">Take Attendance</div>
+      </div>
+      
+      <div class="quick-card">
+        <div class="quick-icon">
+          <i class="fa-solid fa-rupee-sign"></i>
+        </div>
+        <div class="quick-title">Fee Collection</div>
+      </div>
+      
+      <div class="quick-card">
+        <div class="quick-icon">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="quick-title">Performance Report</div>
+      </div>
+      
+      <div class="quick-card">
+        <div class="quick-icon">
+          <i class="fa-solid fa-calendar-plus"></i>
+        </div>
+        <div class="quick-title">Schedule Class</div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+  // Simple JavaScript for interactive elements
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle notification visibility
+    const notificationIcon = document.querySelector('.fa-bell');
+    notificationIcon.addEventListener('click', function() {
+      alert('Notifications feature coming soon!');
+    });
+    
+    // Quick access cards
+    const quickCards = document.querySelectorAll('.quick-card');
+    quickCards.forEach(card => {
+      card.addEventListener('click', function() {
+        const title = this.querySelector('.quick-title').textContent;
+        alert(`${title} feature will be available soon!`);
+      });
+    });
+  });
+  </script>
 </body>
 </html>

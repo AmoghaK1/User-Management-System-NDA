@@ -67,7 +67,7 @@ async function createAllMonthCards(year) {
         };
         
         // Check if month is paid in payment status
-        if (paymentStatus.months && paymentStatus.months[i] === 'Paid') {
+        if (year < currentYear || (paymentStatus.months && paymentStatus.months[i] === 'Paid')) {
             status = { 
                 status: 'Paid', 
                 statusClass: 'paid-status', 
@@ -84,7 +84,7 @@ async function createAllMonthCards(year) {
                     textColor: 'text-green-800', 
                     showButton: false 
                 };
-            } else if (year < currentYear || (year === currentYear && i <= currentMonth)) {
+            } else if ((year === currentYear && i <= currentMonth)) {
                 status = { 
                     status: 'Pending', 
                     statusClass: 'pending-status', 
@@ -128,96 +128,6 @@ async function updateMonthsGrid() {
     updateYearSummary();
 }
 
-function calculatePendingAmount() {
-    const currentDate = getCurrentDate();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    
-    let pendingMonths = 0;
-    
-    // If current year matches the displayed year
-    if (currentYear === window.currentYear) {
-        // Count pending months from January to current month
-        for (let i = 0; i <= currentMonth; i++) {
-            if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
-                // Check if the quarter is paid
-                const quarter = Math.floor(i / 3) + 1;
-                if (!paymentStatus.quarters || paymentStatus.quarters[quarter] !== 'Paid') {
-                    pendingMonths++;
-                }
-            }
-        }
-    } 
-    // If displayed year is in the past, all months should be paid
-    else if (window.currentYear < currentYear) {
-        // For past years, count any months that aren't marked as paid
-        if (paymentStatus.months) {
-            for (let i = 0; i < 12; i++) {
-                if (paymentStatus.months[i] !== 'Paid') {
-                    const quarter = Math.floor(i / 3) + 1;
-                    if (!paymentStatus.quarters || paymentStatus.quarters[quarter] !== 'Paid') {
-                        pendingMonths++;
-                    }
-                }
-            }
-        } else {
-            pendingMonths = 12;
-        }
-    } 
-    // If displayed year is in the future, all months are pending
-    else {
-        pendingMonths = 0;
-    }
-    
-    return pendingMonths * window.monthlyFee;
-}
-
-function calculatePaidAmount() {
-    const currentDate = getCurrentDate();
-    const currentYear = currentDate.getFullYear();
-    
-    let paidMonths = 0;
-    
-    // Count paid months for the displayed year
-    if (paymentStatus.months) {
-        for (let i = 0; i < 12; i++) {
-            if (paymentStatus.months[i] === 'Paid') {
-                paidMonths++;
-            } else {
-                // Check if the quarter is paid
-                const quarter = Math.floor(i / 3) + 1;
-                if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
-                    paidMonths++;
-                }
-            }
-        }
-    }
-    
-    return paidMonths * window.monthlyFee;
-}
-
-function updateYearSummary() {
-    const totalPaid = calculatePaidAmount();
-    const pendingAmount = calculatePendingAmount();
-
-    const totalPaidElement = document.getElementById('totalPaid');
-    const pendingAmountElement = document.getElementById('pendingAmount');
-    
-    if (totalPaidElement) totalPaidElement.textContent = `₹${totalPaid}`;
-    if (pendingAmountElement) pendingAmountElement.textContent = `₹${pendingAmount}`;
-    
-    // Disable pay button if nothing is pending
-    const payButton = document.getElementById('payPendingBtn');
-    if (payButton) {
-        if (pendingAmount <= 0) {
-            payButton.disabled = true;
-            payButton.classList.add('opacity-50', 'cursor-not-allowed');
-        } else {
-            payButton.disabled = false;
-            payButton.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-    }
-}
 
 async function changeYear(change) {
     currentYear += change;

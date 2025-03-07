@@ -73,19 +73,32 @@ const createOrder = async (req, res) => {
 const updatePayment = async (req, res) => {
     try {
         const { userId, year, month, quarter, isQuarterly } = req.body;
-        let paymentStatus = await PaymentStatus.findOne({ userId, year }) || new PaymentStatus({ userId, year });
 
+        console.log('Received updatePayment request with:', { userId, year, month, quarter, isQuarterly });
+
+        let paymentStatus = await PaymentStatus.findOne({ userId, year });
+
+        if (!paymentStatus) {
+            console.log('No existing payment status found, creating new one.');
+            paymentStatus = new PaymentStatus({ userId, year });
+        }
+        console.log('Is quaterly: ', isQuarterly);
         if (isQuarterly) {
+            console.log('Updating quarterly payment status for quarter:', quarter);
             paymentStatus.quarters.set(String(quarter), 'Paid');
             const startMonth = (quarter - 1) * 3;
             for (let i = startMonth; i < startMonth + 3; i++) {
                 paymentStatus.months.set(String(i), 'Paid');
             }
-        } else {
+        }
+        if (!isQuarterly) {
+            console.log('Updating monthly payment status for month:', month);
             paymentStatus.months.set(String(month), 'Paid');
         }
 
         await paymentStatus.save();
+        console.log('Payment status successfully updated:', paymentStatus);
+
         res.status(200).json({ success: true, msg: 'Payment status updated' });
     } catch (error) {
         console.error('updatePayment error:', error);

@@ -5,7 +5,6 @@ const months = [
 
 let currentYear = new Date().getFullYear();
 
-
 // Store payment status in local storage as a backup
 let paymentStatus = {};
 
@@ -18,8 +17,15 @@ async function fetchPaymentStatus() {
     try {
         const response = await fetch('/payment-status', { credentials: 'include' });
         if (!response.ok) throw new Error('Network error');
+        
         const data = await response.json();
-        paymentStatus = data.success ? data.paymentStatus : JSON.parse(localStorage.getItem('paymentStatus')) || {};
+        
+        if (data.success) {
+            paymentStatus = data.paymentStatus;
+        } else {
+            paymentStatus = JSON.parse(localStorage.getItem('paymentStatus')) || {};
+        }
+        
         localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
         return paymentStatus;
     } catch (error) {
@@ -29,68 +35,98 @@ async function fetchPaymentStatus() {
     }
 }
 
-async function getFeeStatus(month, year) {
+// Optimized function to create all month cards at once
+async function createAllMonthCards(year) {
+    const grid = document.getElementById('monthsGrid');
+    if (!grid) return;
+    
+    // Clear the grid first
+    grid.innerHTML = '';
+    
+    // Get payment status once for all months
     await fetchPaymentStatus();
-    const monthIndex = months.indexOf(month);
+    
+    // Prepare all cards in a document fragment for efficient DOM manipulation
+    const fragment = document.createDocumentFragment();
+    
+    // Get current date information
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
-
-    const paymentKey = `${year}-${monthIndex}`;
-    if (paymentStatus.months?.[monthIndex] === 'Paid') {
-        return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-700', showButton: false };
-    }
-
-    const quarter = Math.floor(monthIndex / 3) + 1;
-    if (paymentStatus.quarters?.[quarter] === 'Paid') {
-        return { status: 'Paid (Quarterly)', statusClass: 'paid-status', textColor: 'text-green-700', showButton: false };
-    }
-
-    if (year < currentYear || (year === currentYear && monthIndex < currentMonth)) {
-        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-700', showButton: true };
-    }
-    if (year === currentYear && monthIndex === currentMonth) {
-        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-700', showButton: true };
-    }
-    return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
-}
-
-async function createMonthCard(month, year) {
-    const status = await getFeeStatus(month, year);
-    const monthCard = document.createElement('div');
-    monthCard.className = `month-card p-4 rounded-lg border ${status.statusClass}`;
-    monthCard.id = `month-${month.toLowerCase()}-${year}`;
-    monthCard.innerHTML = `
-        <div class="flex justify-between items-center">
-            <div>
-                <h3 class="font-semibold">${month} ${year}</h3>
-                <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
+    
+    // Create all month cards at once
+    for (let i = 0; i < months.length; i++) {
+        const month = months[i];
+        
+        // Determine status
+        let status = { 
+            status: 'Upcoming', 
+            statusClass: 'upcoming-status', 
+            textColor: 'text-gray-600', 
+            showButton: false 
+        };
+        
+        // Check if month is paid in payment status
+        if (paymentStatus.months && paymentStatus.months[i] === 'Paid') {
+            status = { 
+                status: 'Paid', 
+                statusClass: 'paid-status', 
+                textColor: 'text-green-700', 
+                showButton: false 
+            };
+        } else {
+            // Check if quarter is paid
+            const quarter = Math.floor(i / 3) + 1;
+            if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
+                status = { 
+                    status: 'Paid (Quarterly)', 
+                    statusClass: 'paid-status', 
+                    textColor: 'text-green-700', 
+                    showButton: false 
+                };
+            } else if (year < currentYear || (year === currentYear && i <= currentMonth)) {
+                status = { 
+                    status: 'Pending', 
+                    statusClass: 'pending-status', 
+                    textColor: 'text-orange-700', 
+                    showButton: true 
+                };
+            }
+        }
+        
+        // Create the month card
+        const monthCard = document.createElement('div');
+        monthCard.className = `month-card p-4 rounded-lg border ${status.statusClass}`;
+        monthCard.id = `month-${month.toLowerCase()}-${year}`;
+        monthCard.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="font-semibold">${month} ${year}</h3>
+                    <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
+                </div>
+                ${status.showButton ? '<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Pay now</button>' : ''}
             </div>
-            ${status.showButton ? '<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Pay now</button>' : ''}
-        </div>
-    `;
-    if (status.showButton) {
-        monthCard.querySelector('.pay-now-btn').addEventListener('click', () => processPayment(month, year));
+        `;
+        
+        // Add event listener to the pay button if it exists
+        if (status.showButton) {
+            const payButton = monthCard.querySelector('.pay-now-btn');
+            payButton.addEventListener('click', () => processPayment(month, year));
+        }
+        
+        // Add to fragment
+        fragment.appendChild(monthCard);
     }
-    return monthCard;
+    
+    // Append all cards at once
+    grid.appendChild(fragment);
 }
+
+// Replace updateMonthsGrid with new optimized function
 async function updateMonthsGrid() {
-    const grid = document.getElementById('monthsGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    for (const month of months) {
-        grid.appendChild(await createMonthCard(month, currentYear));
-    }
+    await createAllMonthCards(currentYear);
+    updateYearSummary();
 }
-
-document.addEventListener('DOMContentLoaded', async () => {
-    await fetchPaymentStatus();
-    document.getElementById('currentYear').textContent = currentYear;
-    document.getElementById('prevYear')?.addEventListener('click', () => changeYear(-1));
-    document.getElementById('nextYear')?.addEventListener('click', () => changeYear(1));
-    await updateMonthsGrid();
-});
-
 
 function calculatePendingAmount() {
     const currentDate = getCurrentDate();
@@ -100,48 +136,64 @@ function calculatePendingAmount() {
     let pendingMonths = 0;
     
     // If current year matches the displayed year
-    if (currentYear === currentYear) {
+    if (currentYear === window.currentYear) {
         // Count pending months from January to current month
         for (let i = 0; i <= currentMonth; i++) {
-            const paymentKey = `${currentYear}-${i}`;
-            if (!paymentStatus[paymentKey]) {
-                pendingMonths++;
+            if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
+                // Check if the quarter is paid
+                const quarter = Math.floor(i / 3) + 1;
+                if (!paymentStatus.quarters || paymentStatus.quarters[quarter] !== 'Paid') {
+                    pendingMonths++;
+                }
             }
         }
     } 
     // If displayed year is in the past, all months should be paid
-    else if (currentYear < currentYear) {
-        pendingMonths = 0;
+    else if (window.currentYear < currentYear) {
+        // For past years, count any months that aren't marked as paid
+        if (paymentStatus.months) {
+            for (let i = 0; i < 12; i++) {
+                if (paymentStatus.months[i] !== 'Paid') {
+                    const quarter = Math.floor(i / 3) + 1;
+                    if (!paymentStatus.quarters || paymentStatus.quarters[quarter] !== 'Paid') {
+                        pendingMonths++;
+                    }
+                }
+            }
+        } else {
+            pendingMonths = 12;
+        }
     } 
     // If displayed year is in the future, all months are pending
     else {
-        pendingMonths = 12;
+        pendingMonths = 0;
     }
     
-    return pendingMonths * monthlyFee;
+    return pendingMonths * window.monthlyFee;
 }
 
 function calculatePaidAmount() {
     const currentDate = getCurrentDate();
-    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
     
     let paidMonths = 0;
     
-    // Count actually paid months for current year
-    if (currentYear === currentDate.getFullYear()) {
-        for (let i = 0; i <= currentMonth; i++) {
-            const paymentKey = `${currentYear}-${i}`;
-            if (paymentStatus[paymentKey]) {
+    // Count paid months for the displayed year
+    if (paymentStatus.months) {
+        for (let i = 0; i < 12; i++) {
+            if (paymentStatus.months[i] === 'Paid') {
                 paidMonths++;
+            } else {
+                // Check if the quarter is paid
+                const quarter = Math.floor(i / 3) + 1;
+                if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
+                    paidMonths++;
+                }
             }
         }
-    } 
-    // For past years, all 12 months should show as paid
-    else if (currentYear < currentDate.getFullYear()) {
-        paidMonths = 12;
     }
     
-    return paidMonths * monthlyFee;
+    return paidMonths * window.monthlyFee;
 }
 
 function updateYearSummary() {
@@ -180,7 +232,16 @@ function processPayment(month, year) {
     $.ajax({
         url: '/createOrder',
         type: 'POST',
-        data: { name: `Fee for ${month} ${year}`, amount: window.monthlyFee, description: `Fee for ${month} ${year}`, email: 'amogha.khare@example.com', contact: '9876543210', year, month: monthIndex, isQuarterly: false },
+        data: { 
+            name: `Fee for ${month} ${year}`, 
+            amount: window.monthlyFee, 
+            description: `Fee for ${month} ${year}`, 
+            email: 'amogha.khare@example.com', 
+            contact: '9876543210', 
+            year, 
+            month: monthIndex, 
+            isQuarterly: false 
+        },
         success: (res) => {
             if (res.success) {
                 const options = {
@@ -192,11 +253,40 @@ function processPayment(month, year) {
                         await $.ajax({
                             url: '/update-payment',
                             type: 'POST',
-                            data: { userId: window.userId, year, month: monthIndex, isQuarterly: false },
+                            data: { 
+                                userId: window.userId, 
+                                year, 
+                                month: monthIndex, 
+                                isQuarterly: false 
+                            },
                             success: async () => {
+                                // Update local storage payment status
+                                if (!paymentStatus.months) {
+                                    paymentStatus.months = {};
+                                }
                                 paymentStatus.months[monthIndex] = 'Paid';
                                 localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
-                                await updateMonthsGrid();
+                                
+                                // Update only the specific month card instead of regenerating all cards
+                                const monthCard = document.getElementById(`month-${month.toLowerCase()}-${year}`);
+                                if (monthCard) {
+                                    monthCard.className = 'month-card p-4 rounded-lg border paid-status';
+                                    const statusSpan = monthCard.querySelector('span');
+                                    if (statusSpan) {
+                                        statusSpan.className = 'text-sm font-medium text-green-700';
+                                        statusSpan.textContent = 'Paid';
+                                    }
+                                    
+                                    // Remove the pay button if it exists
+                                    const payButton = monthCard.querySelector('.pay-now-btn');
+                                    if (payButton) {
+                                        payButton.remove();
+                                    }
+                                }
+                                
+                                // Update summary
+                                updateYearSummary();
+                                updateQuarterlyAfterMonthlyPayment(monthIndex);
                                 alert(`Payment Successful for ${month} ${year}`);
                             }
                         });
@@ -208,9 +298,8 @@ function processPayment(month, year) {
             }
         },
         error: (err) => console.error(err)
-    })
+    });
 }
-
 
 // Payment method selection function after initial selection
 function setPaymentMethod(method) {
@@ -263,12 +352,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Set up year navigation for monthly view
     const prevYearBtn = document.getElementById('prevYear');
     const nextYearBtn = document.getElementById('nextYear');
-   const yearElement = document.getElementById('currentYear');
+    const yearElement = document.getElementById('currentYear');
     
     if (yearElement) yearElement.textContent = currentYear;
     if (prevYearBtn) prevYearBtn.addEventListener('click', () => changeYear(-1));
     if (nextYearBtn) nextYearBtn.addEventListener('click', () => changeYear(1));
-    
     
     // Get payment method selection buttons (once user has already made an initial choice)
     const monthlyPaymentBtn = document.getElementById('monthlyPaymentBtn');

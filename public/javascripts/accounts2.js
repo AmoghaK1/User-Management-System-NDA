@@ -71,7 +71,7 @@ async function createAllMonthCards(year) {
             status = { 
                 status: 'Paid', 
                 statusClass: 'paid-status', 
-                textColor: 'text-green-700', 
+                textColor: 'text-green-800', 
                 showButton: false 
             };
         } else {
@@ -81,14 +81,14 @@ async function createAllMonthCards(year) {
                 status = { 
                     status: 'Paid (Quarterly)', 
                     statusClass: 'paid-status', 
-                    textColor: 'text-green-700', 
+                    textColor: 'text-green-800', 
                     showButton: false 
                 };
             } else if (year < currentYear || (year === currentYear && i <= currentMonth)) {
                 status = { 
                     status: 'Pending', 
                     statusClass: 'pending-status', 
-                    textColor: 'text-orange-700', 
+                    textColor: 'text-orange-800', 
                     showButton: true 
                 };
             }

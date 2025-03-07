@@ -404,7 +404,13 @@ const changePassword = async(req, res) => {
     }
 };
 
+const loadEventsPage = async(req,res) => {
+    res.render('events')
+}
 
+const load_trDashboard = async(req,res)=>{
+    res.render('teacher-dashboard');
+}
 
 module.exports = {
     loadRegister,
@@ -415,5 +421,7 @@ module.exports = {
     loadProfile,
     updateProfile,
     updateProfilePicture,
-    changePassword
+    changePassword,
+    loadEventsPage,
+    load_trDashboard
 };

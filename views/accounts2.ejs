@@ -30,12 +30,14 @@
 <body class="min-h-screen bg-gray-50 p-6">
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
-            <div class="flex items-center">
-                <img class="w-12 h-12 rounded-full bg-gray-200" src="../images/pfp_final_1.png" alt="Profile">
-                <span class="ml-3 text-2xl font-bold text-gray-800"><%= user.name %></span>
+        <div class="flex items-center">
+            <img class="w-12 h-12 rounded-full bg-gray-200" src=<%= user.profilePicture %> alt="Profile">
+            <div class="ml-3">
+                <span class="text-2xl font-bold text-gray-800"><%= user.name %></span>
+                <div class="text-lg text-gray-500"><%= user.exam_level %></div>
             </div>
         </div>
+        <br>
 
         <!-- Initial Payment Type Selection Screen -->
         <div id="initialPaymentOptions" class="flex flex-col items-center justify-center py-16">

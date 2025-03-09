@@ -146,8 +146,8 @@ function processPayment(month, year) {
             name: `Fee for ${month} ${year}`, 
             amount: window.monthlyFee, 
             description: `Fee for ${month} ${year}`, 
-            email: 'amogha.khare@example.com', 
-            contact: '9876543210', 
+            email: window.email, 
+            contact: window.phoneNumber, 
             year, 
             month: monthIndex, 
             isQuarterly: false 

@@ -1,0 +1,253 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #0a0012; /* Slightly purple-tinted black to match image */
+    color: #fff;
+    overflow-x: hidden;
+}
+
+/* Navbar container */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 10%;
+    background-color: #0a0012;
+    position: fixed; /* Changed from absolute for better scrolling */
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(128, 0, 255, 0.1); /* Subtle border */
+}
+
+/* Logo styling */
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: 0 0 8px rgba(128, 0, 255, 0.3); /* Subtle glow */
+}
+
+/* Navigation menu */
+.nav-links {
+    display: flex;
+    list-style: none;
+}
+
+.nav-links li {
+    margin-left: 30px;
+}
+
+.nav-links a {
+    color: rgba(255, 255, 255, 0.9); /* Slightly less vibrant */
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 300; /* Lighter weight for elegance */
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.nav-links a:hover {
+    color: rgba(128, 0, 255, 0.8); /* Purple tint on hover */
+    text-shadow: 0 0 5px rgba(128, 0, 255, 0.2);
+}
+
+/* Mobile menu button (hidden by default) */
+.menu-btn {
+    display: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto; /* Center horizontally with auto margins */
+    padding-top: 80px; /* Account for fixed navbar */
+    min-height: 100vh; /* Use min-height instead of fixed height */
+    width: 90%; /* Better responsive width */
+    max-width: 1200px; /* Added max-width for larger screens */
+    background-color: rgba(10, 0, 18, 0.8);
+    position: relative;
+    overflow: hidden; /* Prevent content overflow */
+}
+
+#heroimg {
+    height: 80%;
+    width: auto;
+    max-height: 80vh;
+    max-width: 100%; /* Ensure image doesn't overflow container */
+    opacity: 0.3;
+    mix-blend-mode: screen; /* Better blending for this effect */
+    filter: drop-shadow(0 0 15px rgba(128, 0, 255, 0.3));
+    animation: fadeIn 4s ease-in, fadeOff 2s 4s; 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Perfect centering technique */
+    z-index: 1;
+    object-fit: contain;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        filter: brightness(1.2) drop-shadow(0 0 20px rgba(128, 0, 255, 0.5));
+    }
+    
+    80% {
+        opacity: 0.7;
+        filter: brightness(1.1) drop-shadow(0 0 18px rgba(128, 0, 255, 0.4));
+    }
+    100% {
+        opacity: 0.7;
+        filter: brightness(1) drop-shadow(0 0 15px rgba(128, 0, 255, 0.4));
+    }
+}
+
+@keyframes fadeOff {
+    0% {
+        opacity: 0.7;
+        filter: brightness(1) drop-shadow(0 0 15px rgba(128, 0, 255, 0.4));
+    }
+    100% {
+        opacity: 0.3;
+        filter: brightness(0.9) drop-shadow(0 0 12px rgba(128, 0, 255, 0.3));
+    }
+}
+
+.shlok-section {
+    width: 90%;
+    text-align: center;
+    z-index: 2;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.line {
+    opacity: 0;
+    margin: 1.5rem 0;
+    font-size: clamp(1.5rem, 5vw, 2.5rem); /* Responsive font size */
+    animation: fadeInShlok 1.2s forwards ease-in; 
+    font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif; /* More elegant fonts */
+    font-weight: 300;
+    letter-spacing: 1px;
+    line-height: 1.4;
+    color: rgba(223, 223, 223, 0.975); /* Slightly less vibrant */
+    text-shadow: 0 0 10px rgba(128, 0, 255, 0.2), 0 0 20px rgba(10, 0, 18, 0.8);
+}
+
+.line1 {
+    animation-delay: 4s;
+}
+
+.line2 {
+    animation-delay: 6s;
+}
+
+.line3 {
+    animation-delay: 8s;
+}
+
+.line4 {
+    animation-delay: 10s;
+}
+
+@keyframes fadeInShlok {
+    0% {
+        opacity: 0;
+        
+        text-shadow: 0 0 15px rgba(128, 0, 255, 0.4), 0 0 30px rgba(10, 0, 18, 0.9);
+    }
+    100% {
+        opacity: 1;
+        
+        text-shadow: 0 0 8px rgba(128, 0, 255, 0.2), 0 0 15px rgba(10, 0, 18, 0.7);
+    }
+}
+
+/* Font import for shlok text */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Playfair+Display:wght@300;400&display=swap');
+
+/* Media queries for responsive design */
+@media screen and (max-width: 992px) {
+    .hero-content {
+        width: 95%;
+    }
+    
+    .line {
+        margin: 1.2rem 0;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .navbar {
+        padding: 15px 5%;
+    }
+    
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background-color: rgba(10, 0, 18, 0.95);
+        padding: 20px 0;
+        backdrop-filter: blur(10px);
+    }
+    
+    .nav-links.active {
+        display: flex;
+    }
+    
+    .nav-links li {
+        margin: 10px 0;
+        text-align: center;
+    }
+    
+    .menu-btn {
+        display: block;
+    }
+
+    .line {
+        margin: 1rem 0;
+        font-size: clamp(1.2rem, 4vw, 1.8rem);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .navbar {
+        padding: 12px 5%;
+    }
+    
+    .logo {
+        font-size: 20px;
+    }
+    
+    .hero-content {
+        width: 100%;
+    }
+    
+    .line {
+        margin: 0.8rem 0;
+        font-size: clamp(1rem, 5vw, 1.5rem);
+    }
+}

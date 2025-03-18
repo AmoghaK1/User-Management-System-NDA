@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fee Status Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="../images/nda-favicon-v2.png">
+    <link rel="icon" type="favicon" href="../images/nda-favicon-v2.png">
     <style>
         .month-card, .quarterly-card {
             transition: all 0.3s ease;
@@ -183,6 +183,8 @@
             window.userId = "<%= user._id %>"; // For EJS
             window.monthlyFee = "<%= user.exam_fee %>"; // For EJS
             window.quarterlyFee = "<%= user.exam_fee * 3 %>"; // For EJS
+            window.phoneNumber = "<%= user.student_ph_no %>"; // For EJS
+            window.email = "<%= user.email %>"; // For EJS
             const initialMonthlyBtn = document.getElementById('initialMonthlyBtn');
             const initialQuarterlyBtn = document.getElementById('initialQuarterlyBtn');
             

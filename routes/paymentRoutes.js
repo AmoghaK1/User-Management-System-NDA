@@ -13,4 +13,5 @@ payment_route.get('/accounts', ensureAuthenticated, paymentController.renderDash
 payment_route.post('/createOrder', ensureAuthenticated, paymentController.createOrder);
 payment_route.post('/update-payment', ensureAuthenticated, paymentController.updatePayment);
 payment_route.get('/payment-status', ensureAuthenticated, paymentController.getPaymentStatus);
+payment_route.get('/student-payment-details', ensureAuthenticated, paymentController.getStudentPaymentDetails);
 module.exports = payment_route;

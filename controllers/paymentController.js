@@ -142,9 +142,66 @@ const getPaymentStatus = async (req, res) => {
     }
 };
 
+const getStudentPaymentDetails = async (req, res) => {
+    try {
+        // Get all payment records with student details
+        const payments = await PaymentStatus.find()
+            .populate('userId', 'name email') // Populate user details
+            .sort({ updatedAt: -1 }); // Most recent first
+        
+        const formattedPayments = [];
+        
+        for (const payment of payments) {
+            // Process monthly payments
+            for (const [monthIndex, status] of payment.months.entries()) {
+                if (status === 'Paid') {
+                    const monthName = [
+                        'January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'
+                    ][parseInt(monthIndex)];
+                    
+                    formattedPayments.push({
+                        studentName: payment.userId.name,
+                        studentEmail: payment.userId.email,
+                        paymentType: 'Monthly',
+                        period: `${monthName} ${payment.year}`,
+                        year: payment.year,
+                        status: 'Paid'
+                    });
+                }
+            }
+            
+            // Process quarterly payments
+            for (const [quarterIndex, status] of payment.quarters.entries()) {
+                if (status === 'Paid') {
+                    const quarter = parseInt(quarterIndex);
+                    
+                    formattedPayments.push({
+                        studentName: payment.userId.name,
+                        studentEmail: payment.userId.email,
+                        paymentType: 'Quarterly',
+                        period: `Q${quarter} ${payment.year}`,
+                        year: payment.year,
+                        status: 'Paid'
+                    });
+                }
+            }
+        }
+        
+        res.status(200).json({
+            success: true,
+            payments: formattedPayments
+        });
+    } catch (error) {
+        console.error('Error fetching payment details:', error);
+        res.status(500).json({ success: false, msg: 'Internal Server Error' });
+    }
+};
+
 module.exports = {
     renderDashboard,
     createOrder,
     updatePayment,
-    getPaymentStatus
+    getPaymentStatus,
+    getStudentPaymentDetails
 };

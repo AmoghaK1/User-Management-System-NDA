@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nrutashree Dance Academy</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">      
     <link rel="stylesheet" href="../stylesheets/landing2_2.css">
     <link rel="icon" type="favicon" href="../images/nda-favicon-v2.png">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Playfair+Display:wght@300;400;500&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+            
 </head>
 <body>
-    <nav class="navbar">
+    <nav class="myNavbar">
         <a href="#" class="logo">Nrutyashree Dance Academy</a>
         <ul class="nav-links">
             <li><a href="#home" class="active">Home</a></li>
@@ -21,12 +23,22 @@
             <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
+            
+        </div>
+        <div class="theme-toggle">
+            <input type="checkbox" id="darkmode-toggle" class="darkmode-input">
+            <label for="darkmode-toggle" class="darkmode-label">
+                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/>
+                </svg>
+                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/>
+                </svg>
+            </label>
         </div>
     </nav>
 
-    <section id="home" class="hero-section">
-        <div class="hero-cracks"></div>
-        <div class="cracks-overlay"></div>
+    <section id="home" class="my-hero-section">
         <div class="hero-content">
            <img src="../images/image_prev_ui.png" alt="Nrutyashree Dance Academy" id="heroimg">
            <div class="shlok-section">
@@ -53,45 +65,43 @@
     </section>
 
     <section id="events" class="events-section">
-        <h2 class="section-title">Events</h2>
-        <div class="events-carousel">
-            <div class="carousel-container">
-                <div class="carousel-slides">
-                    <div class="carousel-slide">
-                        <img src="../images/carousal1.jpg" alt="Event 1">
-                        <div class="slide-caption">
-                            <h3>Annual Dance Festival 2024</h3>
-                            <p>A celebration of Bharatanatyam excellence</p>
-                        </div>
+        <h2 class="section-title">Our Performances</h2>
+        <div class="custom-carousel-container">
+            <div id="danceCarousel" class="carousel slide" data-ride="carousel">
+                <ol class="carousel-indicators">
+                    <li data-target="#danceCarousel" data-slide-to="0" class="active"></li>
+                    <li data-target="#danceCarousel" data-slide-to="1"></li>
+                    <li data-target="#danceCarousel" data-slide-to="2"></li>
+                </ol>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img class="d-block w-100" src="../images/carousal1.jpg" alt="First slide">
                     </div>
-                    <div class="carousel-slide">
-                        <img src="../images/carousal2.jpg" alt="Event 2">
-                        <div class="slide-caption">
-                            <h3>Summer Workshop 2023</h3>
-                            <p>Masterclass with renowned artists</p>
-                        </div>
+                    <div class="carousel-item">
+                        <img class="d-block w-100" src="../images/carousal2.jpg" alt="Second slide">
                     </div>
-                    <div class="carousel-slide">
-                        <img src="../images/carousal3.jpg" alt="Event 3">
-                        <div class="slide-caption">
-                            <h3>Traditional Recital Night</h3>
-                            <p>Showcasing student performances</p>
-                        </div>
+                    <div class="carousel-item">
+                        <img class="d-block w-100" src="../images/carousal3.jpg" alt="Third slide">
                     </div>
                 </div>
+                <a class="carousel-control-prev" href="#danceCarousel" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#danceCarousel" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
             </div>
-            <button class="carousel-prev">❮</button>
-            <button class="carousel-next">❯</button>
         </div>
     </section>
-    
 
     <footer id="contact" class="footer">
         <div class="footer-cracks"></div>
         <div class="footer-content">
             <div class="footer-section">
                 <span class="footer-logo">Nrutyashree Dance Academy</span>
-                <p class="footer-about">A premier institution dedicated to preserving and promoting classical Indian dance forms, with a focus on Bharatanatyam and other traditional dance styles.</p>
+                <p class="footer-about">A premier institution dedicated to preserving and promoting classical Indian dance forms.</p>
             </div>
             <div class="footer-section footer-links">
                 <h3>Quick Links</h3>
@@ -99,22 +109,17 @@
                     <li><a href="#home">Home</a></li>
                     <li><a href="#about">About Us</a></li>
                     <li><a href="#events">Events</a></li>
-                    <li><a href="#contact">Contact</a></li>
                 </ul>
             </div>
             <div class="footer-section footer-contact">
                 <h3>Contact Us</h3>
                 <div class="contact-info">
                     <i>📍</i>
-                    <span>123 Dance Street, Bangalore, Karnataka, India</span>
+                    <span>123 Dance Street, Bangalore, India</span>
                 </div>
                 <div class="contact-info">
                     <i>📞</i>
                     <span>+91 9876543210</span>
-                </div>
-                <div class="contact-info">
-                    <i>✉️</i>
-                    <span>info@nrutyashree.com</span>
                 </div>
             </div>
         </div>
@@ -123,143 +128,100 @@
         </div>
     </footer>
     <script>
-          // Menu toggle functionality
-const menuBtn = document.querySelector(".menu-btn");
-const navLinks = document.querySelector(".nav-links");
-const navLinksItems = document.querySelectorAll(".nav-links a");
+        // Menu toggle functionality
+        const menuBtn = document.querySelector(".menu-btn");
+        const navLinks = document.querySelector(".nav-links");
+        const navLinksItems = document.querySelectorAll(".nav-links a");
 
-if (menuBtn && navLinks) {
-    menuBtn.addEventListener("click", () => {
-        navLinks.classList.toggle("active");
-        menuBtn.classList.toggle("active");
-    });
+        if (menuBtn && navLinks) {
+            menuBtn.addEventListener("click", () => {
+                navLinks.classList.toggle("active");
+                menuBtn.classList.toggle("active");
+            });
 
-    navLinksItems.forEach((item) => {
-        item.addEventListener("click", () => {
-            navLinks.classList.remove("active");
-            menuBtn.classList.remove("active");
-        });
-    });
-}
-
-// Smooth scrolling
-document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-    anchor.addEventListener("click", function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute("href"));
-        if (target) {
-            window.scrollTo({
-                top: target.offsetTop,
-                behavior: "smooth",
+            navLinksItems.forEach((item) => {
+                item.addEventListener("click", () => {
+                    navLinks.classList.remove("active");
+                    menuBtn.classList.remove("active");
+                });
             });
         }
-    });
-});
 
-// Scroll effects
-window.addEventListener("scroll", () => {
-    const navbar = document.querySelector(".navbar");
-    if (navbar) {
-        navbar.classList.toggle("scrolled", window.scrollY > 50);
-    }
-
-    // Reveal sections on scroll
-    const sections = document.querySelectorAll(".about-section, .events-section");
-    const screenPosition = window.innerHeight / 1.3;
-
-    sections.forEach((section) => {
-        if (section.getBoundingClientRect().top < screenPosition) {
-            section.classList.add("visible");
-        }
-    });
-
-    // Active link highlight
-    const allSections = document.querySelectorAll("section");
-    const navLinksAll = document.querySelectorAll(".nav-links a");
-
-    allSections.forEach((section) => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-        if (window.scrollY >= sectionTop - 100 && window.scrollY < sectionTop + sectionHeight - 100) {
-            navLinksAll.forEach((link) => {
-                link.classList.remove("active");
-                if (section.getAttribute("id") === link.getAttribute("href").substring(1)) {
-                    link.classList.add("active");
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+            anchor.addEventListener("click", function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute("href"));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop,
+                        behavior: "smooth",
+                    });
                 }
             });
-        }
-    });
-});
+        });
 
-// Fixed Carousel Functionality
-const carouselSlides = document.querySelector(".carousel-slides");
-const slides = document.querySelectorAll(".carousel-slide");
-const prevBtn = document.querySelector(".carousel-prev");
-const nextBtn = document.querySelector(".carousel-next");
+        // Scroll effects
+        window.addEventListener("scroll", () => {
+            const navbar = document.querySelector(".myNavbar");
+            if (navbar) {
+                navbar.classList.toggle("scrolled", window.scrollY > 50);
+            }
 
-let currentIndex = 0;
-let autoPlay;
+            // Reveal sections on scroll
+            const sections = document.querySelectorAll(".about-section, .events-section");
+            const screenPosition = window.innerHeight / 1.3;
 
-// Function to update the carousel position
-function updateCarousel() {
-    if (carouselSlides && slides.length > 0) {
-        carouselSlides.style.transform = `translateX(-${currentIndex * 100}%)`;
+            sections.forEach((section) => {
+                if (section.getBoundingClientRect().top < screenPosition) {
+                    section.classList.add("visible");
+                }
+            });
+
+            // Active link highlight
+            const allSections = document.querySelectorAll("section");
+            const navLinksAll = document.querySelectorAll(".nav-links a");
+
+            allSections.forEach((section) => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.scrollY >= sectionTop - 100 && window.scrollY < sectionTop + sectionHeight - 100) {
+                    navLinksAll.forEach((link) => {
+                        link.classList.remove("active");
+                        if (section.getAttribute("id") === link.getAttribute("href").substring(1)) {
+                            link.classList.add("active");
+                        }
+                    });
+                }
+            });
+        });
+        // Dark mode toggle
+const darkModeToggle = document.getElementById('darkmode-toggle');
+const body = document.body;
+
+// Check for saved user preference
+if (localStorage.getItem('darkMode') === 'enabled') {
+    body.classList.add('dark-mode');
+    darkModeToggle.checked = true;
+}
+
+darkModeToggle.addEventListener('change', () => {
+    if (darkModeToggle.checked) {
+        body.classList.add('dark-mode');
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        body.classList.remove('dark-mode');
+        localStorage.setItem('darkMode', 'disabled');
     }
-}
-
-// Function to move to the next slide
-function nextSlide() {
-    currentIndex = (currentIndex + 1) % slides.length;
-    updateCarousel();
-}
-
-// Function to move to the previous slide
-function prevSlide() {
-    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-    updateCarousel();
-}
-
-// Function to start autoplay
-function startAutoPlay() {
-    autoPlay = setInterval(nextSlide, 5000);
-}
-
-// Function to stop autoplay
-function stopAutoPlay() {
-    clearInterval(autoPlay);
-}
-
-// Attach event listeners if elements exist
-if (prevBtn && nextBtn && carouselSlides) {
-    prevBtn.addEventListener("click", () => {
-        prevSlide();
-        stopAutoPlay();
-        startAutoPlay();
-    });
-
-    nextBtn.addEventListener("click", () => {
-        nextSlide();
-        stopAutoPlay();
-        startAutoPlay();
-    });
-
-    // Pause on hover
-    carouselSlides.addEventListener("mouseenter", stopAutoPlay);
-    carouselSlides.addEventListener("mouseleave", startAutoPlay);
-
-    // Auto-play on load
-    startAutoPlay();
-}
-
-// Ensure carousel updates on resize
-window.addEventListener("resize", updateCarousel);
-
-// Initial load event
-window.addEventListener("load", () => {
-    document.body.classList.add("loaded");
-    updateCarousel();
 });
 
-        </script>
+        // Initial load event
+        window.addEventListener("load", () => {
+            document.body.classList.add("loaded");
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -412,6 +412,46 @@ const load_trDashboard = async(req,res)=>{
     res.render('teacher-dashboard');
 }
 
+const Teacher_getAllStudents = async (req, res) => {
+    try {
+        const students = await User.find({ is_admin: 0 }).select("_id name email");
+        res.json(students);
+    } catch (error) {
+        console.error("Error fetching students:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+const Teacher_deleteStudent = async (req, res) => {
+    const { studentId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+        return res.status(400).json({ success: false, error: "Invalid student ID" });
+    }
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        // Delete student
+        const studentDeletion = await User.deleteOne({ _id: studentId }).session(session);
+        if (studentDeletion.deletedCount === 0) {
+            throw new Error("Student not found");
+        }
+
+        // Delete associated payment records
+        await PaymentStatus.deleteMany({ userId: studentId }).session(session);
+
+        await session.commitTransaction();
+        session.endSession();
+        res.json({ success: true, message: "Student deleted successfully" });
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        console.error("Error deleting student:", error);
+        res.status(500).json({ success: false, error: "Internal Server Error" });
+    }
+};
 module.exports = {
     loadRegister,
     addUser,
@@ -423,5 +463,7 @@ module.exports = {
     updateProfilePicture,
     changePassword,
     loadEventsPage,
-    load_trDashboard
+    load_trDashboard,
+    Teacher_getAllStudents,
+    Teacher_deleteStudent
 };

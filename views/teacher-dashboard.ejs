@@ -68,20 +68,21 @@
   
     <!-- Quick Access Section -->
     <div class="quick-access-section">
+      <a href="/teacher-register" style="text-decoration: none;">
       <div class="quick-card">
         <div class="quick-icon">
           <i class="fa-solid fa-user-plus"></i>
         </div>
         <div class="quick-title">Add Student</div>
       </div>
-      
+    
       <div class="quick-card">
         <div class="quick-icon">
-          <i class="fa-solid fa-clipboard-list"></i>
+          <i class="fa-solid fa-user-minus"></i>
         </div>
-        <div class="quick-title">Take Attendance</div>
+        <div class="quick-title">Delete Student</div>
       </div>
-      
+            
       <div class="quick-card">
         <div class="quick-icon">
           <i class="fa-solid fa-rupee-sign"></i>
@@ -114,15 +115,9 @@
       alert('Notifications feature coming soon!');
     });
     
-    // Quick access cards
-    const quickCards = document.querySelectorAll('.quick-card');
-    quickCards.forEach(card => {
-      card.addEventListener('click', function() {
-        const title = this.querySelector('.quick-title').textContent;
-        alert(`${title} feature will be available soon!`);
-      });
+  
     });
-  });
   </script>
+  <script src="../javascripts/tr-dashboard.js"></script>
 </body>
 </html>

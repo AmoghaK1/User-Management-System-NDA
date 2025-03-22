@@ -1,12 +1,22 @@
-const LocalStrategy = require("passport-local").Strategy
-const bcrypt = require('bcryptjs');
-const User = require('../models/userModel');
+const LocalStrategy = require("passport-local").Strategy;
+const bcrypt = require("bcryptjs");
+const User = require("../models/userModel");
 
 module.exports = (passport) => {
     passport.use(
         new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
             try {
-                // Find user by email
+                // Hardcoded user authentication
+                if (email === "rajjii11@gmail.com" && password === "1234") {
+                    const hardcodedUser = {
+                        id: "hardcoded-user", // Use a distinct string
+                        email: "rajjii11@gmail.com",
+                        name: "Rajjii",
+                    };
+                    return done(null, hardcodedUser);
+                }
+
+                // Find user in the database
                 const user = await User.findOne({ email });
                 if (!user) return done(null, false, { message: "No user found" });
 
@@ -27,6 +37,16 @@ module.exports = (passport) => {
 
     passport.deserializeUser(async (id, done) => {
         try {
+            // Handle hardcoded user separately
+            if (id === "hardcoded-user") {
+                return done(null, {
+                    id: "hardcoded-user",
+                    email: "rajjii11@gmail.com",
+                    name: "Rajjii",
+                });
+            }
+
+            // For normal users, query from the database
             const user = await User.findById(id);
             done(null, user);
         } catch (error) {

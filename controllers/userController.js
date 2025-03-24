@@ -424,30 +424,26 @@ const Teacher_getAllStudents = async (req, res) => {
 
 const Teacher_deleteStudent = async (req, res) => {
     const { studentId } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(studentId)) {
-        return res.status(400).json({ success: false, error: "Invalid student ID" });
-    }
-
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
-        // Delete student
-        const studentDeletion = await User.deleteOne({ _id: studentId }).session(session);
+        // Delete the student from the User collection using deleteOne with a specific write concern
+        const studentDeletion = await User.deleteOne(
+            { _id: studentId },
+            { writeConcern: { w: 1 } } // Using w: 1 instead of majority
+        );
+        
         if (studentDeletion.deletedCount === 0) {
-            throw new Error("Student not found");
+            return res.status(404).json({ success: false, error: "Student not found" });
         }
 
-        // Delete associated payment records
-        await PaymentStatus.deleteMany({ userId: studentId }).session(session);
+        // Delete associated payment records with the same write concern
+        await PaymentStatus.deleteMany(
+            { userId: studentId },
+            { writeConcern: { w: 1 } }
+        );
 
-        await session.commitTransaction();
-        session.endSession();
-        res.json({ success: true, message: "Student deleted successfully" });
+        // Return success response
+        res.status(200).json({ success: true, message: "Student deleted successfully" });
     } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
         console.error("Error deleting student:", error);
         res.status(500).json({ success: false, error: "Internal Server Error" });
     }

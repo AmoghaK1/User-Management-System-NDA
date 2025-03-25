@@ -60,6 +60,7 @@ app.use('/', userRoutes);
 app.use('/', teacherRoutes);
 app.use('/',paymentRoutes);
 
+
 app.get('/',(req,res)=>{
     res.render('landing2');
 })

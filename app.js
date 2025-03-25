@@ -6,7 +6,7 @@ const flash = require("connect-flash");
 const session = require("express-session");
 const passport = require("passport");
 const config = require("./config/config")
-const paymentRoutes = require('./routes/paymentRoutes');
+
 
 
 require("./config/passport")(passport);
@@ -54,13 +54,17 @@ app.use((req, res, next) => {
 
 
 const userRoutes = require('./routes/userRoutes');
+const teacherRoutes = require('./routes/teacherRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 app.use('/', userRoutes);
+app.use('/', teacherRoutes);
+app.use('/',paymentRoutes);
 
 app.get('/',(req,res)=>{
     res.render('landing2');
 })
 
-app.use('/',paymentRoutes);
+
 
 app.listen(port, ()=>{
     console.log(`Server started on Port ${port}`);

@@ -104,6 +104,7 @@ body {
 }
 
 /* Enhanced Thought Section */
+/* Thought Section */
 .thought-section {
   padding: 50px 20px;
   display: flex;
@@ -116,7 +117,7 @@ body {
   max-width: 750px;
   padding: 30px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(103, 103, 103, 0.15);
   backdrop-filter: blur(12px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -131,7 +132,7 @@ body {
 }
 
 .thought-box::before, .thought-box::after {
-  content: '"';
+  content: '“';
   font-size: 3rem;
   color: rgba(0, 0, 0, 0.2);
   position: absolute;
@@ -143,7 +144,7 @@ body {
 }
 
 .thought-box::after {
-  content: '"';
+  content: '”';
   bottom: -10px;
   right: 20px;
 }
@@ -160,6 +161,34 @@ body {
 .thought-box .author::before {
   content: "~ ";
   color: #6c5ce7;
+}
+
+/* Thought Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+  .thought-box {
+    font-size: 1.1rem;
+    padding: 25px;
+  }
+  
+  .thought-box::before, .thought-box::after {
+    font-size: 2.5rem;
+  }
+  
+  .thought-box .author {
+    font-size: 1rem;
+  }
 }
 
 /* Dashboard Container */

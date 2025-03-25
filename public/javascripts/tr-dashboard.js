@@ -1,4 +1,43 @@
 document.addEventListener('DOMContentLoaded', function () {
+    
+    const thoughts = [
+        { text: "Believe in yourself. You are braver than you think.", author: "Roy T. Bennett" },
+        { text: "Success is not final, failure is not fatal.", author: "Winston Churchill" },
+        { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" }
+    ];
+
+    const thoughtText = document.querySelector(".thought-box p");
+    const thoughtAuthor = document.querySelector(".thought-box .author");
+
+    if (!thoughtText || !thoughtAuthor) {
+        console.error("Error: Unable to find elements.");
+        return;
+    }
+
+    let today = new Date().toISOString().split("T")[0];
+    let storedDate = localStorage.getItem("thoughtDate");
+    let storedThought = localStorage.getItem("dailyThought");
+
+    // Ensure storedThought is valid JSON, else reset it
+    try {
+        storedThought = storedThought ? JSON.parse(storedThought) : null;
+    } catch (error) {
+        console.error("Invalid JSON in localStorage, resetting...", error);
+        storedThought = null;
+    }
+
+    if (storedDate !== today || !storedThought) {
+        let randomThought = thoughts[Math.floor(Math.random() * thoughts.length)];
+        localStorage.setItem("dailyThought", JSON.stringify(randomThought));
+        localStorage.setItem("thoughtDate", today);
+        storedThought = randomThought;
+    }
+
+    thoughtText.textContent = `"${storedThought.text}"`;
+    thoughtAuthor.textContent = `${storedThought.author}`;
+    
+    
+    
     const deleteStudentModal = document.getElementById('deleteStudentModal');
     const studentList = document.getElementById('studentList');
     const confirmation = document.getElementById('confirmation');

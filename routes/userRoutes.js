@@ -38,8 +38,6 @@ user_route.put('/api/profile/update', auth.ensureAuthenticated, userController.u
 user_route.post('/api/profile/update-picture', auth.ensureAuthenticated, userController.updateProfilePicture);
 user_route.post('/api/profile/change-password', auth.ensureAuthenticated, userController.changePassword);
 user_route.get('/events', auth.ensureAuthenticated, userController.loadEventsPage);
-user_route.get('/tr-dashboard', auth.ensureAuthenticated, userController.load_trDashboard);
-user_route.post('/delete-student',auth.ensureAuthenticated, userController.Teacher_deleteStudent);
-user_route.get('/get-all-students',auth.ensureAuthenticated, userController.Teacher_getAllStudents);
-user_route.get('/teacher-register',auth.ensureAuthenticated, userController.logout_user);
+
+
 module.exports = user_route;

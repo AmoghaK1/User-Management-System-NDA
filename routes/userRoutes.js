@@ -4,23 +4,41 @@ const user_route = express();
 const config = require("../config/config")
 const auth = require('../middlewares/auth');
 
-
 user_route.use(bodyParser.json());
 user_route.use(bodyParser.urlencoded({extended: true}));
 
 const userController = require('../controllers/userController');
 const passport = require('passport');
-user_route.get('/signup',auth.redirectIfAuthenticated, userController.loadRegister);
+
+// Routes look correct, maintaining the existing structure
+user_route.get('/signup', auth.redirectIfAuthenticated, userController.loadRegister);
 user_route.post('/signup', userController.addUser);
-user_route.get('/login',auth.redirectIfAuthenticated, userController.loadLogin);
+user_route.get('/user/verify/:userId/:uniqueString', userController.verifyEmail);
+user_route.get('/verified', userController.loadVerifiedPage);
+user_route.get('/login', auth.redirectIfAuthenticated, userController.loadLogin);
+
+// Modified login route to check user verification
 user_route.post('/login', (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
         if (err) return next(err);
-        if (!user) return res.render("login", { error: info.message, success: null });
+        
+        // If no user found or authentication fails
+        if (!user) {
+            return res.render("login", { error: info.message, success: null });
+        }
+
+        // Check if user is verified
+        if (!user.is_verified) {
+            return res.render("login", { 
+                error: "Please verify your email before logging in. Check your inbox for verification link.", 
+                success: null 
+            });
+        }
 
         req.logIn(user, (err) => {
             if (err) return next(err);
 
+            // Existing admin/user routing logic
             if (user.email === "rajjii11@gmail.com") {
                 return res.redirect("/tr-dashboard");
             }
@@ -30,7 +48,7 @@ user_route.post('/login', (req, res, next) => {
     })(req, res, next);
 });
 
-
+// Rest of the routes remain the same
 user_route.get('/st-dashboard', auth.ensureAuthenticated, userController.load_stDashboard);
 user_route.get('/logout', userController.logout_user);
 user_route.get('/st-profile', auth.ensureAuthenticated, userController.loadProfile);

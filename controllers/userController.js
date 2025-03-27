@@ -8,6 +8,29 @@ const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 require("dotenv").config();
 const PaymentStatus = require('../models/paymentModel');
+const userVerification = require('../models/userVerification');
+const nodemailer = require('nodemailer');
+const { v4: uuidv4 } = require('uuid'); 
+const { send } = require('process');
+const { error } = require('console');
+
+
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASS
+    }
+});
+
+transporter.verify((error, success) => {
+    if (error) {
+        console.log(error);
+    }
+    else {
+        console.log('Nodemailer Active');
+    }
+});
 
 const loadRegister = async(req,res)=> {
     try {
@@ -48,8 +71,10 @@ async function initializePaymentStatus(userId) {
 
 const addUser = async (req, res) => {
     try {
+        const { name, email, birthdate, age, student_ph_no, exam_level, mother_ph_no, father_ph_no, password, confirmPassword } = req.body;
+
         // Check if passwords match
-        if (req.body.password !== req.body.confirmPassword) {
+        if (password !== confirmPassword) {
             return res.render('signup', {
                 error: "Passwords don't match",
                 formData: req.body
@@ -58,7 +83,7 @@ const addUser = async (req, res) => {
 
         // Validate Email Format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(req.body.email)) {
+        if (!emailRegex.test(email)) {
             return res.render('signup', {
                 error: "Invalid email format",
                 formData: req.body
@@ -66,7 +91,7 @@ const addUser = async (req, res) => {
         }
 
         // Check if email already exists
-        const existingUser = await User.findOne({ email: req.body.email });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.render('signup', {
                 error: "Email already registered",
@@ -75,41 +100,178 @@ const addUser = async (req, res) => {
         }
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create new user
         const user = new User({
-            name: req.body.name,
-            email: req.body.email,
-            birthdate: req.body.birthdate,
-            age: req.body.age,
-            student_ph_no: req.body.student_ph_no,
-            exam_level: req.body.exam_level,
-            mother_ph_no: req.body.mother_ph_no,
-            father_ph_no: req.body.father_ph_no,
+            name,
+            email,
+            birthdate,
+            age,
+            student_ph_no,
+            exam_level,
+            mother_ph_no,
+            father_ph_no,
             password: hashedPassword,
-            is_admin: 0
+            is_admin: 0,
+            is_verified: false
         });
 
         const userData = await user.save();
-        if (userData) {
-            await initializePaymentStatus(user._id); // Initialize payment status for the new user
-            res.render('login', { success: "Registration successful! Please login." });
-        } else {
-            res.render('signup', {
+        if (!userData) {
+            return res.render('signup', {
                 error: "Error occurred while registering",
                 formData: req.body
             });
         }
+
+        try {
+            // Initialize payment status
+            await initializePaymentStatus(userData._id);
+
+            // Send verification email with the user object
+            await sendVerificationEmail(userData, res);
+        } catch (paymentError) {
+            console.error("Payment initialization error:", paymentError);
+            return res.render('signup', {
+                error: "User registered, but payment initialization failed.",
+                formData: req.body
+            });
+        }
+
     } catch (error) {
         console.error("Registration error:", error);
-        res.render('signup', {
+        return res.render('signup', {
             error: "Something went wrong. Try again later.",
             formData: req.body
         });
     }
 };
 
+const sendVerificationEmail = (user, res) => {
+    const currentUrl = 'http://localhost:7000'; // Change to production URL
+    const uniqueString = uuidv4() + user._id;
+
+    const mailOptions = {
+        from: process.env.AUTH_EMAIL,
+        to: user.email,
+        subject: 'Verify your email',
+        text: `Click on the link to verify your email: ${currentUrl}/user/verify/${user._id}/${uniqueString}`
+    }
+
+    const saltRounds = 10;
+    bcrypt
+    .hash(uniqueString, saltRounds)
+    .then(hashedUniqueString => {
+        const newVerification = new userVerification({
+            userId: user._id,
+            uniqueString: hashedUniqueString,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 21600000 // 6 hours
+        });
+
+        newVerification.save()
+        .then(() => {
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log(error);
+                    return res.render('signup', {
+                        error: "Error occurred while sending the verification email",
+                        formData: user
+                    });
+                }
+                console.log('Email sent: ' + info.response);
+                res.render('signup', {
+                    success: "Registration successful. Please check your email to verify your account.",
+                    formData: {}
+                });
+            });
+        })
+        .catch((error) => {
+            console.log(error);
+            return res.render('signup', {
+                error: "Error occurred while saving the verification data",
+                formData: user
+            });
+        });
+    })
+    .catch((error) => {
+        return res.render('signup', {
+            error: "Error occurred while hashing the email data",
+            formData: user
+        });
+    });
+};
+
+const verifyEmail = async(req, res) => {
+    let {userId, uniqueString} = req.params;
+    userVerification.find({userId})
+    .then((result) => {
+        if(result.length > 0){
+            const {expiresAt} = result[0];
+            const hashedUniqueString = result[0].uniqueString;
+            if(expiresAt < Date.now()){
+                userVerification.deleteOne({userId})
+                .then(() => {
+                    User.deleteOne({_id: userId})
+                    .then(() => {
+                        let message = "The Verification Link has expired. Please register again";
+                        res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        let message = "Error occurred while deleting the user data";
+                        res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    let message = "Error occurred while deleting the verification data";
+                    res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+                });
+            } else {
+                bcrypt.compare(uniqueString, hashedUniqueString)
+                .then(result => {
+                    if (result){
+                        User.updateOne({_id: userId}, {is_verified: true})
+                        .then(() => {
+                            userVerification.deleteOne({userId})
+                            .then(() => {
+                                let message = "Email verified successfully. Please login to continue";
+                                res.redirect('/login');
+                            })
+                            .catch((error) => {
+                                console.log(error);
+                                let message = "Error occurred while deleting the verification data";
+                                res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+                            });
+                        });
+                    } else {
+                        let message = "Error occurred while comparing the verification data";
+                        res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                    let message = "Error occurred while comparing the verification data";
+                    res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+                });
+            }
+        } else {
+            let message = "Account record doesn't exist or has been verified already. Please register properly or login";
+            res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+        }
+    })
+    .catch((error) => {
+        console.log(error);
+        let message = "Error occurred while finding the verification data";
+        res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+    });
+};
+
+const loadVerifiedPage = async(req,res) => {
+    res.render("verifiedPage");
+}
 
 const loadLogin = async(req,res) => {
     res.render('login', { error: null, success: null }); // Ensures both variables are always defined
@@ -427,5 +589,8 @@ module.exports = {
     changePassword,
     loadEventsPage,
     loadStudyPage,
-    loadCertiPage
+    loadCertiPage,
+    verifyEmail,
+    loadVerifiedPage
+
 };

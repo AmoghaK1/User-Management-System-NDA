@@ -7,9 +7,10 @@
     <link rel="stylesheet" href="../stylesheets/signup.css">
     <link rel="icon" type="favicon" href="../images/nda-favicon-v2.png">
 <body>
-    <% if (error) { %>
-        <div class="error-message">
-            <span><%= error %></span>
+    <% if (error && error.length > 0) { %>
+        <div class="error-message" id="flash-error">
+            <%= error %>
+            <button class="flash-close" aria-label="Close message">&times;</button>
         </div>
     <% } %>
 

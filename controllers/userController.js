@@ -408,8 +408,13 @@ const loadEventsPage = async(req,res) => {
     res.render('events')
 }
 
+const loadStudyPage = async(req,res)=>{
+    res.render('study')
+}
 
-
+const loadCertiPage = async(req,res)=>{
+    res.render('certificates')
+}
 module.exports = {
     loadRegister,
     addUser,
@@ -420,5 +425,7 @@ module.exports = {
     updateProfile,
     updateProfilePicture,
     changePassword,
-    loadEventsPage
+    loadEventsPage,
+    loadStudyPage,
+    loadCertiPage
 };

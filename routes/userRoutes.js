@@ -38,6 +38,7 @@ user_route.put('/api/profile/update', auth.ensureAuthenticated, userController.u
 user_route.post('/api/profile/update-picture', auth.ensureAuthenticated, userController.updateProfilePicture);
 user_route.post('/api/profile/change-password', auth.ensureAuthenticated, userController.changePassword);
 user_route.get('/events', auth.ensureAuthenticated, userController.loadEventsPage);
-
+user_route.get('/study', auth.ensureAuthenticated, userController.loadStudyPage);
+user_route.get('/certificates', auth.ensureAuthenticated, userController.loadCertiPage);
 
 module.exports = user_route;

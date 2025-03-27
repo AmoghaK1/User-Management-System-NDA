@@ -148,21 +148,36 @@ const addUser = async (req, res) => {
     }
 };
 
-const sendVerificationEmail = (user, res) => {
-    const currentUrl = 'http://localhost:7000'; // Change to production URL
-    const uniqueString = uuidv4() + user._id;
+const sendVerificationEmail = async (user, res) => {
+    try {
+        const currentUrl = process.env.APP_URL || 'http://localhost:7000'; // Use environment variable
+        const uniqueString = uuidv4() + user._id;
+        const verificationLink = `${currentUrl}/user/verify/${user._id}/${uniqueString}`;
 
-    const mailOptions = {
-        from: process.env.AUTH_EMAIL,
-        to: user.email,
-        subject: 'Verify your email',
-        text: `Click on the link to verify your email: ${currentUrl}/user/verify/${user._id}/${uniqueString}`
-    }
+        // Read the email template
+        const emailTemplate = fs.readFileSync(path.join(__dirname, '../views/verificationEmail.html'), 'utf8');
 
-    const saltRounds = 10;
-    bcrypt
-    .hash(uniqueString, saltRounds)
-    .then(hashedUniqueString => {
+        // Replace placeholders
+        const emailHtml = emailTemplate
+            .replace('{{verificationLink}}', verificationLink)
+            .replace('{{rawLink}}', verificationLink);
+
+        // Nodemailer configuration with HTML and inline image
+        const mailOptions = {
+            from: process.env.AUTH_EMAIL,
+            to: user.email,
+            subject: 'Verify Your Nrutyashree Dance Academy Account',
+            html: emailHtml,
+            attachments: [{
+                filename: 'natraj-logo.png',
+                path: path.join(__dirname, '../public/images/natraj-logo.png'),
+                cid: 'natrajLogo'
+            }]
+        };
+
+        const saltRounds = 10;
+        const hashedUniqueString = await bcrypt.hash(uniqueString, saltRounds);
+
         const newVerification = new userVerification({
             userId: user._id,
             uniqueString: hashedUniqueString,
@@ -170,103 +185,90 @@ const sendVerificationEmail = (user, res) => {
             expiresAt: Date.now() + 21600000 // 6 hours
         });
 
-        newVerification.save()
-        .then(() => {
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.log(error);
-                    return res.render('signup', {
-                        error: "Error occurred while sending the verification email",
-                        formData: user
-                    });
-                }
-                console.log('Email sent: ' + info.response);
-                res.render('signup', {
-                    success: "Registration successful. Please check your email to verify your account.",
-                    formData: {}
-                });
-            });
-        })
-        .catch((error) => {
-            console.log(error);
-            return res.render('signup', {
-                error: "Error occurred while saving the verification data",
-                formData: user
-            });
+        await newVerification.save();
+        await transporter.sendMail(mailOptions);
+
+        // Render signup page with success message
+        res.render('signup', {
+            success: "Registration successful. Please check your email to verify your account.",
+            formData: {}
         });
-    })
-    .catch((error) => {
-        return res.render('signup', {
-            error: "Error occurred while hashing the email data",
+
+    } catch (error) {
+        console.error("Verification email error:", error);
+        res.render('signup', {
+            error: "Error sending verification email. Please try again.",
             formData: user
         });
-    });
+    }
 };
-
-const verifyEmail = async(req, res) => {
-    let {userId, uniqueString} = req.params;
-    userVerification.find({userId})
-    .then((result) => {
-        if(result.length > 0){
-            const {expiresAt} = result[0];
-            const hashedUniqueString = result[0].uniqueString;
-            if(expiresAt < Date.now()){
-                userVerification.deleteOne({userId})
-                .then(() => {
-                    User.deleteOne({_id: userId})
-                    .then(() => {
-                        let message = "The Verification Link has expired. Please register again";
-                        res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        let message = "Error occurred while deleting the user data";
-                        res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    let message = "Error occurred while deleting the verification data";
-                    res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
-                });
-            } else {
-                bcrypt.compare(uniqueString, hashedUniqueString)
-                .then(result => {
-                    if (result){
-                        User.updateOne({_id: userId}, {is_verified: true})
-                        .then(() => {
-                            userVerification.deleteOne({userId})
-                            .then(() => {
-                                let message = "Email verified successfully. Please login to continue";
-                                res.redirect('/login');
-                            })
-                            .catch((error) => {
-                                console.log(error);
-                                let message = "Error occurred while deleting the verification data";
-                                res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
-                            });
-                        });
-                    } else {
-                        let message = "Error occurred while comparing the verification data";
-                        res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    let message = "Error occurred while comparing the verification data";
-                    res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
-                });
-            }
-        } else {
-            let message = "Account record doesn't exist or has been verified already. Please register properly or login";
-            res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
+const verifyEmail = async (req, res) => {
+    try {
+        const { userId, uniqueString } = req.params;
+        
+        // Find verification record
+        const verificationRecord = await userVerification.findOne({ userId });
+        
+        if (!verificationRecord) {
+            return res.render('verifiedPage', {
+                error: true,
+                message: "Verification record not found. Please register again."
+            });
         }
-    })
-    .catch((error) => {
-        console.log(error);
-        let message = "Error occurred while finding the verification data";
-        res.redirect(`/user/verified/error=true&message=${encodeURIComponent(message)}`);
-    });
+
+        // Check expiration
+        const { expiresAt, uniqueString: hashedUniqueString } = verificationRecord;
+        
+        if (expiresAt < Date.now()) {
+            // Delete expired verification record and user
+            await userVerification.deleteOne({ userId });
+            await User.deleteOne({ _id: userId });
+            
+            return res.render('verifiedPage', {
+                error: true,
+                message: "Verification link has expired. Please register again."
+            });
+        }
+
+        // Compare unique strings
+        const isValid = await bcrypt.compare(uniqueString, hashedUniqueString);
+        
+        if (!isValid) {
+            return res.render('verifiedPage', {
+                error: true,
+                message: "Invalid verification link. Please try again."
+            });
+        }
+
+        // Check if user still exists
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.render('verifiedPage', {
+                error: true,
+                message: "User account not found. Please register again."
+            });
+        }
+
+        // Update user verification status
+        user.is_verified = true;
+        await user.save();
+        
+        // Delete verification record
+        await userVerification.deleteOne({ userId });
+
+        // Render verified page
+        res.render('verifiedPage', {
+            error: false,
+            message: "Email verified successfully!"
+        });
+
+    } catch (error) {
+        console.error("Email verification error:", error);
+        res.render('verifiedPage', {
+            error: true,
+            message: "An unexpected error occurred. Please try again or contact support."
+        });
+    }
 };
 
 const loadVerifiedPage = async(req,res) => {

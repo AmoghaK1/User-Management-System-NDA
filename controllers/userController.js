@@ -632,7 +632,7 @@ cloudinary.config({
     });
   };
 
-const changePassword = async(req, res) => {
+  const changePassword = async(req, res) => {
     try {
         // Check authentication
         if (!req.isAuthenticated()) {
@@ -645,14 +645,6 @@ const changePassword = async(req, res) => {
 
         const { currentPassword, newPassword, confirmPassword } = req.body;
 
-        // Log sanitized request info for debugging
-        console.log('Password change attempt for user:', req.user._id);
-        console.log('Request body received:', {
-            hasCurrentPassword: !!currentPassword,
-            hasNewPassword: !!newPassword,
-            hasConfirmPassword: !!confirmPassword
-        });
-
         // Validate input
         if (!currentPassword || !newPassword || !confirmPassword) {
             return res.status(400).json({ 
@@ -661,11 +653,12 @@ const changePassword = async(req, res) => {
             });
         }
 
-        // Validate password length and complexity if needed
-        if (newPassword.length < 8) {
+        // Validate password length and complexity
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
             return res.status(400).json({
                 success: false,
-                error: "New password must be at least 8 characters long"
+                error: "Password must be at least 8 characters long, contain uppercase, lowercase, number, and special character"
             });
         }
 
@@ -703,23 +696,18 @@ const changePassword = async(req, res) => {
         user.password = hashedPassword;
         await user.save();
 
-        console.log('Password successfully changed for user:', req.user._id);
-
-        // Send consistent success response
-        res.json({ 
+       res.json({ 
             success: true,
             message: "Password updated successfully" 
         });
 
     } catch (error) {
-        // Detailed error logging
         console.error("Password change error:", {
             userId: req?.user?._id,
             error: error.message,
             stack: error.stack
         });
 
-        // Send consistent error response
         res.status(500).json({ 
             success: false,
             error: "Server error occurred while changing password" 

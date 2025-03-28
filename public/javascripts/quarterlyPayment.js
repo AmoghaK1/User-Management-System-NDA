@@ -154,129 +154,6 @@ async function updateQuarterlyGrid() {
     updateQuarterlySummary();
 }
 
-function calculatePendingQuarterlyAmount() {
-    const currentDate = getCurrentDate();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    const currentQuarter = Math.floor(currentMonth / 3) + 1;
-    
-    let pendingQuarters = 0;
-    
-    // If current year matches the displayed year
-    if (currentYear === window.currentYear) {
-        // Count pending quarters from Q1 to current quarter
-        for (let quarter = 1; quarter <= currentQuarter; quarter++) {
-            // Skip if quarter is directly marked as paid
-            if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
-                continue;
-            }
-            
-            // Check if all months in this quarter are paid
-            const startMonth = (quarter - 1) * 3;
-            const endMonth = startMonth + 2;
-            let allMonthsPaid = true;
-            
-            for (let i = startMonth; i <= endMonth; i++) {
-                if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
-                    allMonthsPaid = false;
-                    break;
-                }
-            }
-            
-            // If not all months are paid, count as a pending quarter
-            if (!allMonthsPaid) {
-                pendingQuarters++;
-            }
-        }
-    } 
-    // If displayed year is in the past, all quarters should be paid
-    else if (window.currentYear < currentYear) {
-        // For past years, count any quarters that aren't marked as paid
-        if (paymentStatus.quarters) {
-            for (let quarter = 1; quarter <= 4; quarter++) {
-                if (paymentStatus.quarters[quarter] !== 'Paid') {
-                    // Check if all months in this quarter are paid individually
-                    const startMonth = (quarter - 1) * 3;
-                    const endMonth = startMonth + 2;
-                    let allMonthsPaid = true;
-                    
-                    for (let i = startMonth; i <= endMonth; i++) {
-                        if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
-                            allMonthsPaid = false;
-                            break;
-                        }
-                    }
-                    
-                    if (!allMonthsPaid) {
-                        pendingQuarters++;
-                    }
-                }
-            }
-        } else {
-            pendingQuarters = 4;
-        }
-    }
-    // If displayed year is in the future, no quarters are pending
-    else {
-        pendingQuarters = 0;
-    }
-    
-    return pendingQuarters * window.quarterlyFee;
-}
-
-function calculatePaidQuarterlyAmount() {
-    let paidQuarters = 0;
-    
-    // Count paid quarters for the displayed year
-    for (let quarter = 1; quarter <= 4; quarter++) {
-        // Check if quarter is directly marked as paid
-        if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
-            paidQuarters++;
-            continue;
-        }
-        
-        // Check if all months in this quarter are paid individually
-        const startMonth = (quarter - 1) * 3;
-        const endMonth = startMonth + 2;
-        let allMonthsPaid = true;
-        
-        for (let i = startMonth; i <= endMonth; i++) {
-            if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
-                allMonthsPaid = false;
-                break;
-            }
-        }
-        
-        if (allMonthsPaid) {
-            paidQuarters++;
-        }
-    }
-    
-    return paidQuarters * window.quarterlyFee;
-}
-
-function updateQuarterlySummary() {
-    const totalPaid = calculatePaidQuarterlyAmount();
-    const pendingAmount = calculatePendingQuarterlyAmount();
-
-    const totalPaidElement = document.getElementById('totalPaidQuarterly');
-    const pendingAmountElement = document.getElementById('pendingAmountQuarterly');
-    
-    if (totalPaidElement) totalPaidElement.textContent = `₹${totalPaid}`;
-    if (pendingAmountElement) pendingAmountElement.textContent = `₹${pendingAmount}`;
-
-    // Disable pay button if nothing is pending
-    const payButton = document.getElementById('payPendingQuarterlyBtn');
-    if (payButton) {
-        if (pendingAmount <= 0) {
-            payButton.disabled = true;
-            payButton.classList.add('opacity-50', 'cursor-not-allowed');
-        } else {
-            payButton.disabled = false;
-            payButton.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-    }
-}
 
 async function changeQuarterlyYear(change) {
     currentYear += change;
@@ -294,8 +171,8 @@ function processQuarterlyPayment(quarter, year) {
             name: `Fee for Q${quarter} ${year}`, 
             amount: window.quarterlyFee, 
             description: `Fee for Q${quarter} ${year}`, 
-            email: 'amogha.khare@example.com', 
-            contact: '9876543210', 
+            email: window.email, 
+            contact: window.phoneNumber, 
             year, 
             quarter, 
             isQuarterly: true 
@@ -382,46 +259,6 @@ function processQuarterlyPayment(quarter, year) {
             alert('There was an error processing your payment. Please try again later.');
         }
     });
-}
-
-// Function to handle paying all pending quarters
-function payAllPendingQuarters() {
-    const currentDate = getCurrentDate();
-    const currentMonth = currentDate.getMonth();
-    const currentQuarter = Math.floor(currentMonth / 3) + 1;
-    
-    let pendingQuarters = [];
-    
-    // Find all pending quarters
-    for (let quarter = 1; quarter <= currentQuarter; quarter++) {
-        // Skip if quarter is directly marked as paid
-        if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
-            continue;
-        }
-        
-        // Check if all months in this quarter are paid individually
-        const startMonth = (quarter - 1) * 3;
-        const endMonth = startMonth + 2;
-        let allMonthsPaid = true;
-        
-        for (let i = startMonth; i <= endMonth; i++) {
-            if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
-                allMonthsPaid = false;
-                break;
-            }
-        }
-        
-        if (!allMonthsPaid) {
-            pendingQuarters.push(quarter);
-        }
-    }
-    
-    // If there are pending quarters, process the first one
-    if (pendingQuarters.length > 0) {
-        processQuarterlyPayment(pendingQuarters[0], currentYear);
-    } else {
-        alert('No pending quarters to pay.');
-    }
 }
 
 // Initialize quarterly payment view

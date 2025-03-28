@@ -144,7 +144,7 @@ function processPayment(month, year) {
         type: 'POST',
         data: { 
             name: `Fee for ${month} ${year}`, 
-            amount: 100 * 0.01, 
+            amount: window.monthlyFee, 
             description: `Fee for ${month} ${year}`, 
             email: window.email, 
             contact: window.phoneNumber, 

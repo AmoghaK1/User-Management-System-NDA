@@ -3,6 +3,9 @@ require("dotenv").config();
 const PaymentStatus = require('../models/paymentModel');
 
 const load_trDashboard = async(req,res)=>{
+    if(req.user.email !== "rajjii11@gmail.com"){
+        return res.redirect('/st-dashboard')
+    }
     res.render('teacher-dashboard');
 }
 

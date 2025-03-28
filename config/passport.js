@@ -1,17 +1,18 @@
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcryptjs");
 const User = require("../models/userModel");
+require("dotenv").config();
 
 module.exports = (passport) => {
     passport.use(
         new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
             try {
                 // Hardcoded user authentication
-                if (email === "rajjii11@gmail.com" && password === "1234") {
+                if (email === "rajjii11@gmail.com" && password === process.env.TEACHER_PASSWORD) {
                     const hardcodedUser = {
                         id: "hardcoded-user", // Use a distinct string
                         email: "rajjii11@gmail.com",
-                        name: "Rajjii",
+                        name: "Rajshree Khare",
                     };
                     return done(null, hardcodedUser);
                 }
@@ -42,7 +43,7 @@ module.exports = (passport) => {
                 return done(null, {
                     id: "hardcoded-user",
                     email: "rajjii11@gmail.com",
-                    name: "Rajjii",
+                    name: "Rajshree Khare",
                 });
             }
 

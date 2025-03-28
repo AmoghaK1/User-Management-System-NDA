@@ -60,7 +60,7 @@ const createOrder = async (req, res) => {
                 product_name: name,
                 description,
                 contact,
-                name: 'Amogha Khare',
+                name: name,
                 email
             });
         });
@@ -73,9 +73,7 @@ const createOrder = async (req, res) => {
 const updatePayment = async (req, res) => {
     try {
         const { userId, year, month, quarter, isQuarterly } = req.body;
-
-        console.log('Received updatePayment request with:', { userId, year, month, quarter, isQuarterly });
-
+        
         // Convert isQuarterly from string ('true'/'false') to boolean
         const isQuarterlyBool = isQuarterly === 'true';
 
@@ -86,16 +84,14 @@ const updatePayment = async (req, res) => {
             paymentStatus = new PaymentStatus({ userId, year });
         }
 
-        console.log('Is quarterly:', isQuarterlyBool);
-
-        if (isQuarterlyBool) {
+         if (isQuarterlyBool) {
             // Validate quarter (must be a number between 1 and 4)
             const quarterNum = parseInt(quarter, 10);
             if (isNaN(quarterNum) || quarterNum < 1 || quarterNum > 4) {
                 return res.status(400).json({ error: 'Invalid quarter value. Must be between 1 and 4.' });
             }
 
-            console.log('Updating quarterly payment status for quarter:', quarterNum);
+            
             paymentStatus.quarters.set(String(quarterNum), 'Paid');
             const startMonth = (quarterNum - 1) * 3;
             for (let i = startMonth; i < startMonth + 3; i++) {
@@ -108,12 +104,12 @@ const updatePayment = async (req, res) => {
                 return res.status(400).json({ error: 'Invalid month value. Must be between 0 and 11.' });
             }
 
-            console.log('Updating monthly payment status for month:', monthNum);
+            
             paymentStatus.months.set(String(monthNum), 'Paid');
         }
 
         await paymentStatus.save();
-        console.log('Payment status successfully updated:', paymentStatus);
+        
 
         // Send a success response
         return res.status(200).json({ message: 'Payment status updated successfully', paymentStatus });

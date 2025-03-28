@@ -39,26 +39,15 @@ async function fetchPaymentStatus() {
 async function createAllMonthCards(year) {
     const grid = document.getElementById('monthsGrid');
     if (!grid) return;
-
-    // Clear the grid first
     grid.innerHTML = '';
-
-    // Get payment status once for all months
     await fetchPaymentStatus();
-
-    // Prepare all cards in a document fragment for efficient DOM manipulation
-    const fragment = document.createDocumentFragment();
-
-    // Get current date information
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
+    const fragment = document.createDocumentFragment();
 
-    // Create all month cards at once
     for (let i = 0; i < months.length; i++) {
         const month = months[i];
-
-        // Determine status
         let status = { 
             status: 'Upcoming', 
             statusClass: 'upcoming-status', 
@@ -66,7 +55,6 @@ async function createAllMonthCards(year) {
             showButton: false 
         };
 
-        // Check if month is paid in payment status
         if (year < currentYear || (paymentStatus.months && paymentStatus.months[i] === 'Paid')) {
             status = { 
                 status: 'Paid', 
@@ -75,7 +63,6 @@ async function createAllMonthCards(year) {
                 showButton: false 
             };
         } else {
-            // Check if quarter is paid
             const quarter = Math.floor(i / 3) + 1;
             if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
                 status = { 
@@ -94,29 +81,41 @@ async function createAllMonthCards(year) {
             }
         }
 
-        // Create the month card
         const monthCard = document.createElement('div');
         monthCard.className = `month-card p-4 rounded-lg border ${status.statusClass}`;
         monthCard.id = `month-${month.toLowerCase()}-${year}`;
-        monthCard.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div>
-                    <h3 class="font-semibold">${month} ${year}</h3>
-                    <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
+        
+        if (status.showButton) {
+            const lateFee = calculateLateFee(i, year);
+            monthCard.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-semibold">${month} ${year}</h3>
+                        <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
+                        ${lateFee > 0 ? `<span class="text-xs text-red-600 block mt-1">Late fee: ₹${lateFee}</span>` : ''}
+                    </div>
+                    <button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600" 
+                            data-month="${i}" data-year="${year}">
+                        Pay Now
+                    </button>
                 </div>
-                ${status.showButton ? `<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600" data-month="${i}" data-year="${year}">Pay now</button>` : ''}
-            </div>
-        `;
-
-        // Add to fragment
+            `;
+        } else {
+            monthCard.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-semibold">${month} ${year}</h3>
+                        <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
         fragment.appendChild(monthCard);
     }
-
-    // Append all cards at once
     grid.appendChild(fragment);
 }
 
-// ✅ Event Delegation: Add event listener ONCE to the parent container
 document.getElementById('monthsGrid').addEventListener('click', (event) => {
     if (event.target.classList.contains('pay-now-btn')) {
         // Get month and year from data attributes
@@ -128,6 +127,7 @@ document.getElementById('monthsGrid').addEventListener('click', (event) => {
         }
     }
 });
+
 
 // ✅ Update months grid function
 async function updateMonthsGrid() {
@@ -143,20 +143,43 @@ async function changeYear(change) {
     updateYearSummary();
 }
 
+function calculateLateFee(monthIndex, year) {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    
+    // If payment is for a future month, no late fee
+    if (year > currentYear || (year === currentYear && monthIndex > currentMonth)) {
+        return 0;
+    }
+    
+    // Calculate months late
+    const monthsLate = (currentYear - year) * 12 + (currentMonth - monthIndex);
+    
+    // Cap at 0 (shouldn't be negative)
+    return Math.max(0, monthsLate) * 50;
+}
+
+
 function processPayment(month, year) {
     const monthIndex = months.indexOf(month);
+    const lateFeeVariable = calculateLateFee(monthIndex, year);
+    const lateFee = parseInt(lateFeeVariable, 10) || 0;
+    const monthlyFee = parseInt(window.monthlyFee, 10) || 0;
+    const totalAmount = monthlyFee + lateFee;
     $.ajax({
         url: '/createOrder',
         type: 'POST',
         data: { 
-            name: `Fee for ${month} ${year}`, 
-            amount: window.monthlyFee, 
-            description: `Fee for ${month} ${year}`, 
+            name: `Fee for ${month} ${year}${lateFee > 0 ? ' (Late Fee: ₹' + lateFee + ')' : ''}`, 
+            amount:totalAmount, 
+            description: `Fee for ${month} ${year}${lateFee > 0 ? ' including ₹' + lateFee + ' late fee' : ''}`, 
             email: window.email, 
             contact: window.phoneNumber, 
             year, 
             month: monthIndex, 
-            isQuarterly: false 
+            isQuarterly: false,
+            lateFee: lateFee
         },
         success: (res) => {
             if (res.success) {

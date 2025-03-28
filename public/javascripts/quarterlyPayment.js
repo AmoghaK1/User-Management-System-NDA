@@ -1,5 +1,3 @@
-// Use the same currentYear from the monthly code instead of redefining it
-
 // Define quarters with their respective months
 const quarters = [
     { id: 1, name: 'Q1', months: ['January', 'February', 'March'] },
@@ -8,55 +6,10 @@ const quarters = [
     { id: 4, name: 'Q4', months: ['October', 'November', 'December'] }
 ];
 
-// We'll use the fetchPaymentStatus() function from the monthly code
-
-async function updateQuarterlyAfterMonthlyPayment(monthIndex) {
-    // Check if all months in a quarter are paid
-    const quarter = Math.floor(monthIndex / 3) + 1;
-    const startMonth = (quarter - 1) * 3;
-    let allPaid = true;
-    
-    for (let i = startMonth; i < startMonth + 3; i++) {
-        if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
-            allPaid = false;
-            break;
-        }
-    }
-    
-    // If all months in a quarter are paid, mark the quarter as paid
-    if (allPaid && (!paymentStatus.quarters || paymentStatus.quarters[quarter] !== 'Paid')) {
-        if (!paymentStatus.quarters) {
-            paymentStatus.quarters = {};
-        }
-        paymentStatus.quarters[quarter] = 'Paid';
-        localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
-        
-        // Update the quarterly card
-        const quarterCard = document.getElementById(`quarter-${quarter}-${currentYear}`);
-        if (quarterCard) {
-            quarterCard.className = 'quarterly-card p-4 rounded-lg border paid-status';
-            const statusSpan = quarterCard.querySelector('span');
-            if (statusSpan) {
-                statusSpan.className = 'text-sm font-medium text-green-700';
-                statusSpan.textContent = 'Paid';
-            }
-            
-            // Remove the pay button if it exists
-            const payButton = quarterCard.querySelector('.pay-now-btn');
-            if (payButton) {
-                payButton.remove();
-            }
-        }
-        
-        // Update summary
-        updateQuarterlySummary();
-    }
-}
-
 async function getQuarterlyFeeStatus(quarter, year) {
     // Check if quarter is directly marked as paid
     if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
-        return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-700', showButton: false };
+        return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
     }
 
     // Calculate month range for this quarter
@@ -73,7 +26,7 @@ async function getQuarterlyFeeStatus(quarter, year) {
     }
     
     if (allMonthsPaid) {
-        return { status: 'Paid (Monthly)', statusClass: 'paid-status', textColor: 'text-green-700', showButton: false };
+        return { status: 'Paid (Monthly)', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
     }
 
     // Check if any months in the quarter are paid
@@ -86,7 +39,7 @@ async function getQuarterlyFeeStatus(quarter, year) {
     }
     
     if (anyMonthPaid) {
-        return { status: 'Partially Paid', statusClass: 'partial-status', textColor: 'text-blue-700', showButton: true };
+        return { status: 'Partially Paid', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: true };
     }
 
     // Get current date information
@@ -97,7 +50,7 @@ async function getQuarterlyFeeStatus(quarter, year) {
     
     // Determine status based on date
     if (year < currentYear || (year === currentYear && quarter <= currentQuarter)) {
-        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-700', showButton: true };
+        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
     }
     
     return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
@@ -120,27 +73,37 @@ async function createAllQuarterlyCards(year) {
     for (let quarter = 1; quarter <= 4; quarter++) {
         const quarterObj = quarters.find(q => q.id === quarter);
         const status = await getQuarterlyFeeStatus(quarter, year);
+        const lateFee = calculateQuarterlyLateFee(quarter, year);
         
         const quarterlyCard = document.createElement('div');
         quarterlyCard.className = `quarterly-card p-4 rounded-lg border ${status.statusClass}`;
         quarterlyCard.id = `quarter-${quarter}-${year}`;
-        quarterlyCard.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div>
-                    <h3 class="font-semibold">Q${quarter} ${year} (${quarterObj.months.join(', ')})</h3>
-                    <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
-                </div>
-                ${status.showButton ? '<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Pay now</button>' : ''}
-            </div>
-        `;
         
-        // Add event listener to the pay button if it exists
         if (status.showButton) {
-            const payButton = quarterlyCard.querySelector('.pay-now-btn');
-            payButton.addEventListener('click', () => processQuarterlyPayment(quarter, year));
+            quarterlyCard.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-semibold">Q${quarter} ${year} (${quarterObj.months.join(', ')})</h3>
+                        <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
+                        ${lateFee > 0 ? `<span class="text-xs text-red-600 block mt-1">Late fee: ₹${lateFee}</span>` : ''}
+                    </div>
+                    <button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600" 
+                            data-quarter="${quarter}" data-year="${year}">
+                        Pay Now
+                    </button>
+                </div>
+            `;
+        } else {
+            quarterlyCard.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-semibold">Q${quarter} ${year} (${quarterObj.months.join(', ')})</h3>
+                        <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
+                    </div>
+                </div>
+            `;
         }
         
-        // Add to fragment
         fragment.appendChild(quarterlyCard);
     }
     
@@ -148,12 +111,21 @@ async function createAllQuarterlyCards(year) {
     grid.appendChild(fragment);
 }
 
-// Replace updateQuarterlyGrid with the optimized function
+// Event delegation for quarterly pay buttons
+document.getElementById('quarterlyGrid').addEventListener('click', (event) => {
+    if (event.target.classList.contains('pay-now-btn')) {
+        const quarter = event.target.getAttribute('data-quarter');
+        const year = event.target.getAttribute('data-year');
+        if (quarter !== null && year !== null) {
+            processQuarterlyPayment(parseInt(quarter), parseInt(year));
+        }
+    }
+});
+
 async function updateQuarterlyGrid() {
     await createAllQuarterlyCards(currentYear);
     updateQuarterlySummary();
 }
-
 
 async function changeQuarterlyYear(change) {
     currentYear += change;
@@ -163,19 +135,48 @@ async function changeQuarterlyYear(change) {
     updateQuarterlySummary();
 }
 
+function calculateQuarterlyLateFee(quarter, year) {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const currentQuarter = Math.floor(currentMonth / 3) + 1;
+    
+    // If payment is for a future quarter, no late fee
+    if (year > currentYear || (year === currentYear && quarter > currentQuarter)) {
+        return 0;
+    }
+    
+    // Calculate months late based on last month of the quarter
+    const lastMonthOfQuarter = (quarter * 3) - 1; // March=2, June=5, etc.
+    let monthsLate = (currentYear - year) * 12 + (currentMonth - lastMonthOfQuarter);
+    
+    // For current quarter, only count months that have passed
+    if (year === currentYear && quarter === currentQuarter) {
+        monthsLate = Math.max(0, currentMonth - lastMonthOfQuarter + 2); // +2 because we count from the first month of the quarter
+    }
+    
+    // Cap at 0 (shouldn't be negative) and multiply by 50
+    return Math.max(0, monthsLate) * 50;
+}
+
 function processQuarterlyPayment(quarter, year) {
+    const lateFeeVariable = calculateQuarterlyLateFee(quarter, year);
+    const lateFee = parseInt(lateFeeVariable, 10) || 0;
+    const quarterlyFee = parseInt(window.quarterlyFee, 10) || 0;
+    const totalAmount = quarterlyFee + lateFee;
     $.ajax({
         url: '/createOrder',
         type: 'POST',
         data: { 
-            name: `Fee for Q${quarter} ${year}`, 
-            amount: window.quarterlyFee, 
-            description: `Fee for Q${quarter} ${year}`, 
+            name: `Fee for Q${quarter} ${year}${lateFee > 0 ? ' (Late Fee: ₹' + lateFee + ')' : ''}`, 
+            amount: 0.1 * 10, 
+            description: `Fee for Q${quarter} ${year}${lateFee > 0 ? ' including ₹' + lateFee + ' late fee' : ''}`,
             email: window.email, 
             contact: window.phoneNumber, 
             year, 
             quarter, 
-            isQuarterly: true 
+            isQuarterly: true,
+            lateFee: lateFee
         },
         success: (res) => {
             if (res.success) {
@@ -192,10 +193,11 @@ function processQuarterlyPayment(quarter, year) {
                                 userId: window.userId, 
                                 year, 
                                 quarter, 
-                                isQuarterly: true 
+                                isQuarterly: true,
+                                lateFee: lateFee
                             },
                             success: async () => {
-                                // Update local payment status
+                                // Update local storage payment status
                                 if (!paymentStatus.quarters) {
                                     paymentStatus.quarters = {};
                                 }
@@ -210,16 +212,15 @@ function processQuarterlyPayment(quarter, year) {
                                     paymentStatus.months[i] = 'Paid';
                                 }
                                 
-                                // Save to local storage
                                 localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
                                 
-                                // Update quarterly card immediately
+                                // Update only the specific quarter card
                                 const quarterCard = document.getElementById(`quarter-${quarter}-${year}`);
                                 if (quarterCard) {
                                     quarterCard.className = 'quarterly-card p-4 rounded-lg border paid-status';
                                     const statusSpan = quarterCard.querySelector('span');
                                     if (statusSpan) {
-                                        statusSpan.className = 'text-sm font-medium text-green-700';
+                                        statusSpan.className = 'text-sm font-medium text-green-800';
                                         statusSpan.textContent = 'Paid';
                                     }
                                     
@@ -228,14 +229,17 @@ function processQuarterlyPayment(quarter, year) {
                                     if (payButton) {
                                         payButton.remove();
                                     }
+                                    
+                                    // Remove late fee display if it exists
+                                    const lateFeeSpan = quarterCard.querySelector('.text-xs.text-red-600');
+                                    if (lateFeeSpan) {
+                                        lateFeeSpan.remove();
+                                    }
                                 }
                                 
-                                // Update both grids and summaries
-                                await updateQuarterlyGrid();
-                                await updateMonthsGrid();
+                                // Update summaries
                                 updateQuarterlySummary();
                                 updateYearSummary();
-                                
                                 alert(`Payment Successful for Q${quarter} ${year}`);
                             },
                             error: (err) => {
@@ -273,12 +277,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (prevYearBtn) prevYearBtn.addEventListener('click', () => changeQuarterlyYear(-1));
     if (nextYearBtn) nextYearBtn.addEventListener('click', () => changeQuarterlyYear(1));
-    
-    // Set up event listener for pay all pending button
-    const payPendingBtn = document.getElementById('payPendingQuarterlyBtn');
-    if (payPendingBtn) {
-        payPendingBtn.addEventListener('click', payAllPendingQuarters);
-    }
     
     // Update the UI
     await updateQuarterlyGrid();

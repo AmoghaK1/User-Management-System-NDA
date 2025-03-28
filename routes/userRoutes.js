@@ -10,14 +10,18 @@ user_route.use(bodyParser.urlencoded({extended: true}));
 const userController = require('../controllers/userController');
 const passport = require('passport');
 
-// Routes look correct, maintaining the existing structure
+
 user_route.get('/signup', auth.redirectIfAuthenticated, userController.loadRegister);
 user_route.post('/signup', userController.addUser);
 user_route.get('/user/verify/:userId/:uniqueString', userController.verifyEmail);
 user_route.get('/verified', userController.loadVerifiedPage);
 user_route.get('/login', auth.redirectIfAuthenticated, userController.loadLogin);
 
-// Modified login route to check user verification
+user_route.get('/forgot-password', auth.redirectIfAuthenticated, userController.loadForgotPassword);
+user_route.post('/forgot-password', userController.forgotPassword);
+user_route.get('/reset-password/:token', userController.loadResetPassword);
+user_route.post('/reset-password/:token', userController.resetPassword);
+
 user_route.post('/login', (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
         if (err) return next(err);

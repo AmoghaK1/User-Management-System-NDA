@@ -13,6 +13,7 @@ const nodemailer = require('nodemailer');
 const { v4: uuidv4 } = require('uuid'); 
 const { send } = require('process');
 const { error } = require('console');
+const crypto = require('crypto');
 
 
 let transporter = nodemailer.createTransport({
@@ -277,6 +278,164 @@ const loadVerifiedPage = async(req,res) => {
 
 const loadLogin = async(req,res) => {
     res.render('login', { error: null, success: null }); // Ensures both variables are always defined
+};
+
+const loadForgotPassword = async (req, res) => {
+    try {
+        res.render('forgot-password', { 
+            error: null,
+            success: null 
+        });
+    } catch (error) {
+        console.error('Forgot password load error:', error);
+        res.render('login', { 
+            error: 'Error loading forgot password page',
+            success: null
+        });
+    }
+};
+
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.render('forgot-password', { 
+                error: 'No account with that email exists.',
+                success: null
+            });
+        }
+
+        // Generate token and set expiry (1 hour from now)
+        const token = crypto.randomBytes(20).toString('hex');
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        // Send email
+        const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${token}`;
+        
+        const mailOptions = {
+            to: user.email,
+            from: process.env.EMAIL_USER,
+            subject: 'Password Reset Request',
+            text: `You are receiving this because you (or someone else) have requested a password reset for your account.\n\n
+            Please click on the following link to reset your password:\n\n
+            ${resetUrl}\n\n
+            If you didn't request this, please ignore this email.\n`
+        };
+
+        await transporter.sendMail(mailOptions);
+        
+        res.render('forgot-password', { 
+            success: 'An email has been sent with password reset instructions.',
+            error: null
+        });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.render('forgot-password', { 
+            error: 'Error processing your request',
+            success: null
+        });
+    }
+};
+
+const loadResetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        
+        // Find user by token and check expiry
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.render('login', { 
+                error: 'Password reset token is invalid or has expired.',
+                success: null
+            });
+        }
+
+        res.render('reset-password', { 
+            token,
+            error: null,
+            success: null
+        });
+    } catch (error) {
+        console.error('Reset password load error:', error);
+        res.render('login', { 
+            error: 'Error loading password reset page',
+            success: null
+        });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password, confirmPassword } = req.body;
+
+        // Find user by token and check expiry
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.render('login', { 
+                error: 'Password reset token is invalid or has expired.',
+                success: null
+            });
+        }
+
+        // Validate passwords
+        if (password !== confirmPassword) {
+            return res.render('reset-password', { 
+                token,
+                error: 'Passwords do not match',
+                success: null
+            });
+        }
+
+        if (password.length < 8) {
+            return res.render('reset-password', { 
+                token,
+                error: 'Password must be at least 8 characters',
+                success: null
+            });
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.render('reset-password', { 
+                token,
+                error: 'Password must be at least 8 characters long, contain uppercase, lowercase, number, and special character',
+                success: null
+            });
+        }
+
+        // Hash new password and update user
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.render('login', { 
+            success: 'Your password has been successfully updated.',
+            error: null
+        });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.render('reset-password', { 
+            token: req.params.token,
+            error: 'Error resetting password',
+            success: null
+        });
+    }
 };
 
 const load_stDashboard = async(req,res)=>{
@@ -593,6 +752,12 @@ module.exports = {
     loadStudyPage,
     loadCertiPage,
     verifyEmail,
-    loadVerifiedPage
+    loadVerifiedPage,
+    loadForgotPassword,
+    forgotPassword,
+    loadResetPassword,
+    resetPassword
+    
+    
 
 };

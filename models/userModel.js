@@ -66,6 +66,14 @@ const userSchema = new mongoose.Schema ({
     profilePicture: {
         type: String,
         default: "https://res.cloudinary.com/dy2kitfup/image/upload/v1700000000/profile_pictures/o9ojcgon2k7icjmkyghb",
+    },
+    resetPasswordToken: {
+        type: String,
+        default: null
+    },
+    resetPasswordExpires: {
+        type: Date,
+        default: null
     }
     }, {
     timestamps: true  // This will automatically add createdAt and updatedAt fields

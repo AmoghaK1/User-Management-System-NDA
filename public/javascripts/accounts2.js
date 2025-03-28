@@ -39,25 +39,25 @@ async function fetchPaymentStatus() {
 async function createAllMonthCards(year) {
     const grid = document.getElementById('monthsGrid');
     if (!grid) return;
-    
+
     // Clear the grid first
     grid.innerHTML = '';
-    
+
     // Get payment status once for all months
     await fetchPaymentStatus();
-    
+
     // Prepare all cards in a document fragment for efficient DOM manipulation
     const fragment = document.createDocumentFragment();
-    
+
     // Get current date information
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
-    
+
     // Create all month cards at once
     for (let i = 0; i < months.length; i++) {
         const month = months[i];
-        
+
         // Determine status
         let status = { 
             status: 'Upcoming', 
@@ -65,7 +65,7 @@ async function createAllMonthCards(year) {
             textColor: 'text-gray-600', 
             showButton: false 
         };
-        
+
         // Check if month is paid in payment status
         if (year < currentYear || (paymentStatus.months && paymentStatus.months[i] === 'Paid')) {
             status = { 
@@ -93,7 +93,7 @@ async function createAllMonthCards(year) {
                 };
             }
         }
-        
+
         // Create the month card
         const monthCard = document.createElement('div');
         monthCard.className = `month-card p-4 rounded-lg border ${status.statusClass}`;
@@ -104,30 +104,36 @@ async function createAllMonthCards(year) {
                     <h3 class="font-semibold">${month} ${year}</h3>
                     <span class="text-sm font-medium ${status.textColor}">${status.status}</span>
                 </div>
-                ${status.showButton ? '<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Pay now</button>' : ''}
+                ${status.showButton ? `<button class="pay-now-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600" data-month="${i}" data-year="${year}">Pay now</button>` : ''}
             </div>
         `;
-        
-        // Add event listener to the pay button if it exists
-        if (status.showButton) {
-            const payButton = monthCard.querySelector('.pay-now-btn');
-            payButton.addEventListener('click', () => processPayment(month, year));
-        }
-        
+
         // Add to fragment
         fragment.appendChild(monthCard);
     }
-    
+
     // Append all cards at once
     grid.appendChild(fragment);
 }
 
-// Replace updateMonthsGrid with new optimized function
+// ✅ Event Delegation: Add event listener ONCE to the parent container
+document.getElementById('monthsGrid').addEventListener('click', (event) => {
+    if (event.target.classList.contains('pay-now-btn')) {
+        // Get month and year from data attributes
+        const monthIndex = event.target.getAttribute('data-month');
+        const year = event.target.getAttribute('data-year');
+
+        if (monthIndex !== null && year !== null) {
+            processPayment(months[monthIndex], parseInt(year));
+        }
+    }
+});
+
+// ✅ Update months grid function
 async function updateMonthsGrid() {
     await createAllMonthCards(currentYear);
     updateYearSummary();
 }
-
 
 async function changeYear(change) {
     currentYear += change;

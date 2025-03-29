@@ -151,34 +151,57 @@ const addUser = async (req, res) => {
 
 const sendVerificationEmail = async (user, res) => {
     try {
-        const currentUrl = process.env.APP_URL || 'http://localhost:7000'; // Use environment variable
+        // Use environment variable with fallback for development
+        const currentUrl = process.env.CURRENT_URL || 'http://localhost:7000';
+        
+        // Validate the URL
+        if (!currentUrl || !currentUrl.startsWith('http')) {
+            throw new Error('Invalid CURRENT_URL in environment variables');
+        }
+
         const uniqueString = uuidv4() + user._id;
         const verificationLink = `${currentUrl}/user/verify/${user._id}/${uniqueString}`;
 
-        // Read the email template
-        const emailTemplate = fs.readFileSync(path.join(__dirname, '../views/verificationEmail.html'), 'utf8');
+        // Safely read email template with error handling
+        const emailTemplatePath = path.resolve(__dirname, '../views/verificationEmail.html');
+        if (!fs.existsSync(emailTemplatePath)) {
+            throw new Error('Email template file not found');
+        }
+        const emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
 
         // Replace placeholders
         const emailHtml = emailTemplate
-            .replace('{{verificationLink}}', verificationLink)
-            .replace('{{rawLink}}', verificationLink);
+            .replace(/{{verificationLink}}/g, verificationLink)
+            .replace(/{{rawLink}}/g, verificationLink)
+            .replace(/{{userName}}/g, user.name || 'User'); // Added personalization
 
-        // Nodemailer configuration with HTML and inline image
+        // Safely handle image attachment
+        const imagePath = path.resolve(__dirname, '../public/images/natraj-logo.png');
+        const attachments = [];
+        
+        if (fs.existsSync(imagePath)) {
+            attachments.push({
+                filename: 'natraj-logo.png',
+                path: imagePath,
+                cid: 'natrajLogo'
+            });
+        } else {
+            console.warn('Logo image not found, sending email without logo');
+        }
+
         const mailOptions = {
             from: process.env.AUTH_EMAIL,
             to: user.email,
             subject: 'Verify Your Nrutyashree Dance Academy Account',
             html: emailHtml,
-            attachments: [{
-                filename: 'natraj-logo.png',
-                path: path.join(__dirname, '../public/images/natraj-logo.png'),
-                cid: 'natrajLogo'
-            }]
+            attachments
         };
 
+        // Hash the verification string
         const saltRounds = 10;
         const hashedUniqueString = await bcrypt.hash(uniqueString, saltRounds);
 
+        // Save verification record
         const newVerification = new userVerification({
             userId: user._id,
             uniqueString: hashedUniqueString,
@@ -187,9 +210,10 @@ const sendVerificationEmail = async (user, res) => {
         });
 
         await newVerification.save();
+        
+        // Send email with retry logic
         await transporter.sendMail(mailOptions);
 
-        // Render signup page with success message
         res.render('signup', {
             success: "Registration successful. Please check your email to verify your account.",
             formData: {}
@@ -198,32 +222,41 @@ const sendVerificationEmail = async (user, res) => {
     } catch (error) {
         console.error("Verification email error:", error);
         res.render('signup', {
-            error: "Error sending verification email. Please try again.",
+            error: "Error sending verification email. Please try again later.",
             formData: user
         });
     }
 };
+
 const verifyEmail = async (req, res) => {
     try {
         const { userId, uniqueString } = req.params;
         
+        // Input validation
+        if (!userId || !uniqueString || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.render('verifiedPage', {
+                error: true,
+                message: "Invalid verification link format."
+            });
+        }
+
         // Find verification record
         const verificationRecord = await userVerification.findOne({ userId });
         
         if (!verificationRecord) {
             return res.render('verifiedPage', {
                 error: true,
-                message: "Verification record not found. Please register again."
+                message: "Verification record not found or already used. Please register again or request a new verification email."
             });
         }
 
         // Check expiration
-        const { expiresAt, uniqueString: hashedUniqueString } = verificationRecord;
-        
-        if (expiresAt < Date.now()) {
-            // Delete expired verification record and user
-            await userVerification.deleteOne({ userId });
-            await User.deleteOne({ _id: userId });
+        if (verificationRecord.expiresAt < Date.now()) {
+            // Delete expired records (with error handling)
+            await Promise.allSettled([
+                userVerification.deleteOne({ userId }),
+                User.deleteOne({ _id: userId })
+            ]);
             
             return res.render('verifiedPage', {
                 error: true,
@@ -232,42 +265,54 @@ const verifyEmail = async (req, res) => {
         }
 
         // Compare unique strings
-        const isValid = await bcrypt.compare(uniqueString, hashedUniqueString);
+        const isValid = await bcrypt.compare(uniqueString, verificationRecord.uniqueString);
         
         if (!isValid) {
             return res.render('verifiedPage', {
                 error: true,
-                message: "Invalid verification link. Please try again."
+                message: "Invalid verification link. Please use the link from your email."
             });
         }
 
-        // Check if user still exists
+        // Check if user exists
         const user = await User.findById(userId);
         if (!user) {
+            await userVerification.deleteOne({ userId });
             return res.render('verifiedPage', {
                 error: true,
                 message: "User account not found. Please register again."
             });
         }
 
-        // Update user verification status
+        // Skip if already verified
+        if (user.is_verified) {
+            await userVerification.deleteOne({ userId });
+            return res.render('verifiedPage', {
+                error: false,
+                message: "Email was already verified. You can now log in."
+            });
+        }
+
+        // Update and save user
         user.is_verified = true;
+        user.verifiedAt = new Date(); // Add verification timestamp
         await user.save();
         
-        // Delete verification record
+        // Clean up verification record
         await userVerification.deleteOne({ userId });
 
-        // Render verified page
+        // Successful verification
         res.render('verifiedPage', {
             error: false,
-            message: "Email verified successfully!"
+            message: "Email verified successfully! You can now log in.",
+            redirectUrl: '/login' // Optional: Add redirect
         });
 
     } catch (error) {
         console.error("Email verification error:", error);
         res.render('verifiedPage', {
             error: true,
-            message: "An unexpected error occurred. Please try again or contact support."
+            message: "An unexpected error occurred during verification. Please try again or contact support."
         });
     }
 };

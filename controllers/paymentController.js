@@ -141,18 +141,13 @@ const getStudentPaymentDetails = async (req, res) => {
     try {
         // Get all users
         const users = await User.find({}).lean(); 
-        console.log('Total users found:', users.length);
-        
+
         // Get payment statuses for current year
         const currentYear = new Date().getFullYear();
         const currentMonth = new Date().getMonth(); // 0-based (0 = January, 11 = December)
         const currentQuarter = Math.floor(currentMonth / 3) + 1; // Calculate current quarter (1-4)
         
-        console.log(`Current month: ${currentMonth}, Current quarter: ${currentQuarter}`);
-        
         const paymentStatuses = await PaymentStatus.find({ year: currentYear }).lean(); 
-        
-        console.log('Payment statuses found:', paymentStatuses.length);
         
         const formattedPayments = [];
         
@@ -168,10 +163,8 @@ const getStudentPaymentDetails = async (req, res) => {
             const paymentStatus = paymentStatuses.find(status => 
                 status.userId && status.userId.toString() === user._id.toString()
             );
-            
-            console.log(`Processing user: ${user.name}, Payment Status:`, paymentStatus);
-            
-            // Default status for each month
+        
+                // Default status for each month
             const monthStatuses = Array(12).fill('Pending');
             const quarterStatuses = Array(4).fill('Pending');
             
@@ -205,8 +198,6 @@ const getStudentPaymentDetails = async (req, res) => {
                     'July', 'August', 'September', 'October', 'November', 'December'
                 ][index];
                 
-                console.log(`Monthly Payment - User: ${user.name}, Month: ${monthName}, Status: ${status}`);
-
                 formattedPayments.push({
                     studentName: user.name || 'Unknown',
                     studentEmail: user.email || 'N/A',
@@ -220,9 +211,6 @@ const getStudentPaymentDetails = async (req, res) => {
             // Add quarterly payment details - ONLY UP TO CURRENT QUARTER
             for (let index = 0; index < currentQuarter; index++) {
                 const status = quarterStatuses[index];
-                
-                console.log(`Quarterly Payment - User: ${user.name}, Quarter: Q${index + 1}, Status: ${status}`);
-
                 formattedPayments.push({
                     studentName: user.name || 'Unknown',
                     studentEmail: user.email || 'N/A',
@@ -233,8 +221,6 @@ const getStudentPaymentDetails = async (req, res) => {
                 });
             }
         }
-        
-        console.log('Total formatted payments:', formattedPayments.length);
         
         res.status(200).json({
             success: true,

@@ -360,7 +360,7 @@ const forgotPassword = async (req, res) => {
         await user.save();
 
         // Send email
-        const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${token}`;
+        const resetUrl = `${currentUrl}/reset-password/${token}`;
         
         const mailOptions = {
             to: user.email,

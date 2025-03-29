@@ -151,7 +151,7 @@ const addUser = async (req, res) => {
 
 const sendVerificationEmail = async (user, res) => {
     try {
-        const currentUrl = process.env.APP_URL || 'http://localhost:7000'; // Use environment variable
+        const currentUrl = process.env.CURRENT_URL ; // Use environment variable
         const uniqueString = uuidv4() + user._id;
         const verificationLink = `${currentUrl}/user/verify/${user._id}/${uniqueString}`;
 
@@ -315,7 +315,7 @@ const forgotPassword = async (req, res) => {
         await user.save();
 
         // Send email
-        const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${token}`;
+        const resetUrl = `${currentUrl}/reset-password/${token}`;
         
         const mailOptions = {
             to: user.email,

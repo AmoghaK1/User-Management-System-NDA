@@ -69,7 +69,6 @@ async function initializePaymentStatus(userId) {
         }
     );
 }
-
 const addUser = async (req, res) => {
     try {
         const { name, email, birthdate, age, student_ph_no, exam_level, mother_ph_no, father_ph_no, password, confirmPassword } = req.body;
@@ -126,19 +125,21 @@ const addUser = async (req, res) => {
             });
         }
 
-        try {
-            // Initialize payment status
-            await initializePaymentStatus(userData._id);
+        // Initialize payment status (fire and forget)
+        initializePaymentStatus(userData._id).catch(err => {
+            console.error("Payment initialization error:", err);
+        });
 
-            // Send verification email with the user object
-            await sendVerificationEmail(userData, res);
-        } catch (paymentError) {
-            console.error("Payment initialization error:", paymentError);
-            return res.render('signup', {
-                error: "User registered, but payment initialization failed.",
-                formData: req.body
-            });
-        }
+        // Send verification email (fire and forget)
+        sendVerificationEmail(userData).catch(err => {
+            console.error("Verification email error:", err);
+        });
+
+        // Immediately show success message
+        return res.render('signup', {
+            success: "Registration successful! Please check your email for the verification link.",
+            formData: {}
+        });
 
     } catch (error) {
         console.error("Registration error:", error);
@@ -149,10 +150,10 @@ const addUser = async (req, res) => {
     }
 };
 
-const sendVerificationEmail = async (user, res) => {
+const sendVerificationEmail = async (user) => {
     try {
-        // Use environment variable with fallback for development
         const currentUrl = process.env.CURRENT_URL || 'http://localhost:7000';
+        
         
         // Validate the URL
         if (!currentUrl || !currentUrl.startsWith('http')) {
@@ -202,15 +203,13 @@ const sendVerificationEmail = async (user, res) => {
         const hashedUniqueString = await bcrypt.hash(uniqueString, saltRounds);
 
         // Save verification record
-        const newVerification = new userVerification({
+        await new userVerification({
             userId: user._id,
             uniqueString: hashedUniqueString,
             createdAt: Date.now(),
-            expiresAt: Date.now() + 21600000 // 6 hours
-        });
-
-        await newVerification.save();
-        
+            expiresAt: Date.now() + 21600000
+        }).save();
+    
         // Send email with retry logic
         await transporter.sendMail(mailOptions);
 

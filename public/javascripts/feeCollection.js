@@ -1,6 +1,7 @@
 // feeCollection.js
 let paymentDetailsTable;
 
+// In feeCollection.js
 async function fetchPaymentDetails() {
     try {
         const response = await fetch('/student-payment-details', { credentials: 'include' });
@@ -8,7 +9,10 @@ async function fetchPaymentDetails() {
         
         const data = await response.json();
         
+        console.log('Raw payment details received:', data); // Debug log
+        
         if (data.success) {
+            console.log('Formatted payments:', data.payments); // Debug log
             return data.payments;
         } else {
             console.error('Failed to fetch payment details');
@@ -21,6 +25,8 @@ async function fetchPaymentDetails() {
 }
 
 function initializeDataTable(data) {
+    console.log('Initializing DataTable with data:', data); // Debug log
+    
     if (paymentDetailsTable) {
         paymentDetailsTable.destroy();
     }
@@ -33,17 +39,51 @@ function initializeDataTable(data) {
             { data: 'paymentType', title: 'Payment Type' },
             { data: 'period', title: 'Period' },
             { data: 'year', title: 'Year' },
-            { data: 'status', title: 'Status',
-              render: function(data) {
-                  return `<span class="badge bg-success text-white">${data}</span>`;
-              }
+            { 
+                data: 'status', 
+                title: 'Status',
+                render: function(data) {
+                    const badgeClass = data === 'Paid' ? 'bg-success' : 'bg-danger';
+                    return `<span class="badge ${badgeClass} text-white">${data}</span>`;
+                }
             }
         ],
         order: [[4, 'desc'], [3, 'desc']],
         responsive: true,
         dom: 'Bfrtip',
         buttons: [
-            'copy', 'csv', 'excel', 'pdf', 'print'
+            'copy', 
+            'csv', 
+            'excel', 
+            'pdf', 
+            'print',
+            {
+                text: 'Paid Only',
+                action: function () {
+                    paymentDetailsTable
+                        .column(5)  // Status column
+                        .search('^Paid$', true, false)  // Use regex for exact match
+                        .draw();
+                }
+            },
+            {
+                text: 'Pending Only',
+                action: function () {
+                    paymentDetailsTable
+                        .column(5)  // Status column
+                        .search('^Pending$', true, false)  // Use regex for exact match
+                        .draw();
+                }
+            },
+            {
+                text: 'Show All',
+                action: function () {
+                    paymentDetailsTable
+                        .column(5)  // Status column
+                        .search('')
+                        .draw();
+                }
+            }
         ]
     });
 }

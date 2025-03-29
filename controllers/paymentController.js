@@ -141,52 +141,104 @@ const getPaymentStatus = async (req, res) => {
         res.status(500).json({ success: false, msg: 'Internal Server Error' });
     }
 };
-
 const getStudentPaymentDetails = async (req, res) => {
     try {
-        // Get all payment records with student details
-        const payments = await PaymentStatus.find()
-            .populate('userId', 'name email') // Populate user details
-            .sort({ updatedAt: -1 }); // Most recent first
+        // Get all users
+        const users = await User.find({}).lean(); 
+        console.log('Total users found:', users.length);
+        
+        // Get payment statuses for current year
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth(); // 0-based (0 = January, 11 = December)
+        const currentQuarter = Math.floor(currentMonth / 3) + 1; // Calculate current quarter (1-4)
+        
+        console.log(`Current month: ${currentMonth}, Current quarter: ${currentQuarter}`);
+        
+        const paymentStatuses = await PaymentStatus.find({ year: currentYear }).lean(); 
+        
+        console.log('Payment statuses found:', paymentStatuses.length);
         
         const formattedPayments = [];
         
-        for (const payment of payments) {
-            // Process monthly payments
-            for (const [monthIndex, status] of payment.months.entries()) {
-                if (status === 'Paid') {
-                    const monthName = [
-                        'January', 'February', 'March', 'April', 'May', 'June',
-                        'July', 'August', 'September', 'October', 'November', 'December'
-                    ][parseInt(monthIndex)];
-                    
-                    formattedPayments.push({
-                        studentName: payment.userId.name,
-                        studentEmail: payment.userId.email,
-                        paymentType: 'Monthly',
-                        period: `${monthName} ${payment.year}`,
-                        year: payment.year,
-                        status: 'Paid'
+        // Iterate through all users
+        for (const user of users) {
+            // Skip users without an _id
+            if (!user || !user._id) {
+                console.warn('Skipping user with invalid _id:', user);
+                continue;
+            }
+
+            // Find the corresponding payment status
+            const paymentStatus = paymentStatuses.find(status => 
+                status.userId && status.userId.toString() === user._id.toString()
+            );
+            
+            console.log(`Processing user: ${user.name}, Payment Status:`, paymentStatus);
+            
+            // Default status for each month
+            const monthStatuses = Array(12).fill('Pending');
+            const quarterStatuses = Array(4).fill('Pending');
+            
+            if (paymentStatus) {
+                // Update month statuses
+                if (paymentStatus.months) {
+                    Object.entries(paymentStatus.months).forEach(([monthIndex, status]) => {
+                        const index = parseInt(monthIndex);
+                        if (!isNaN(index) && index >= 0 && index < 12) {
+                            monthStatuses[index] = status;
+                        }
+                    });
+                }
+                
+                // Update quarter statuses
+                if (paymentStatus.quarters) {
+                    Object.entries(paymentStatus.quarters).forEach(([quarterIndex, status]) => {
+                        const index = parseInt(quarterIndex) - 1; // Adjust index since quarters start at 1
+                        if (!isNaN(index) && index >= 0 && index < 4) {
+                            quarterStatuses[index] = status;
+                        }
                     });
                 }
             }
             
-            // Process quarterly payments
-            for (const [quarterIndex, status] of payment.quarters.entries()) {
-                if (status === 'Paid') {
-                    const quarter = parseInt(quarterIndex);
-                    
-                    formattedPayments.push({
-                        studentName: payment.userId.name,
-                        studentEmail: payment.userId.email,
-                        paymentType: 'Quarterly',
-                        period: `Q${quarter} ${payment.year}`,
-                        year: payment.year,
-                        status: 'Paid'
-                    });
-                }
+            // Add monthly payment details - ONLY UP TO CURRENT MONTH
+            for (let index = 0; index <= currentMonth; index++) {
+                const status = monthStatuses[index];
+                const monthName = [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ][index];
+                
+                console.log(`Monthly Payment - User: ${user.name}, Month: ${monthName}, Status: ${status}`);
+
+                formattedPayments.push({
+                    studentName: user.name || 'Unknown',
+                    studentEmail: user.email || 'N/A',
+                    paymentType: 'Monthly',
+                    period: `${monthName} ${currentYear}`,
+                    year: currentYear,
+                    status: status
+                });
+            }
+            
+            // Add quarterly payment details - ONLY UP TO CURRENT QUARTER
+            for (let index = 0; index < currentQuarter; index++) {
+                const status = quarterStatuses[index];
+                
+                console.log(`Quarterly Payment - User: ${user.name}, Quarter: Q${index + 1}, Status: ${status}`);
+
+                formattedPayments.push({
+                    studentName: user.name || 'Unknown',
+                    studentEmail: user.email || 'N/A',
+                    paymentType: 'Quarterly',
+                    period: `Q${index + 1} ${currentYear}`,
+                    year: currentYear,
+                    status: status
+                });
             }
         }
+        
+        console.log('Total formatted payments:', formattedPayments.length);
         
         res.status(200).json({
             success: true,
@@ -194,10 +246,9 @@ const getStudentPaymentDetails = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching payment details:', error);
-        res.status(500).json({ success: false, msg: 'Internal Server Error' });
+        res.status(500).json({ success: false, msg: 'Internal Server Error', error: error.message });
     }
 };
-
 module.exports = {
     renderDashboard,
     createOrder,

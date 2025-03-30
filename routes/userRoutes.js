@@ -62,5 +62,5 @@ user_route.post('/api/profile/change-password', auth.ensureAuthenticated, userCo
 user_route.get('/events', auth.ensureAuthenticated, userController.loadEventsPage);
 user_route.get('/study', auth.ensureAuthenticated, userController.loadStudyPage);
 user_route.get('/certificates', auth.ensureAuthenticated, userController.loadCertiPage);
-user_route.get('*', userController.loadErrorPage)
+
 module.exports = user_route;

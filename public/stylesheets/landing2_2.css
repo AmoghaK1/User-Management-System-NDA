@@ -117,6 +117,7 @@ body {
     display: none;
     cursor: pointer;
     z-index: 101;
+    left: 3px;
 }
 
 .menu-btn .bar {
@@ -620,7 +621,33 @@ body {
     .menu-btn {
         display: block;
     }
-
+    #heroimg {
+        height: 120vh; /* Increase height */
+        width: auto; /* Maintain aspect ratio */
+        max-width: 120vw; /* Scale while keeping it responsive */
+        opacity: 0.6;
+        filter: drop-shadow(0 0 15px rgba(106, 45, 192, 0.3));
+        animation: fadeIn 4s ease-in, fadeOff 2s 4s;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        object-fit: contain;
+    }
+    .hero-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        padding-top: 20px;
+        min-height: 100vh;
+        width: 90%;
+        max-width: 1200px;
+        position: relative;
+        overflow: hidden;
+    }
     .line {
         margin: 1rem 0;
         font-size: clamp(1.2rem, 4vw, 1.8rem);
@@ -823,6 +850,8 @@ body.dark-mode .footer-bottom {
     top: 20px;
     right: 20px;
     z-index: 1001;
+    
+    
 }
 
 .darkmode-input {
@@ -830,6 +859,7 @@ body.dark-mode .footer-bottom {
     opacity: 0;
     width: 0;
     height: 0;
+    
 }
 
 .darkmode-label {
@@ -886,13 +916,17 @@ body.dark-mode .moon-icon {
 
 @media screen and (max-width: 768px) {
     .theme-toggle {
-        top: 15px;
-        right: 60px;
+        top: 20px;
+        right: 90px;
+        margin-left: 10px;
+        
     }
     
     .darkmode-label {
         width: 36px;
         height: 36px;
+        bottom: 2px;
+        left: 3px;
     }
     
     body.dark-mode .nav-links {

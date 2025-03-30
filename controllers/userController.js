@@ -132,7 +132,7 @@ const addUser = async (req, res) => {
         });
 
         // Immediately show success message
-        return res.render('signup', {
+        res.render('signup', {
             success: "Registration successful! Please check your email for the verification link.",
             formData: {}
         });

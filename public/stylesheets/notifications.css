@@ -1,0 +1,114 @@
+/* notifications.css - Shared notification styles */
+.error-message, 
+.success-message, 
+#flash-error, 
+#flash-success {
+    width: 90%;
+    max-width: 500px;
+    padding: 12px 40px 12px 20px;
+    margin: 0 auto;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: center;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideDown 0.4s ease-out forwards;
+}
+
+.error-message, 
+#flash-error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-left: 4px solid #dc2626;
+}
+
+.success-message, 
+#flash-success {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border-left: 4px solid #16a34a;
+}
+
+.flash-close {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: rgba(0,0,0,0.5);
+    cursor: pointer;
+    font-size: 1.5rem;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.flash-close:hover {
+    background: rgba(0,0,0,0.1);
+    color: rgba(0,0,0,0.8);
+}
+
+.flash-close:active {
+    background: rgba(0,0,0,0.2);
+}
+
+@keyframes slideDown {
+    from {
+        transform: translate(-50%, -20px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from { 
+        opacity: 1; 
+        transform: translate(-50%, 0);
+    }
+    to { 
+        opacity: 0; 
+        transform: translate(-50%, -20px);
+    }
+}
+
+@media (max-width: 768px) {
+    .error-message, 
+    .success-message, 
+    #flash-error, 
+    #flash-success {
+        width: 95%;
+        top: 10px;
+        font-size: 0.9rem;
+        padding: 10px 35px 10px 15px;
+    }
+    
+    .flash-close {
+        width: 25px;
+        height: 25px;
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-message, 
+    .success-message, 
+    #flash-error, 
+    #flash-success {
+        font-size: 0.85rem;
+        padding: 8px 30px 8px 12px;
+    }
+}

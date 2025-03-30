@@ -1,4 +1,4 @@
-// Auto-dismiss notifications with improved functionality
+// notifications.js - Shared functionality
 document.addEventListener('DOMContentLoaded', function() {
     const messages = document.querySelectorAll('.error-message, .success-message, #flash-error, #flash-success');
     
@@ -12,13 +12,6 @@ document.addEventListener('DOMContentLoaded', function() {
             closeButton.setAttribute('aria-label', 'Close message');
             message.appendChild(closeButton);
         }
-        
-        // Ensure message positioning
-        message.style.position = 'fixed';
-        message.style.top = '20px';
-        message.style.left = '50%';
-        message.style.transform = 'translateX(-50%)';
-        message.style.zIndex = '1000';
         
         // Function to dismiss message
         const dismissMessage = () => {
@@ -45,57 +38,3 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
-// Add improved styles to CSS
-const style = document.createElement('style');
-style.textContent = `
-@keyframes fadeOut {
-    from { 
-        opacity: 1; 
-        transform: translate(-50%, 0);
-    }
-    to { 
-        opacity: 0; 
-        transform: translate(-50%, -20px);
-    }
-}
-
-.error-message .flash-close, 
-.success-message .flash-close, 
-#flash-error .flash-close,
-#flash-success .flash-close {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    color: rgba(0,0,0,0.5);
-    cursor: pointer;
-    font-size: 1.5rem;
-    line-height: 1;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-}
-
-.error-message .flash-close:hover, 
-.success-message .flash-close:hover, 
-#flash-error .flash-close:hover,
-#flash-success .flash-close:hover {
-    background: rgba(0,0,0,0.1);
-    color: rgba(0,0,0,0.8);
-}
-
-.error-message .flash-close:active, 
-.success-message .flash-close:active, 
-#flash-error .flash-close:active,
-#flash-success .flash-close:active {
-    background: rgba(0,0,0,0.2);
-}
-`;
-document.head.appendChild(style);

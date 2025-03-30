@@ -63,7 +63,11 @@ const paymentRoutes = require('./routes/paymentRoutes');
 app.use('/', userRoutes);
 app.use('/', teacherRoutes);
 app.use('/',paymentRoutes);
-
+app.use((req, res, next) => {
+  res.locals.error = req.flash("error"); // Flash error messages
+  res.locals.success = req.flash("success"); // Flash success messages
+  next();
+});
 
 app.get('/',(req,res)=>{
     res.render('landing2');

@@ -129,11 +129,8 @@ const addUser = async (req, res) => {
         try {
             await sendVerificationEmail(userData);
             // Immediately show success message
-            return res.render('signup', {
-                success: "Registration successful! Please check your email for the verification link.",
-                error: null,
-                formData: {}
-            });
+            req.flash('success', 'Registration successful! Please check your email for a verification link.');
+            return res.redirect('/signup');
         } catch (emailError) {
             console.error("Verification email error:", emailError);
             // Delete the user if email sending fails

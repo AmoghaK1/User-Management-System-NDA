@@ -1,6 +1,6 @@
 // Auto-dismiss notifications with improved functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const messages = document.querySelectorAll('.error-message, .success-message, #flash-error');
+    const messages = document.querySelectorAll('.error-message, .success-message, #flash-error, #flash-success');
     
     messages.forEach(message => {
         // Create close button if not already present
@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         message.style.top = '20px';
         message.style.left = '50%';
         message.style.transform = 'translateX(-50%)';
+        message.style.zIndex = '1000';
         
         // Function to dismiss message
         const dismissMessage = () => {
@@ -61,7 +62,8 @@ style.textContent = `
 
 .error-message .flash-close, 
 .success-message .flash-close, 
-#flash-error .flash-close {
+#flash-error .flash-close,
+#flash-success .flash-close {
     position: absolute;
     top: 50%;
     right: 10px;
@@ -83,14 +85,16 @@ style.textContent = `
 
 .error-message .flash-close:hover, 
 .success-message .flash-close:hover, 
-#flash-error .flash-close:hover {
+#flash-error .flash-close:hover,
+#flash-success .flash-close:hover {
     background: rgba(0,0,0,0.1);
     color: rgba(0,0,0,0.8);
 }
 
 .error-message .flash-close:active, 
 .success-message .flash-close:active, 
-#flash-error .flash-close:active {
+#flash-error .flash-close:active,
+#flash-success .flash-close:active {
     background: rgba(0,0,0,0.2);
 }
 `;

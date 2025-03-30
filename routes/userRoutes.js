@@ -11,7 +11,14 @@ const userController = require('../controllers/userController');
 const passport = require('passport');
 
 
-user_route.get('/signup', auth.redirectIfAuthenticated, userController.loadRegister);
+// In userRoutes.js
+user_route.get('/signup', auth.redirectIfAuthenticated, (req, res) => {
+    res.render('signup', {
+        error: req.flash('error'),
+        success: req.flash('success'),
+        formData: {}
+    });
+});
 user_route.post('/signup', userController.addUser);
 user_route.get('/user/verify/:userId/:uniqueString', userController.verifyEmail);
 user_route.get('/verified', userController.loadVerifiedPage);

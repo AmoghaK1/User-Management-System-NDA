@@ -329,14 +329,6 @@ body {
     font-size: 3rem;
   }
 
-  .footer-content {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-
-  .footer-section {
-    padding: 0 10px;
-  }
 }
 
 @media screen and (max-width: 480px) {
@@ -353,15 +345,119 @@ body {
     padding: 25px;
   }
 
-  .footer-content {
-    grid-template-columns: repeat(2, 1fr);
+}
+
+/* Footer Styles */
+footer {
+  background: #f8f9fa;
+  color: #4a5568;
+  padding: 2rem 1rem;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  padding: 0 1rem;
+}
+
+.footer-section {
+  margin-bottom: 1.5rem;
+}
+
+.footer-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.footer-section p, 
+.footer-section li {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+  color: #4a5568;
+  transition: color 0.2s;
+}
+
+.footer-section a:hover {
+  color: #6c5ce7;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.social-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.social-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #4a5568;
+  transition: all 0.2s;
+}
+
+.social-links a:hover {
+  background: #6c5ce7;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.copyright {
+  text-align: center;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+/* Footer Responsive */
+@media screen and (max-width: 768px) {
+  .footer-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  .footer-section {
+    margin-bottom: 1rem;
+  }
+  
+  .social-links {
+    justify-content: flex-start;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .footer-section {
     text-align: center;
   }
-
-  .footer-section {
-    align-items: center;
-  }
-
+  
   .social-links {
     justify-content: center;
   }

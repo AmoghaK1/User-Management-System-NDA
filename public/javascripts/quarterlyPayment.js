@@ -60,8 +60,13 @@ async function createAllQuarterlyCards(year) {
     const grid = document.getElementById('quarterlyGrid');
     if (!grid) return;
     
-    // Clear the grid first
-    grid.innerHTML = '';
+    // Show loading spinner
+    grid.innerHTML = `
+    <div class="text-center">
+        <div class="loading-spinner"></div>
+        <p class="mt-2 text-gray-600">Loading payment information...</p>
+    </div>
+`;
     
     // Make sure payment status is up to date
     await fetchPaymentStatus();
@@ -108,6 +113,7 @@ async function createAllQuarterlyCards(year) {
     }
     
     // Append all cards at once
+    grid.innerHTML = '';
     grid.appendChild(fragment);
 }
 
@@ -169,7 +175,7 @@ function processQuarterlyPayment(quarter, year) {
         type: 'POST',
         data: { 
             name: `Fee for Q${quarter} ${year}${lateFee > 0 ? ' (Late Fee: ₹' + lateFee + ')' : ''}`, 
-            amount: 0.1 * 10, 
+            amount: totalAmount, 
             description: `Fee for Q${quarter} ${year}${lateFee > 0 ? ' including ₹' + lateFee + ' late fee' : ''}`,
             email: window.email, 
             contact: window.phoneNumber, 

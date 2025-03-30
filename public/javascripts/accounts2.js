@@ -39,7 +39,15 @@ async function fetchPaymentStatus() {
 async function createAllMonthCards(year) {
     const grid = document.getElementById('monthsGrid');
     if (!grid) return;
-    grid.innerHTML = '';
+    
+    // Show loading spinner
+    grid.innerHTML = `
+    <div class="text-center">
+        <div class="loading-spinner"></div>
+        <p class="mt-2 text-gray-600">Loading payment information...</p>
+    </div>
+`;
+    
     await fetchPaymentStatus();
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -113,6 +121,7 @@ async function createAllMonthCards(year) {
         
         fragment.appendChild(monthCard);
     }
+    grid.innerHTML = '';
     grid.appendChild(fragment);
 }
 

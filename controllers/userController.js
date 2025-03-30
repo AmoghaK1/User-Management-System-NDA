@@ -13,6 +13,7 @@ const nodemailer = require('nodemailer');
 const { v4: uuidv4 } = require('uuid'); 
 const { send } = require('process');
 const { error } = require('console');
+const mongoose = require('mongoose')
 const crypto = require('crypto');
 
 
@@ -357,13 +358,13 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordToken = token;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
-
+        const currentUrl = process.env.CURRENT_URL;
         // Send email
-        const resetUrl = `${currentUrl}/reset-password/${token}`;
+        const resetUrl = `${currentUrl}/reset-password/${token}` || `${req.protocol}://${req.get('host')}/reset-password/${token}`;;
         
         const mailOptions = {
             to: user.email,
-            from: process.env.EMAIL_USER,
+            from: process.env.AUTH_EMAIL,
             subject: 'Password Reset Request',
             text: `You are receiving this because you (or someone else) have requested a password reset for your account.\n\n
             Please click on the following link to reset your password:\n\n
@@ -770,6 +771,10 @@ const loadStudyPage = async(req,res)=>{
 const loadCertiPage = async(req,res)=>{
     res.render('certificates')
 }
+
+const loadErrorPage = async(req,res)=>{
+    res.render('404');
+}
 module.exports = {
     loadRegister,
     addUser,
@@ -788,7 +793,8 @@ module.exports = {
     loadForgotPassword,
     forgotPassword,
     loadResetPassword,
-    resetPassword
+    resetPassword,
+    loadErrorPage
     
     
 

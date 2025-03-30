@@ -151,9 +151,9 @@ const addUser = async (req, res) => {
     }
 };
 
-const sendVerificationEmail = async (user) => {
+const sendVerificationEmail = async (req,res,user) => {
     try {
-        const currentUrl = process.env.CURRENT_URL || 'http://localhost:7000';
+        const currentUrl = process.env.CURRENT_URL;
         
         
         // Validate the URL

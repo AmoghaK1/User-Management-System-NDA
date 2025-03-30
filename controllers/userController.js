@@ -119,13 +119,7 @@ const addUser = async (req, res) => {
         });
 
         const userData = await user.save();
-        if (!userData) {
-            return res.render('signup', {
-                error: "Error occurred while registering",
-                formData: req.body
-            });
-        }
-
+        
         // Initialize payment status (fire and forget)
         initializePaymentStatus(userData._id).catch(err => {
             console.error("Payment initialization error:", err);
@@ -134,6 +128,7 @@ const addUser = async (req, res) => {
         // Send verification email (fire and forget)
         sendVerificationEmail(userData).catch(err => {
             console.error("Verification email error:", err);
+            // Consider logging this to a monitoring system
         });
 
         // Immediately show success message
@@ -150,46 +145,33 @@ const addUser = async (req, res) => {
         });
     }
 };
-
-const sendVerificationEmail = async (req, res, user) => {
-    // Validate required parameters
-    if (!req || !res || !user || !user._id || !user.email) {
-        console.error('Invalid parameters passed to sendVerificationEmail');
-        return res.status(400).render('signup', {
-            error: "Invalid user data. Please try again.",
-            formData: user || {}
-        });
-    }
-
+const sendVerificationEmail = async (user) => {
     try {
         const currentUrl = process.env.CURRENT_URL;
         
-        // Validate the URL more thoroughly
         if (!currentUrl || !currentUrl.startsWith('http')) {
-            throw new Error('Invalid or missing CURRENT_URL in environment variables');
+            throw new Error('Invalid CURRENT_URL in environment variables');
         }
 
-        // Generate unique verification string
         const uniqueString = uuidv4() + user._id;
         const verificationLink = `${currentUrl}/user/verify/${user._id}/${uniqueString}`;
 
-        // Path resolution with better error handling
-        const emailTemplatePath = path.resolve(__dirname, '../views/verificationEmail.html');
-        if (!fs.existsSync(emailTemplatePath)) {
-            throw new Error(`Email template not found at path: ${emailTemplatePath}`);
+        // Email template handling with proper error checking
+        let emailTemplate;
+        try {
+            const emailTemplatePath = path.resolve(__dirname, '../views/verificationEmail.html');
+            emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+        } catch (err) {
+            console.error("Failed to read email template:", err);
+            throw new Error('Failed to prepare verification email');
         }
 
-        // Read template with async/await instead of sync
-        const emailTemplate = await fs.promises.readFile(emailTemplatePath, 'utf8');
-
-        // Replace placeholders with proper escaping
-        const escapedName = user.name ? user.name.replace(/"/g, '&quot;') : 'User';
         const emailHtml = emailTemplate
             .replace(/{{verificationLink}}/g, verificationLink)
             .replace(/{{rawLink}}/g, verificationLink)
-            .replace(/{{userName}}/g, escapedName);
+            .replace(/{{userName}}/g, user.name || 'User');
 
-        // Handle image attachment
+        // Attachments handling
         const attachments = [];
         try {
             const imagePath = path.resolve(__dirname, '../public/images/natraj-logo.png');
@@ -199,17 +181,9 @@ const sendVerificationEmail = async (req, res, user) => {
                     path: imagePath,
                     cid: 'natrajLogo'
                 });
-            } else {
-                console.warn('Logo image not found, sending email without logo');
             }
-        } catch (imageError) {
-            console.error('Error processing logo attachment:', imageError);
-            // Continue without attachment
-        }
-
-        // Validate email configuration
-        if (!process.env.AUTH_EMAIL) {
-            throw new Error('AUTH_EMAIL not configured in environment variables');
+        } catch (err) {
+            console.warn('Failed to attach logo:', err);
         }
 
         const mailOptions = {
@@ -217,62 +191,33 @@ const sendVerificationEmail = async (req, res, user) => {
             to: user.email,
             subject: 'Verify Your Nrutyashree Dance Academy Account',
             html: emailHtml,
-            attachments,
-            // Added important headers
-            headers: {
-                'X-Priority': '1',
-                'X-MSMail-Priority': 'High',
-                'Importance': 'High'
-            }
+            attachments
         };
 
-        // Hash the verification string with error handling
-        const saltRounds = 10;
-        const hashedUniqueString = await bcrypt.hash(uniqueString, saltRounds);
+        // Hash the verification string
+        const hashedUniqueString = await bcrypt.hash(uniqueString, 10);
 
-        // Save verification record with timeout
-        await Promise.race([
-            new userVerification({
-                userId: user._id,
-                uniqueString: hashedUniqueString,
-                createdAt: Date.now(),
-                expiresAt: Date.now() + 21600000 // 6 hours
-            }).save(),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Database save operation timed out')), 5000)
-            )
-        ]);
-
-        // Send email with timeout
-        await Promise.race([
-            transporter.sendMail(mailOptions),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Email sending timed out')), 10000)
-            )
-        ]);
-
-        return res.render('signup', {
-            success: "Registration successful. Please check your email to verify your account.",
-            formData: {}
-        });
+        // Save verification record
+        await new userVerification({
+            userId: user._id,
+            uniqueString: hashedUniqueString,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 21600000 // 6 hours
+        }).save();
+    
+        // Send email
+        await transporter.sendMail(mailOptions);
 
     } catch (error) {
         console.error("Verification email error:", error);
-        
-        // Different error messages based on error type
-        let errorMessage = "Error sending verification email. Please try again later.";
-        if (error.message.includes('timed out')) {
-            errorMessage = "Email verification is taking longer than expected. Please check your email in a few minutes.";
-        }
-
-        return res.render('signup', {
-            error: errorMessage,
-            formData: user
-        });
+        // Consider cleaning up the user record if email fails
+        // await User.deleteOne({ _id: user._id });
+        throw error; // Re-throw to be caught by the caller
     }
 };
 
 const verifyEmail = async (req, res) => {
+    let session = null;
     try {
         const { userId, uniqueString } = req.params;
         
@@ -284,10 +229,15 @@ const verifyEmail = async (req, res) => {
             });
         }
 
+        // Start transaction to prevent race conditions
+        session = await mongoose.startSession();
+        session.startTransaction();
+
         // Find verification record
-        const verificationRecord = await userVerification.findOne({ userId });
+        const verificationRecord = await userVerification.findOne({ userId }).session(session);
         
         if (!verificationRecord) {
+            await session.abortTransaction();
             return res.render('verifiedPage', {
                 error: true,
                 message: "Verification record not found or already used. Please register again or request a new verification email."
@@ -296,12 +246,9 @@ const verifyEmail = async (req, res) => {
 
         // Check expiration
         if (verificationRecord.expiresAt < Date.now()) {
-            // Delete expired records (with error handling)
-            await Promise.allSettled([
-                userVerification.deleteOne({ userId }),
-                User.deleteOne({ _id: userId })
-            ]);
-            
+            await User.deleteOne({ _id: userId }).session(session);
+            await userVerification.deleteOne({ userId }).session(session);
+            await session.commitTransaction();
             return res.render('verifiedPage', {
                 error: true,
                 message: "Verification link has expired. Please register again."
@@ -312,6 +259,7 @@ const verifyEmail = async (req, res) => {
         const isValid = await bcrypt.compare(uniqueString, verificationRecord.uniqueString);
         
         if (!isValid) {
+            await session.abortTransaction();
             return res.render('verifiedPage', {
                 error: true,
                 message: "Invalid verification link. Please use the link from your email."
@@ -319,9 +267,10 @@ const verifyEmail = async (req, res) => {
         }
 
         // Check if user exists
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).session(session);
         if (!user) {
-            await userVerification.deleteOne({ userId });
+            await userVerification.deleteOne({ userId }).session(session);
+            await session.commitTransaction();
             return res.render('verifiedPage', {
                 error: true,
                 message: "User account not found. Please register again."
@@ -330,7 +279,8 @@ const verifyEmail = async (req, res) => {
 
         // Skip if already verified
         if (user.is_verified) {
-            await userVerification.deleteOne({ userId });
+            await userVerification.deleteOne({ userId }).session(session);
+            await session.commitTransaction();
             return res.render('verifiedPage', {
                 error: false,
                 message: "Email was already verified. You can now log in."
@@ -339,25 +289,33 @@ const verifyEmail = async (req, res) => {
 
         // Update and save user
         user.is_verified = true;
-        user.verifiedAt = new Date(); // Add verification timestamp
-        await user.save();
+        user.verifiedAt = new Date();
+        await user.save({ session });
         
         // Clean up verification record
-        await userVerification.deleteOne({ userId });
+        await userVerification.deleteOne({ userId }).session(session);
+        await session.commitTransaction();
 
         // Successful verification
-        res.render('verifiedPage', {
+        return res.render('verifiedPage', {
             error: false,
             message: "Email verified successfully! You can now log in.",
-            redirectUrl: '/login' // Optional: Add redirect
+            redirectUrl: '/login'
         });
 
     } catch (error) {
+        if (session) {
+            await session.abortTransaction();
+        }
         console.error("Email verification error:", error);
-        res.render('verifiedPage', {
+        return res.render('verifiedPage', {
             error: true,
             message: "An unexpected error occurred during verification. Please try again or contact support."
         });
+    } finally {
+        if (session) {
+            await session.endSession();
+        }
     }
 };
 
@@ -404,7 +362,7 @@ const forgotPassword = async (req, res) => {
         await user.save();
         const currentUrl = process.env.CURRENT_URL;
         // Send email
-        const resetUrl = `${currentUrl}/reset-password/${token}` || `${req.protocol}://${req.get('host')}/reset-password/${token}`;;
+        const resetUrl = `${currentUrl}/reset-password/${token}`; // || `${req.protocol}://${req.get('host')}/reset-password/${token}`
         
         const mailOptions = {
             to: user.email,

@@ -125,17 +125,24 @@ const addUser = async (req, res) => {
             console.error("Payment initialization error:", err);
         });
 
-        // Send verification email (fire and forget)
-        sendVerificationEmail(userData).catch(err => {
-            console.error("Verification email error:", err);
-            // Consider logging this to a monitoring system
-        });
-
-        // Immediately show success message
-        res.render('signup', {
-            success: "Registration successful! Please check your email for the verification link.",
-            formData: {}
-        });
+        // Send verification email
+        try {
+            await sendVerificationEmail(userData);
+            // Immediately show success message
+            return res.render('signup', {
+                success: "Registration successful! Please check your email for the verification link.",
+                error: null,
+                formData: {}
+            });
+        } catch (emailError) {
+            console.error("Verification email error:", emailError);
+            // Delete the user if email sending fails
+            await User.deleteOne({ _id: userData._id });
+            return res.render('signup', {
+                error: "Failed to send verification email. Please try again later.",
+                formData: req.body
+            });
+        }
 
     } catch (error) {
         console.error("Registration error:", error);
@@ -237,10 +244,12 @@ const verifyEmail = async (req, res) => {
         const verificationRecord = await userVerification.findOne({ userId }).session(session);
         
         if (!verificationRecord) {
-            await session.abortTransaction();
+            // Delete user record if verification record not found
+            await User.deleteOne({ _id: userId }).session(session);
+            await session.commitTransaction();
             return res.render('verifiedPage', {
                 error: true,
-                message: "Verification record not found or already used. Please register again or request a new verification email."
+                message: "Verification record not found or already used. Please register again."
             });
         }
 
@@ -259,10 +268,13 @@ const verifyEmail = async (req, res) => {
         const isValid = await bcrypt.compare(uniqueString, verificationRecord.uniqueString);
         
         if (!isValid) {
-            await session.abortTransaction();
+            // Delete user record if verification string is invalid
+            await User.deleteOne({ _id: userId }).session(session);
+            await userVerification.deleteOne({ userId }).session(session);
+            await session.commitTransaction();
             return res.render('verifiedPage', {
                 error: true,
-                message: "Invalid verification link. Please use the link from your email."
+                message: "Invalid verification link. Please register again."
             });
         }
 
@@ -308,9 +320,20 @@ const verifyEmail = async (req, res) => {
             await session.abortTransaction();
         }
         console.error("Email verification error:", error);
+        
+        // Delete user data on any verification error
+        if (req.params.userId) {
+            try {
+                await User.deleteOne({ _id: req.params.userId });
+                await userVerification.deleteOne({ userId: req.params.userId });
+            } catch (deleteErr) {
+                console.error("Failed to delete user data after verification error:", deleteErr);
+            }
+        }
+        
         return res.render('verifiedPage', {
             error: true,
-            message: "An unexpected error occurred during verification. Please try again or contact support."
+            message: "An unexpected error occurred during verification. Please register again."
         });
     } finally {
         if (session) {

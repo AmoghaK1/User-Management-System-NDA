@@ -151,44 +151,65 @@ const addUser = async (req, res) => {
     }
 };
 
-const sendVerificationEmail = async (req,res,user) => {
+const sendVerificationEmail = async (req, res, user) => {
+    // Validate required parameters
+    if (!req || !res || !user || !user._id || !user.email) {
+        console.error('Invalid parameters passed to sendVerificationEmail');
+        return res.status(400).render('signup', {
+            error: "Invalid user data. Please try again.",
+            formData: user || {}
+        });
+    }
+
     try {
         const currentUrl = process.env.CURRENT_URL;
         
-        
-        // Validate the URL
+        // Validate the URL more thoroughly
         if (!currentUrl || !currentUrl.startsWith('http')) {
-            throw new Error('Invalid CURRENT_URL in environment variables');
+            throw new Error('Invalid or missing CURRENT_URL in environment variables');
         }
 
+        // Generate unique verification string
         const uniqueString = uuidv4() + user._id;
         const verificationLink = `${currentUrl}/user/verify/${user._id}/${uniqueString}`;
 
-        // Safely read email template with error handling
+        // Path resolution with better error handling
         const emailTemplatePath = path.resolve(__dirname, '../views/verificationEmail.html');
         if (!fs.existsSync(emailTemplatePath)) {
-            throw new Error('Email template file not found');
+            throw new Error(`Email template not found at path: ${emailTemplatePath}`);
         }
-        const emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
 
-        // Replace placeholders
+        // Read template with async/await instead of sync
+        const emailTemplate = await fs.promises.readFile(emailTemplatePath, 'utf8');
+
+        // Replace placeholders with proper escaping
+        const escapedName = user.name ? user.name.replace(/"/g, '&quot;') : 'User';
         const emailHtml = emailTemplate
             .replace(/{{verificationLink}}/g, verificationLink)
             .replace(/{{rawLink}}/g, verificationLink)
-            .replace(/{{userName}}/g, user.name || 'User'); // Added personalization
+            .replace(/{{userName}}/g, escapedName);
 
-        // Safely handle image attachment
-        const imagePath = path.resolve(__dirname, '../public/images/natraj-logo.png');
+        // Handle image attachment
         const attachments = [];
-        
-        if (fs.existsSync(imagePath)) {
-            attachments.push({
-                filename: 'natraj-logo.png',
-                path: imagePath,
-                cid: 'natrajLogo'
-            });
-        } else {
-            console.warn('Logo image not found, sending email without logo');
+        try {
+            const imagePath = path.resolve(__dirname, '../public/images/natraj-logo.png');
+            if (fs.existsSync(imagePath)) {
+                attachments.push({
+                    filename: 'natraj-logo.png',
+                    path: imagePath,
+                    cid: 'natrajLogo'
+                });
+            } else {
+                console.warn('Logo image not found, sending email without logo');
+            }
+        } catch (imageError) {
+            console.error('Error processing logo attachment:', imageError);
+            // Continue without attachment
+        }
+
+        // Validate email configuration
+        if (!process.env.AUTH_EMAIL) {
+            throw new Error('AUTH_EMAIL not configured in environment variables');
         }
 
         const mailOptions = {
@@ -196,33 +217,56 @@ const sendVerificationEmail = async (req,res,user) => {
             to: user.email,
             subject: 'Verify Your Nrutyashree Dance Academy Account',
             html: emailHtml,
-            attachments
+            attachments,
+            // Added important headers
+            headers: {
+                'X-Priority': '1',
+                'X-MSMail-Priority': 'High',
+                'Importance': 'High'
+            }
         };
 
-        // Hash the verification string
+        // Hash the verification string with error handling
         const saltRounds = 10;
         const hashedUniqueString = await bcrypt.hash(uniqueString, saltRounds);
 
-        // Save verification record
-        await new userVerification({
-            userId: user._id,
-            uniqueString: hashedUniqueString,
-            createdAt: Date.now(),
-            expiresAt: Date.now() + 21600000
-        }).save();
-    
-        // Send email with retry logic
-        await transporter.sendMail(mailOptions);
+        // Save verification record with timeout
+        await Promise.race([
+            new userVerification({
+                userId: user._id,
+                uniqueString: hashedUniqueString,
+                createdAt: Date.now(),
+                expiresAt: Date.now() + 21600000 // 6 hours
+            }).save(),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Database save operation timed out')), 5000)
+            )
+        ]);
 
-        res.render('signup', {
+        // Send email with timeout
+        await Promise.race([
+            transporter.sendMail(mailOptions),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Email sending timed out')), 10000)
+            )
+        ]);
+
+        return res.render('signup', {
             success: "Registration successful. Please check your email to verify your account.",
             formData: {}
         });
 
     } catch (error) {
         console.error("Verification email error:", error);
-        res.render('signup', {
-            error: "Error sending verification email. Please try again later.",
+        
+        // Different error messages based on error type
+        let errorMessage = "Error sending verification email. Please try again later.";
+        if (error.message.includes('timed out')) {
+            errorMessage = "Email verification is taking longer than expected. Please check your email in a few minutes.";
+        }
+
+        return res.render('signup', {
+            error: errorMessage,
             formData: user
         });
     }

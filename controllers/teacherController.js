@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 require("dotenv").config();
 const PaymentStatus = require('../models/paymentModel');
+const mongoose = require('mongoose')
 
 const load_trDashboard = async(req,res)=>{
     if(req.user.email !== "rajjii11@gmail.com"){

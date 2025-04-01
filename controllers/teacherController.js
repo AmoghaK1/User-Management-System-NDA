@@ -23,27 +23,51 @@ const Teacher_getAllStudents = async (req, res) => {
 const Teacher_deleteStudent = async (req, res) => {
     const { studentId } = req.body;
     try {
-        // Delete the student from the User collection using deleteOne with a specific write concern
-        const studentDeletion = await User.deleteOne(
-            { _id: studentId },
-            { writeConcern: { w: 1 } } // Using w: 1 instead of majority
-        );
-        
-        if (studentDeletion.deletedCount === 0) {
+        // Find the student first to verify they exist
+        const student = await User.findById(studentId);
+        if (!student) {
             return res.status(404).json({ success: false, error: "Student not found" });
         }
 
-        // Delete associated payment records with the same write concern
-        await PaymentStatus.deleteMany(
-            { userId: studentId },
-            { writeConcern: { w: 1 } }
-        );
+        // Start a session for transaction
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-        // Return success response
-        res.status(200).json({ success: true, message: "Student deleted successfully" });
+        try {
+            // Delete the student's payment records first
+            await PaymentStatus.deleteMany(
+                { userId: studentId },
+                { session }
+            );
+
+            // Finally delete the student
+            await User.deleteOne(
+                { _id: studentId },
+                { session }
+            );
+
+            // Commit the transaction
+            await session.commitTransaction();
+            session.endSession();
+
+            // Return success response
+            return res.status(200).json({ 
+                success: true, 
+                message: "Student and all related payment records deleted successfully" 
+            });
+        } catch (error) {
+            // If anything fails, abort the transaction
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
     } catch (error) {
         console.error("Error deleting student:", error);
-        res.status(500).json({ success: false, error: "Internal Server Error" });
+        return res.status(500).json({ 
+            success: false, 
+            error: "Failed to delete student and payment records",
+            details: error.message
+        });
     }
 };
 

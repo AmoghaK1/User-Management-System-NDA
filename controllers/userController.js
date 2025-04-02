@@ -46,7 +46,14 @@ const loadRegister = async(req,res)=> {
 async function initializePaymentStatus(userId) {
     const currentYear = new Date().getFullYear();
     
-    // Create a new PaymentStatus document for the current year
+    // Fetch user details to get the name
+    const user = await User.findById(userId);
+    if (!user) {
+        console.error("User not found for ID:", userId);
+        return;
+    }
+
+    // Create or update PaymentStatus for the current year
     await PaymentStatus.findOneAndUpdate(
         { 
             userId, 
@@ -54,6 +61,7 @@ async function initializePaymentStatus(userId) {
         },
         {
             $setOnInsert: {
+                userName: user.name,  // Store user name
                 months: {
                     0: 'Pending', 1: 'Pending', 2: 'Pending', 3: 'Pending',
                     4: 'Pending', 5: 'Pending', 6: 'Pending', 7: 'Pending',
@@ -70,6 +78,7 @@ async function initializePaymentStatus(userId) {
         }
     );
 }
+
 const addUser = async (req, res) => {
     try {
         const { name, email, birthdate, age, student_ph_no, exam_level, mother_ph_no, father_ph_no, password, confirmPassword } = req.body;

@@ -50,7 +50,7 @@
   <div class="dashboard-container">
     <!-- Stats Section -->
     <div class="stats-section">
-      <!-- Fees Collection Card -->
+      <!-- Fees Collection Card
       <div class="stat-card fees">
         <div class="stat-header">
           <div class="stat-title">Fees Collection</div>
@@ -73,11 +73,11 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
   
     <!-- Quick Access Section -->
     <div class="quick-access-section">
-      <a href="/teacher-register" style="text-decoration: none;">
+      <a href="/teacher-register">
       <div class="quick-card">
         <div class="quick-icon">
           <i class="fa-solid fa-user-plus"></i>
@@ -85,13 +85,14 @@
         <div class="quick-title">Add Student</div>
       </div>
       </a>
-    
+    <a>
       <div class="quick-card" id="deleteStudentCard">
         <div class="quick-icon">
           <i class="fa-solid fa-user-minus"></i>
         </div>
         <div class="quick-title">Delete Student</div>
       </div>
+      </a>
       <div id="deleteStudentModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
@@ -106,28 +107,30 @@
     </div>
   </div>
 </div>
-            
-      <div class="quick-card">
-        <div class="quick-icon">
-          <i class="fa-solid fa-rupee-sign"></i>
-        </div>
-        <div class="quick-title">Fee Collection</div>
-        <button class="fee-collection-btn">View Details</button>
+    <a>     
+    <div class="quick-card fee-collection-btn" >
+      <div class="quick-icon">
+      <i class="fa-solid fa-money-bill-wave me-2"></i>
       </div>
-      
-      <div class="quick-card">
+      <div class="quick-title">Fee Collection</div>
+    </div>
+  </a>
+      <a>
+      <div class="quick-card" id="upload-btn">
         <div class="quick-icon">
           <i class="fa-solid fa-chart-line"></i>
         </div>
         <div class="quick-title">Uploads</div>
       </div>
-      
-      <div class="quick-card">
+    </a>
+      <a>
+      <div class="quick-card" id="events-btn">
         <div class="quick-icon">
           <i class="fa-solid fa-calendar-plus"></i>
         </div>
         <div class="quick-title">Events</div>
       </div>
+    </a>
     </div>
   </div>
   
@@ -166,30 +169,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
   
   <!-- Dashboard JavaScript -->
-  <script>
-  // Simple JavaScript for interactive elements
-  document.addEventListener('DOMContentLoaded', function() {
-    // Toggle notification visibility
-    const notificationIcon = document.querySelector('.fa-bell');
-    notificationIcon.addEventListener('click', function() {
-      alert('Notifications feature coming soon!');
-    });
-    
-    // Quick access cards
-    const quickCards = document.querySelectorAll('.quick-card');
-    quickCards.forEach(card => {
-      card.addEventListener('click', function(e) {
-        // Don't trigger for the Fee Collection card when clicking the View Details button
-        if (e.target.classList.contains('fee-collection-btn')) {
-          return;
-        }
-        
-        const title = this.querySelector('.quick-title').textContent;
-        alert(`${title} feature will be available soon!`);
-      });
-    });
-  });
-  </script>
+ 
   <script src="../javascripts/tr-dashboard.js"></script>
   
   <!-- Fee Collection JavaScript -->

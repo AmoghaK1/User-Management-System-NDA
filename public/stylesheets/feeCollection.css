@@ -1,4 +1,4 @@
-/* Fee Collection Modal Styles */
+/* Enhanced Fee Collection Modal Styles for better responsiveness */
 .modal {
     display: none;
     position: fixed;
@@ -16,7 +16,7 @@
     margin: 2% auto;
     padding: 0;
     border: 1px solid #888;
-    width: 90%;
+    width: 95%;
     max-width: 1200px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -59,6 +59,42 @@
     background-color: #28a745;
 }
 
+.bg-danger {
+    background-color: #dc3545;
+}
+
 .text-white {
     color: white;
+}
+
+/* Mobile Responsive Additions */
+@media screen and (max-width: 768px) {
+    .modal-content {
+        width: 98%;
+        margin: 5% auto;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .modal-body {
+        padding: 10px;
+    }
+    
+    table.dataTable {
+        font-size: 0.85rem;
+    }
+    
+    /* Make DataTables buttons stack nicely on mobile */
+    div.dt-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    div.dt-buttons button {
+        margin: 0.25rem;
+    }
 }

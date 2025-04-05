@@ -198,107 +198,6 @@ body {
   padding: 0 20px;
 }
 
-/* Stats Section */
-.stats-section {
-  margin-bottom: 30px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 5px 20px rgba(108, 92, 231, 0.1);
-  transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(108, 92, 231, 0.2);
-}
-
-.fees {
-  border-top: 5px solid #f9a826;
-}
-
-.stat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.stat-title {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #555;
-  text-transform: uppercase;
-}
-
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-}
-
-.stat-icon.fees {
-  background: #f9a826;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 15px 0;
-}
-
-.stat-trend {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 15px;
-  font-size: 0.9rem;
-}
-
-.trending-up {
-  color: #4caf50;
-}
-
-.trending-down {
-  color: #f44336;
-}
-
-.stat-progress {
-  margin-top: 15px;
-}
-
-.progress-bar {
-  height: 10px;
-  background: #eee;
-  border-radius: 5px;
-  overflow: hidden;
-  margin-bottom: 5px;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 5px;
-}
-
-.progress-fill.fees {
-  background: #f9a826;
-  width: 85%;
-}
-
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: #777;
-}
 
 /* Quick Access Section */
 .quick-access-section {
@@ -306,6 +205,11 @@ body {
   grid-template-columns: repeat(5, 1fr);
   gap: 20px;
   margin-bottom: 40px;
+}
+
+.quick-access-section a {
+  text-decoration: none;
+  color: inherit;
 }
 
 .quick-card {

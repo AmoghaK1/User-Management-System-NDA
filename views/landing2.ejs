@@ -18,6 +18,7 @@
             <li><a href="#about">About</a></li>
             <li><a href="#events">Events</a></li>
             <li><a href="#contact">Contact</a></li>
+            <button id="login-btn" onclick="return goLogin()"><span>Login</span></button>
         </ul>
         <div class="menu-btn">
             <div class="bar"></div>
@@ -128,6 +129,11 @@
         </div>
     </footer>
     <script>
+        function goLogin() {
+            setTimeout(function() {
+                window.location.href = "/login";
+            }, 1000); // Redirect after 1 second
+        }
         // Menu toggle functionality
         const menuBtn = document.querySelector(".menu-btn");
         const navLinks = document.querySelector(".nav-links");

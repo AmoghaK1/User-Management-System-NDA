@@ -1,3 +1,23 @@
+const togglePassword = document.getElementById("togglePassword");
+const passwordInput = document.getElementById("password");
+
+togglePassword.addEventListener("click", () => {
+    const type = passwordInput.type === "password" ? "text" : "password";
+    passwordInput.type = type;
+    togglePassword.classList.toggle("fa-eye");
+    togglePassword.classList.toggle("fa-eye-slash");
+});
+
+const toggleConfirmPassword = document.getElementById("toggleConfirmPassword");
+const confirmPasswordInput = document.getElementById("confirmPassword");
+
+toggleConfirmPassword.addEventListener("click", () => {
+    const type = confirmPasswordInput.type === "password" ? "text" : "password";
+    confirmPasswordInput.type = type;
+    toggleConfirmPassword.classList.toggle("fa-eye");
+    toggleConfirmPassword.classList.toggle("fa-eye-slash");
+});
+
 function validateForm() {
     // Name validation
     const nameInput = document.getElementById('name');
@@ -76,7 +96,7 @@ function validateForm() {
     // Password strength requirements
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(passwordInput.value)) {
-        showError('password', 'Password must be at least 8 characters long, contain uppercase, lowercase, number, and special character');
+        showError('password', 'Password must be at least 8 characters long, contain uppercase, lowercase, number, and special character (@$!%*?&) ');
         return false;
     }
 
@@ -89,7 +109,6 @@ function validateForm() {
     return true;
 }
 
-// Function to show error messages
 function showError(inputId, message) {
     // Remove any existing error messages
     const existingError = document.getElementById(`${inputId}-error`);
@@ -127,10 +146,24 @@ document.querySelector('form').addEventListener('submit', function(e) {
     const existingErrors = document.querySelectorAll('.error');
     existingErrors.forEach(error => error.remove());
     
+    // Get submit button
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    
     // Validate form
     if (validateForm()) {
-        // If validation passes, submit the form
+        // Disable the submit button to prevent double submission
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        // Submit the form immediately
         this.submit();
+        
+        // Re-enable the button after 3 seconds if page hasn't redirected
+        setTimeout(() => {
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+        }, 3000);
     }
 });
 

@@ -13,10 +13,16 @@ const passport = require('passport');
 
 // In userRoutes.js
 user_route.get('/signup', auth.redirectIfAuthenticated, (req, res) => {
-    res.render('signup', {
-        error: req.flash('error'),
-        success: req.flash('success'),
-        formData: {}
+    // Get error and success from URL parameters
+    const error = req.query.error || null;
+    const success = req.query.success || null;
+    const formData = req.flash('formData')[0] || {};
+    
+    
+    res.render('signup', { 
+        error, 
+        success, 
+        formData 
     });
 });
 user_route.post('/signup', userController.addUser);

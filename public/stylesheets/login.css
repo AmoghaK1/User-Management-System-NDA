@@ -21,6 +21,23 @@ body {
     gap: 40px;
 }
 
+.input-wrapper {
+    position: relative;
+  }
+
+  .input-wrapper input {
+    padding-right: 35px; /* Make space for the icon */
+  }
+
+  .input-wrapper i {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+  }
+
 .welcome-section {
     flex: 1;
     display: flex;

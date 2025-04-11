@@ -83,32 +83,27 @@ const addUser = async (req, res) => {
     try {
         const { name, email, birthdate, age, student_ph_no, exam_level, mother_ph_no, father_ph_no, password, confirmPassword } = req.body;
 
+        // Check if email already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            req.flash('formData', req.body);
+            
+            return res.redirect('/signup?error=Email%20already%20registered');
+        }
+        
         // Check if passwords match
         if (password !== confirmPassword) {
-            return res.render('signup', {
-                error: "Passwords don't match",
-                formData: req.body
-            });
+            req.flash('formData', req.body);
+            return res.redirect('/signup?error=Passwords%20don%27t%20match');
         }
 
         // Validate Email Format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.render('signup', {
-                error: "Invalid email format",
-                formData: req.body
-            });
+            req.flash('formData', req.body);
+            return res.redirect('/signup?error=Invalid%20email%20format');
         }
-
-        // Check if email already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.render('signup', {
-                error: "Email already registered",
-                formData: req.body
-            });
-        }
-
+        
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -129,7 +124,7 @@ const addUser = async (req, res) => {
 
         const userData = await user.save();
         
-        // Initialize payment status (fire and forget)
+        // Initialize payment status
         initializePaymentStatus(userData._id).catch(err => {
             console.error("Payment initialization error:", err);
         });
@@ -137,27 +132,21 @@ const addUser = async (req, res) => {
         // Send verification email
         try {
             await sendVerificationEmail(userData);
-            // Immediately show success message
-            req.flash('success', 'Registration successful! Please check your email for a verification link.');
-            return res.redirect('/signup');
+            return res.redirect('/signup?success=Registration%20successful!%20Please%20check%20your%20email%20for%20a%20verification%20link.');
         } catch (emailError) {
             console.error("Verification email error:", emailError);
-            // Delete the user if email sending fails
             await User.deleteOne({ _id: userData._id });
-            return res.render('signup', {
-                error: "Failed to send verification email. Please try again later.",
-                formData: req.body
-            });
+            req.flash('formData', req.body);
+            return res.redirect('/signup?error=Failed%20to%20send%20verification%20email.%20Please%20try%20again%20later.');
         }
 
     } catch (error) {
         console.error("Registration error:", error);
-        return res.render('signup', {
-            error: "Something went wrong. Try again later.",
-            formData: req.body
-        });
+        req.flash('formData', req.body);
+        return res.redirect('/signup?error=Something%20went%20wrong.%20Try%20again%20later.');
     }
 };
+
 const sendVerificationEmail = async (user) => {
     try {
         const currentUrl = process.env.CURRENT_URL;

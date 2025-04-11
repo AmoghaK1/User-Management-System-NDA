@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="../stylesheets/login.css">
     <link rel="stylesheet" href="../stylesheets/notifications.css">
     <link rel="icon" type="favicon" href="../images/nda-favicon-v2.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
 </head>
 <body>
     <% if (error) { %>
@@ -40,8 +42,11 @@
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" >
-                    </div>
+                        <div class="input-wrapper">
+                          <input type="password" id="password" name="password" required>
+                          <i class="fa-solid fa-eye" id="togglePassword"></i>
+                        </div>
+                      </div>
                     <div class="remember-forgot">
                         <div class="remember-me">
                             <input type="checkbox" id="remember">
@@ -58,6 +63,18 @@
         </div>
     </div>
     <script src="../javascripts/notifications.js"></script>
+    <script>
+        const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("password");
+
+    togglePassword.addEventListener("click", () => {
+        const type = passwordInput.type === "password" ? "text" : "password";
+        passwordInput.type = type;
+        togglePassword.classList.toggle("fa-eye");
+        togglePassword.classList.toggle("fa-eye-slash");
+    });     
+
+    </script>
 </body>
 
 </html>

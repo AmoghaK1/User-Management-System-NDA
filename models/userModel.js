@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const feeStructure = {
-    "Regular Student": 1000,
+    "Senior Batch": 1000,
     "Prarambhik": 800,
     "Praveshika Pratham": 800,
     "Praveshika Purna": 800,

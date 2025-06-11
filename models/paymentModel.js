@@ -15,5 +15,6 @@ const paymentStatusSchema = new mongoose.Schema({
         default: () => new Map(Array.from({ length: 4 }, (_, i) => [String(i + 1), 'Pending']))
     }
 });
+const PaymentStatus = mongoose.models.PaymentStatus || mongoose.model('PaymentStatus', paymentStatusSchema);
 
-module.exports = mongoose.model('PaymentStatus', paymentStatusSchema);
+module.exports = PaymentStatus;

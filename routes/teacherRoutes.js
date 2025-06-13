@@ -9,7 +9,7 @@ teacher_route.use(bodyParser.json());
 teacher_route.use(bodyParser.urlencoded({extended: true}));
 
 const teacherController = require('../controllers/teacherController');
-const userController = require('../controllers/userController');
+const userController = require('../controllers/studentController');
 const passport = require('passport');
 
 teacher_route.get('/tr-dashboard', auth.ensureAuthenticated, teacherController.load_trDashboard);

@@ -1,5 +1,5 @@
 const PaymentStatus = require('../models/PaymentModel');
-const User = require('../models/UserModel');
+const User = require('../models/userModel');
 const razorpayInstance = require('../utils/razorpayInstance');
 const { formatStudentPaymentDetails } = require('../dtos/paymentDTO');
 

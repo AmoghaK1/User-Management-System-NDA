@@ -1,7 +1,7 @@
 require("dotenv").config();
 const { getResetPasswordData } = require('../services/loginService');
 const { sendVerification } = require('../services/emailService');
-const { verifyEmailService} = require('../services/loginService');
+const { getVerifiedEmail} = require('../services/loginService');
 const { getresetPassword } = require('../services/loginService');
 const { getForgotPassword } = require('../services/loginService');
 const { handleUserRegistration } = require('../services/loginService');
@@ -46,9 +46,9 @@ const sendVerificationEmail = async (user) => {
 const verifyEmail = async (req, res) => {
     try {
         const { userId , uniqueString} = req.params;
-        const { success , message , redirectUrl} = await verifyEmailService(userId, uniqueString);
+        const { success , message , redirectUrl} = await getVerifiedEmail(userId, uniqueString);
 
-        return res.redirect('verifiedPage',{
+        return res.render('verifiedPage',{
             error: !success,
             message, 
             redirectUrl: success ? redirectUrl : undefined

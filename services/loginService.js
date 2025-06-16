@@ -32,7 +32,7 @@ const getResetPasswordData = async (token) => {
     }
 };
 
-const getVerifiedEmail = async (req, res) => {
+const getVerifiedEmail = async (userId , uniqueString) => {
     let session = null;
     try {
             if (!userId || !uniqueString || !mongoose.Types.ObjectId.isValid(userId)) {

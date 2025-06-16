@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
     thoughtAuthor.textContent = `${storedThought.author}`;
     
     
-    const uploadsCard = document.getElementById('upload-btn');
+   
     const eventsCard = document.getElementById('events-btn');
     const deleteStudentModal = document.getElementById('deleteStudentModal');
     const studentList = document.getElementById('studentList');
@@ -48,9 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let selectedStudentId = null;
 
-    uploadsCard.addEventListener('click', function(event){
-        alert("Uploads will be available soon!");
-    })
+   
 
     eventsCard.addEventListener('click', function(event){
         alert("Events will be available soon!");    

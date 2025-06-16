@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Study Material - Nrutyashree Dance Academy</title>
+  <link rel="stylesheet" href="../stylesheets/studyMaterialPage.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Main Content -->
+  <main class="main-content">
+   
+    <!-- Upload Section -->
+    <div class="upload-section">
+      <div class="section-card upload-card">
+        <div class="card-header">
+          <h2><i class="fas fa-cloud-upload-alt"></i> Upload Study Material</h2>
+        </div>
+        
+        <div id="message" class="message-container"></div>
+
+        <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="title"><i class="fas fa-heading"></i> Title</label>
+              <input type="text" id="title" name="title" required placeholder="Enter material title">
+            </div>
+            
+            <div class="form-group">
+              <label for="level"><i class="fas fa-layer-group"></i> Exam Level</label>
+              <select id="level" name="level" required>
+                <option value="">-- Select Level --</option>
+                <option value="Senior Batch">Senior Batch</option>
+                <option value="Prarambhik">Prarambhik</option>
+                <option value="Praveshika Pratham">Praveshika Pratham</option>
+                <option value="Praveshika Purna">Praveshika Purna</option>
+                <option value="Madhyama Pratham">Madhyama Pratham</option>
+                <option value="Madhyama Purna">Madhyama Purna</option>
+                <option value="Visharad Pratham">Visharad Pratham</option>
+                <option value="Visharad Purna">Visharad Purna</option>
+                <option value="Alankar Pratham">Alankar Pratham</option>
+                <option value="Alankar Purna">Alankar Purna</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="categorySelect"><i class="fas fa-tags"></i> Category</label>
+              <select id="categorySelect" name="category" required>
+                <option value="">-- Select Category --</option>
+                <option value="__new__">+ Add New Category</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="newCategoryDiv" style="display: none;">
+              <label for="newCategoryInput"><i class="fas fa-plus"></i> New Category</label>
+              <input type="text" id="newCategoryInput" placeholder="Enter new category name">
+            </div>
+          </div>
+
+          <div class="form-group file-upload-group">
+            <label for="file"><i class="fas fa-file-upload"></i> File (PDF/Image)</label>
+            <div class="file-upload-area" id="fileUploadArea">
+              <input type="file" id="file" name="file" accept=".pdf,.jpg,.jpeg,.png" required>
+              <div class="file-upload-text">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to browse or drag and drop your file here</p>
+                <small>Supported formats: PDF, JPG, JPEG, PNG</small>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-upload"></i>
+            Upload Material
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Materials List Section -->
+    <div class="materials-section">
+      <div class="section-card">
+        <div class="card-header">
+          <h2><i class="fas fa-books"></i> Uploaded Materials</h2>
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search materials...">
+          </div>
+        </div>
+        
+        <div id="materialsContainer" class="materials-grid">
+          <!-- Materials will be inserted here -->
+        </div>
+      </div>
+    </div>  </main>
+
+  <!-- Loading Spinner -->
+  <div id="loadingSpinner" class="loading-spinner">
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <div class="spinner-text"></div>
+    </div>
+  </div>
+
+  <script src="../javascripts/studyMaterialPage.js"> </script>
+</body>
+</html>

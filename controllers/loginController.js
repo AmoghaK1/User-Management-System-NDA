@@ -20,7 +20,7 @@ const addUser = async (req, res) => {
         const result = await handleUserRegistration(req.body);
 
         if (!result.success){
-            req.flash('formData', req.body);x
+            req.flash('formData', req.body);
             return res.redirect(`/signup?error=${encodeURIComponent(result.message)}`);
         }
 

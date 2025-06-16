@@ -2,6 +2,8 @@ const User = require('../models/userModel');
 require("dotenv").config();
 const PaymentStatus = require('../models/paymentModel');
 const mongoose = require('mongoose')
+const StudyMaterial = require('../models/studyMaterialModel');
+const StudyMaterialDTO = require('../dtos/studyMaterialDTO');
 
 
 const getAllStudents = async () => {
@@ -58,7 +60,35 @@ const getDeleteStudent = async (studentId) => {
     }
 };
 
+const saveMaterial = async ({ title, url, type, category, level }) => {
+  const newMaterial = new StudyMaterial({
+    title,
+    url,
+    type,
+    category,
+    level
+  });
+
+  const saved = await newMaterial.save();
+  return new StudyMaterialDTO(saved);
+};
+
+const getMaterials = async (level) => {
+  const query = level ? { level } : {};
+  const materials = await StudyMaterial.find(query).sort({ category: 1, createdAt: -1 });
+
+  return materials.map((mat) => new StudyMaterialDTO(mat));
+};
+
+const getAllUniqueCategories = async () => {
+  const categories = await StudyMaterial.distinct('category');
+  return categories;
+};
+
 module.exports = {
     getAllStudents,
-    getDeleteStudent
+    getDeleteStudent,
+    saveMaterial,
+    getMaterials,
+    getAllUniqueCategories
 };

@@ -1,38 +1,983 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="favicon" href="../images/new_favicon.jpeg">
-    <title>Study-Material | NDA</title>
-   <link rel="stylesheet" href="../stylesheets/study.css">
-</head>
-<body>
-    <div class="container">
-        <div class="no-events-card">
-            <div class="calendar-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
-                    <rect x="5" y="15" width="70" height="60" rx="5" fill="#e0d1f0" stroke="#8e44ad" stroke-width="2"/>
-                    <rect x="5" y="15" width="70" height="12" fill="#8e44ad"/>
-                    <line x1="20" y1="5" x2="20" y2="25" stroke="#8e44ad" stroke-width="2"/>
-                    <line x1="60" y1="5" x2="60" y2="25" stroke="#8e44ad" stroke-width="2"/>
-                    
-                    <!-- Calendar grid -->
-                    <line x1="20" y1="40" x2="60" y2="40" stroke="#d5c5ea" stroke-width="1"/>
-                    <line x1="20" y1="50" x2="60" y2="50" stroke="#d5c5ea" stroke-width="1"/>
-                    <line x1="20" y1="60" x2="60" y2="60" stroke="#d5c5ea" stroke-width="1"/>
-                    <line x1="30" y1="30" x2="30" y2="70" stroke="#d5c5ea" stroke-width="1"/>
-                    <line x1="40" y1="30" x2="40" y2="70" stroke="#d5c5ea" stroke-width="1"/>
-                    <line x1="50" y1="30" x2="50" y2="70" stroke="#d5c5ea" stroke-width="1"/>
-                    
-                    <!-- Highlight a cell -->
-                    <rect x="50" y="50" width="10" height="10" fill="#8e44ad" opacity="0.5"/>
-                </svg>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Study Materials - NDA</title>
+        <!-- <link rel="stylesheet" href="styles.css"> -->
+        <link rel="stylesheet" href="../stylesheets/stdashboard.css">
+
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="my-navbar">
+            <div class="user-profile">
+                <a href="/st-profile"><img id="user-pfp" src= <%= user.profilePicture %> alt="user-pfp"></a>
+                <div class="user-name"><%= user.name %></div>
             </div>
-            <h2 class="no-events-title">No Study-Material available currently</h2>
-            <p class="no-events-message">Check back later for updates.</p>
-            <button class="back-btn" onclick="history.back()">Back to Dashboard</button>
+            <div class="navbar-center-section">
+                <div><%= user.exam_level %></div>
+            </div>        <div class="navbar-icons">
+                <i class="fa-solid fa-bell nav-icon"></i>
+                <a href="tel:+919822155819" style="color: white;"><i class="fa-solid fa-phone nav-icon"></i></a>
+                <button id="logout-btn"><a href="logout" style="text-decoration: none; color: inherit;">Logout</a></button>
+            </div>
         </div>
-    </div>
-</body>
-</html>
+        <div class="navbar-mobile">
+            <div class="exam-name"><%= user.exam_level %></div>
+        </div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Level Filter -->
+                <div class="filter-section">
+                    <label for="level-select">Select Level:</label>
+                    <select id="level-select" class="level-dropdown">
+                        <% levels.forEach(level => { %>
+                        <option value="<%= level %>" <%= level === user.exam_level ? 'selected' : '' %>><%= level %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-state" class="loading-state" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading study materials...</p>
+                </div>
+
+                <!-- Materials Container -->
+                <div id="materials-container" class="materials-container">
+                    <!-- Materials will be loaded here -->
+                </div>
+
+                <!-- No Materials Message -->
+                <div id="no-materials" class="no-materials" style="display: none;">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No materials found</h3>
+                    <p>Please check back later or select a different level.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal for PDF Viewer -->
+        <div id="pdf-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="pdf-title">PDF Viewer</h3>
+                    <span class="close" onclick="closePDF()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <iframe id="pdf-frame" src="" width="100%" height="600px"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Image Viewer -->
+        <div id="image-modal" class="modal">
+            <div class="modal-content image-modal-content">
+                <div class="modal-header">
+                    <h3 id="image-title">Image Viewer</h3>
+                    <span class="close" onclick="closeImage()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <img id="modal-image" src="" alt="">
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Video Player -->
+        <div id="video-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="video-title">Video Player</h3>
+                    <span class="close" onclick="closeVideo()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <video id="video-player" controls width="100%">
+                        <source id="video-source" src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audio Player -->
+        <div id="audio-player" class="audio-player">
+            <div class="audio-header">
+                <h4 id="audio-title">Audio Player</h4>
+                <span class="close" onclick="closeAudio()">&times;</span>
+            </div>
+            <div class="audio-controls">
+                <button id="play-pause-btn" onclick="toggleAudio()">
+                    <i class="fas fa-play"></i>
+                </button>
+                <audio id="audio-element" controls>
+                    <source id="audio-source" src="" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        </div>
+
+        <script>
+            // Global variables
+            let currentLevel = '<%= user.exam_level %>';
+            
+            // DOM Elements
+            const levelSelect = document.getElementById('level-select');
+            const loadingState = document.getElementById('loading-state');
+            const materialsContainer = document.getElementById('materials-container');
+            const noMaterialsDiv = document.getElementById('no-materials');
+
+            // Initialize page
+            document.addEventListener('DOMContentLoaded', function() {
+                // Load initial materials
+                loadStudyMaterials(currentLevel);
+                
+                // Setup level selector change handler
+                levelSelect.addEventListener('change', function() {
+                    const selectedLevel = this.value;
+                    if (selectedLevel !== currentLevel) {
+                        currentLevel = selectedLevel;
+                        loadStudyMaterials(selectedLevel);
+                    }
+                });
+            });
+
+            // Load study materials via AJAX
+            async function loadStudyMaterials(level) {
+                showLoading();
+                
+                try {
+                    const response = await fetch(`/api/study-materials?level=${encodeURIComponent(level)}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        renderMaterials(data.categorized, level);
+                        showMaterials();
+                    } else {
+                        showError(data.error || 'Failed to load materials');
+                    }
+                } catch (error) {
+                    console.error('Error loading materials:', error);
+                    showError('Network error occurred');
+                }
+            }
+
+            // Show loading state
+            function showLoading() {
+                loadingState.style.display = 'block';
+                materialsContainer.style.display = 'none';
+                noMaterialsDiv.style.display = 'none';
+            }
+
+            // Show materials
+            function showMaterials() {
+                loadingState.style.display = 'none';
+                materialsContainer.style.display = 'block';
+                noMaterialsDiv.style.display = 'none';
+                // Trigger fade-in animation
+                materialsContainer.style.opacity = '0';
+                setTimeout(() => {
+                    materialsContainer.style.opacity = '1';
+                }, 50);
+            }
+
+            // Show no materials message
+            function showNoMaterials(level) {
+                loadingState.style.display = 'none';
+                materialsContainer.style.display = 'none';
+                noMaterialsDiv.style.display = 'block';
+                noMaterialsDiv.querySelector('h3').textContent = `No materials found for ${level}`;
+            }
+
+            // Show error
+            function showError(message) {
+                loadingState.style.display = 'none';
+                materialsContainer.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Error Loading Materials</h3>
+                        <p>${message}</p>
+                        <button onclick="loadStudyMaterials(currentLevel)" class="retry-btn">
+                            <i class="fas fa-refresh"></i> Try Again
+                        </button>
+                    </div>
+                `;
+                materialsContainer.style.display = 'block';
+            }
+
+            // Render materials HTML
+            function renderMaterials(categorized, level) {
+                if (Object.keys(categorized).length === 0) {
+                    showNoMaterials(level);
+                    return;
+                }
+
+                let html = '';
+                
+                for (const [category, materials] of Object.entries(categorized)) {
+                    html += `
+                        <section class="materials-section">
+                            <h3 class="section-title">
+                                ${getCategoryIcon(category)}
+                                ${category}
+                            </h3>
+                            <div class="material-grid">
+                                ${materials.map(mat => createMaterialCard(mat)).join('')}
+                            </div>
+                        </section>
+                    `;
+                }
+                
+                materialsContainer.innerHTML = html;
+                
+                // Setup lazy loading for images
+                setupLazyLoading();
+            }
+
+            // Get category icon
+            function getCategoryIcon(category) {
+                const icons = {
+                    'Hand Gestures': '<i class="fas fa-hand-paper"></i>',
+                    'Exam Papers': '<i class="fas fa-file-alt"></i>',
+                    'Theory': '<i class="fas fa-book"></i>',
+                    'Video Tutorials': '<i class="fas fa-video"></i>',
+                    'Reference Images': '<i class="fas fa-images"></i>',
+                    'Audio Resources': '<i class="fas fa-music"></i>'
+                };
+                return icons[category] || '<i class="fas fa-folder"></i>';
+            }
+
+            // Create material card HTML
+            function createMaterialCard(mat) {
+                const cardClass = `material-card ${mat.type}-card`;
+                const thumbnail = createThumbnail(mat);
+                const button = createActionButton(mat);
+                const date = mat.createdAt ? new Date(mat.createdAt).toLocaleDateString() : '';
+                
+                return `
+                    <div class="${cardClass}">
+                        ${thumbnail}
+                        <div class="card-content">
+                            <h4>${mat.title}</h4>
+                            <span class="material-type">${mat.type.toUpperCase()}</span>
+                            <div class="material-meta">
+                                <span class="material-level">${mat.level}</span>
+                                ${date ? `<span class="material-date">${date}</span>` : ''}
+                            </div>
+                            ${button}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Create thumbnail HTML
+            function createThumbnail(mat) {
+                switch (mat.type) {
+                    case 'pdf':
+                        return `
+                            <div class="card-thumbnail pdf-thumbnail">
+                                <i class="fas fa-file-pdf"></i>
+                                <div class="pdf-preview">PDF</div>
+                            </div>
+                        `;
+                    case 'image':
+                        return `
+                            <div class="card-image">
+                                <img src="${mat.url}" alt="${mat.title}" loading="lazy">
+                                <div class="image-overlay">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
+                            </div>
+                        `;
+                    case 'video':
+                        return `
+                            <div class="card-image">
+                                <img src="${mat.thumbnail || mat.url}" alt="${mat.title}" loading="lazy">
+                                <div class="play-overlay">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        `;
+                    case 'audio':
+                        return `
+                            <div class="card-thumbnail audio-thumbnail">
+                                <i class="fas fa-music"></i>
+                                <div class="audio-preview">AUDIO</div>
+                            </div>
+                        `;
+                    default:
+                        return `
+                            <div class="card-thumbnail">
+                                <i class="fas fa-file"></i>
+                            </div>
+                        `;
+                }
+            }
+
+            // Create action button HTML
+            function createActionButton(mat) {
+                const actions = {
+                    pdf: { icon: 'fas fa-eye', text: 'View PDF', action: `openPDF('${mat.url}', '${mat.title}')` },
+                    image: { icon: 'fas fa-search-plus', text: 'View Image', action: `viewImage('${mat.url}', '${mat.title}')` },
+                    video: { icon: 'fas fa-play', text: 'Play Video', action: `playVideo('${mat.url}', '${mat.title}')` },
+                    audio: { icon: 'fas fa-play', text: 'Play Audio', action: `playAudio('${mat.url}', '${mat.title}')` }
+                };
+                
+                const action = actions[mat.type] || { icon: 'fas fa-external-link-alt', text: 'Open', action: `openFile('${mat.url}', '${mat.title}')` };
+                
+                return `
+                    <button class="view-btn" onclick="${action.action}">
+                        <i class="${action.icon}"></i> ${action.text}
+                    </button>
+                `;
+            }
+
+            // Setup lazy loading
+            function setupLazyLoading() {
+                const images = document.querySelectorAll('.card-image img');
+                images.forEach(img => {
+                    img.addEventListener('load', function() {
+                        this.style.opacity = '1';
+                    });
+                    img.addEventListener('error', function() {
+                        this.src = 'https://via.placeholder.com/300x200/cccccc/666666?text=Image+Not+Found';
+                    });
+                });
+            }
+
+            // PDF Modal Functions
+            function openPDF(url, title) {
+                document.getElementById('pdf-title').textContent = title;
+                document.getElementById('pdf-frame').src = url;
+                document.getElementById('pdf-modal').style.display = 'block';
+            }
+
+            function closePDF() {
+                document.getElementById('pdf-modal').style.display = 'none';
+                document.getElementById('pdf-frame').src = '';
+            }
+
+            // Image Modal Functions
+            function viewImage(url, title) {
+                document.getElementById('image-title').textContent = title;
+                document.getElementById('modal-image').src = url;
+                document.getElementById('image-modal').style.display = 'block';
+            }
+
+            function closeImage() {
+                document.getElementById('image-modal').style.display = 'none';
+            }
+
+            // Video Modal Functions
+            function playVideo(url, title) {
+                document.getElementById('video-title').textContent = title;
+                document.getElementById('video-source').src = url;
+                document.getElementById('video-player').load();
+                document.getElementById('video-modal').style.display = 'block';
+            }
+
+            function closeVideo() {
+                document.getElementById('video-modal').style.display = 'none';
+                document.getElementById('video-player').pause();
+            }
+
+            // Audio Player Functions
+            let currentAudio = null;
+
+            function playAudio(url, title) {
+                document.getElementById('audio-title').textContent = title;
+                document.getElementById('audio-source').src = url;
+                const audioElement = document.getElementById('audio-element');
+                audioElement.load();
+                document.getElementById('audio-player').style.display = 'block';
+                currentAudio = audioElement;
+            }
+
+            function toggleAudio() {
+                const audioElement = document.getElementById('audio-element');
+                const playPauseBtn = document.getElementById('play-pause-btn');
+                
+                if (audioElement.paused) {
+                    audioElement.play();
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                } else {
+                    audioElement.pause();
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                }
+            }
+
+            function closeAudio() {
+                document.getElementById('audio-player').style.display = 'none';
+                const audioElement = document.getElementById('audio-element');
+                audioElement.pause();
+                audioElement.currentTime = 0;
+            }
+
+            // Generic file opener
+            function openFile(url, title) {
+                window.open(url, '_blank');
+            }
+
+            // Close modals when clicking outside
+            window.onclick = function(event) {
+                const pdfModal = document.getElementById('pdf-modal');
+                const imageModal = document.getElementById('image-modal');
+                const videoModal = document.getElementById('video-modal');
+                
+                if (event.target === pdfModal) {
+                    closePDF();
+                }
+                if (event.target === imageModal) {
+                    closeImage();
+                }
+                if (event.target === videoModal) {
+                    closeVideo();
+                }
+            }
+        </script>
+
+        <style>
+            /* Basic Reset and Body Styles */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #f5f7ff 0%, #eef1ff 100%);
+                min-height: 100vh;
+                color: #333;
+            }
+
+            /* Main Content */
+            .main-content {
+                padding: 0 2rem 2rem;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 40px auto;
+            }
+
+            /* Filter Section */
+            .filter-section {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                padding: 1.5rem;
+                border-radius: 15px;
+                margin-bottom: 2rem;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+
+            .filter-section label {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+
+            .level-dropdown {
+                padding: 0.75rem 1rem;
+                border: 2px solid #e0e0e0;
+                border-radius: 10px;
+                background: white;
+                font-size: 1rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                min-width: 250px;
+                width: 100%;
+                max-width: 400px;
+            }
+
+            .level-dropdown:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+            .level-dropdown:hover {
+                border-color: #667eea;
+            }
+
+            /* Loading State */
+            .loading-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 4rem 2rem;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white;
+                text-align: center;
+            }
+
+            .loading-spinner {
+                width: 50px;
+                height: 50px;
+                border: 4px solid rgba(255, 255, 255, 0.3);
+                border-top: 4px solid white;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 1rem;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            .loading-state p {
+                font-size: 1.1rem;
+                font-weight: 500;
+            }
+
+            /* Materials Container */
+            .materials-container {
+                transition: opacity 0.5s ease-in-out;
+            }
+
+            /* Error Message */
+            .error-message {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                padding: 2rem;
+                text-align: center;
+                border: 1px solid rgba(255, 107, 107, 0.3);
+                box-shadow: 0 8px 32px rgba(255, 107, 107, 0.1);
+            }
+
+            .error-message i {
+                font-size: 3rem;
+                color: #ff6b6b;
+                margin-bottom: 1rem;
+            }
+
+            .error-message h3 {
+                color: #333;
+                margin-bottom: 1rem;
+            }
+
+            .error-message p {
+                color: #666;
+                margin-bottom: 1.5rem;
+            }
+
+            .retry-btn {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .retry-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+
+            /* Enhanced No Materials Message */
+            .no-materials {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                padding: 3rem 2rem;
+                text-align: center;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+
+            .no-materials i {
+                font-size: 4rem;
+                color: #ccc;
+                margin-bottom: 1rem;
+            }
+
+            .no-materials h3 {
+                color: #333;
+                margin-bottom: 1rem;
+                font-size: 1.5rem;
+            }
+
+            .no-materials p {
+                color: #666;
+                font-size: 1.1rem;
+            }
+
+            /* Materials Section */
+            .materials-section {
+                margin-bottom: 3rem;
+            }
+
+            .section-title {
+                color: rgb(116, 0, 183);
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: rgba(255, 255, 255, 0.278);
+                backdrop-filter: blur(10px);
+                padding: 1rem;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }        .material-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                gap: 1.5rem;
+            }
+
+            /* Material Cards */
+            .material-card {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                overflow: hidden;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .material-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            }        .card-thumbnail {
+                height: 160px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                position: relative;
+            }
+
+            .pdf-thumbnail {
+                background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            }
+
+            .audio-thumbnail {
+                background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            }
+
+            .card-thumbnail i {
+                font-size: 3rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .pdf-preview, .audio-preview {
+                font-weight: bold;
+                font-size: 1.2rem;
+            }        .card-image {
+                height: 160px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .card-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: all 0.3s ease;
+                opacity: 0;
+            }
+
+            .card-image img[src] {
+                opacity: 1;
+            }
+
+            .card-image:hover img {
+                transform: scale(1.05);
+            }
+
+            .image-overlay, .play-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+
+            .image-overlay i, .play-overlay i {
+                color: white;
+                font-size: 2rem;
+            }
+
+            .card-image:hover .image-overlay,
+            .card-image:hover .play-overlay {
+                opacity: 1;
+            }        .card-content {
+                padding: 1.2rem;
+            }
+
+            .card-content h4 {
+                font-size: 1.2rem;
+                margin-bottom: 0.5rem;
+                color: #333;
+            }
+
+            .material-type {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 0.25rem 0.75rem;
+                border-radius: 15px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                display: inline-block;
+                margin-bottom: 1rem;
+            }
+
+            .material-meta {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+                font-size: 0.9rem;
+                color: #666;
+            }
+
+            .material-level {
+                background: rgba(102, 126, 234, 0.1);
+                color: #667eea;
+                padding: 0.25rem 0.5rem;
+                border-radius: 10px;
+                font-weight: 500;
+            }
+
+            .material-date {
+                font-style: italic;
+            }
+
+            .view-btn {
+                background: linear-gradient(135deg, #4ecdc4, #44a08d);
+                color: white;
+                border: none;
+                padding: 0.75rem 1rem;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            .view-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+            }
+
+            .pdf-card .view-btn {
+                background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            }
+
+            .pdf-card .view-btn:hover {
+                box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            }
+
+            .video-card .view-btn {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+            }
+
+            .video-card .view-btn:hover {
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+
+            /* Modal Styles */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(5px);
+            }
+
+            .modal-content {
+                background: white;
+                margin: 5% auto;
+                border-radius: 15px;
+                width: 90%;
+                max-width: 800px;
+                max-height: 80vh;
+                overflow: hidden;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            }
+
+            .image-modal-content {
+                max-width: 90%;
+                width: auto;
+            }
+
+            .modal-header {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 1rem 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .modal-header h3 {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+
+            .close {
+                color: white;
+                font-size: 2rem;
+                font-weight: bold;
+                cursor: pointer;
+                line-height: 1;
+            }
+
+            .close:hover {
+                opacity: 0.7;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .modal-body img {
+                width: 100%;
+                height: auto;
+                border-radius: 10px;
+            }
+
+            /* Audio Player */
+            .audio-player {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                padding: 1rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                display: none;
+                z-index: 1000;
+                min-width: 300px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .audio-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+            }
+
+            .audio-header h4 {
+                margin: 0;
+                color: #333;
+            }
+
+            .audio-header .close {
+                color: #333;
+                font-size: 1.5rem;
+            }
+
+            .audio-controls {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .audio-controls button {
+                background: linear-gradient(135deg, #4ecdc4, #44a08d);
+                color: white;
+                border: none;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+
+            .audio-controls button:hover {
+                transform: scale(1.1);
+            }
+
+            #audio-element {
+                flex: 1;
+            }
+
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .header-content {
+                    flex-direction: column;
+                    gap: 1rem;
+                    text-align: center;
+                }
+
+                .header-actions {
+                    order: -1;
+                }
+
+                .material-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .level-dropdown {
+                    min-width: auto;
+                    max-width: none;
+                }
+
+                .modal-content {
+                    width: 95%;
+                    margin: 5% auto;
+                }
+
+                .audio-player {
+                    bottom: 10px;
+                    right: 10px;
+                    left: 10px;
+                    min-width: auto;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .main-content {
+                    padding: 0 1rem 1rem;
+                }
+
+                .quote-section {
+                    margin: 1rem;
+                    padding: 1rem;
+                }
+
+                .quote-container blockquote {
+                    font-size: 1rem;
+                }
+            }
+        </style>
+    </body>
+    </html>

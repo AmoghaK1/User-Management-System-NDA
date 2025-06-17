@@ -74,6 +74,9 @@ user_route.post('/api/profile/update-picture', auth.ensureAuthenticated, student
 user_route.post('/api/profile/change-password', auth.ensureAuthenticated, studentController.changePassword);
 user_route.get('/events', auth.ensureAuthenticated, studentController.loadEventsPage);
 user_route.get('/study', auth.ensureAuthenticated, studentController.loadStudyPage);
+user_route.get('/api/study-materials', auth.ensureAuthenticated, studentController.getStudyMaterials);
 user_route.get('/certificates', auth.ensureAuthenticated, studentController.loadCertiPage);
+user_route.get('/study-materials', auth.ensureAuthenticated, studentController.loadStudyPage);
+
 
 module.exports = user_route;

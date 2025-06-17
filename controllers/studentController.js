@@ -3,6 +3,8 @@ require("dotenv").config();
 
 const studentService = require('../services/studentService');
 const { upload } = require('../config/cloudinary');
+const StudyMaterial = require('../models/studyMaterialModel');
+
 
 // Helper: Format dates
 const formatUserDates = (user) => {
@@ -151,7 +153,48 @@ const loadEventsPage = async (req, res) => {
 };
 
 const loadStudyPage = async (req, res) => {
-    return res.render('study');
+    const levels = [
+        'Senior Batch', 'Prarambhik', 'Praveshika Pratham', 'Praveshika Purna',
+        'Madhyama Pratham', 'Madhyama Purna', 'Visharad Pratham',
+        'Visharad Purna', 'Alankar Pratham', 'Alankar Purna'
+    ];
+
+    res.render('study', {
+        levels,
+        selectedLevel: levels[0], // Default to first level
+        categorized: {} // Empty initially, will be loaded via AJAX
+    });
+};
+
+const getStudyMaterials = async (req, res) => {
+    try {
+        const { level } = req.query;
+        
+        if (!level) {
+            return res.status(400).json({ error: 'Level parameter is required' });
+        }
+
+        const materials = await StudyMaterial.find({ level: level });
+
+        // Group by category
+        const categorized = {};
+        materials.forEach(mat => {
+            if (!categorized[mat.category]) {
+                categorized[mat.category] = [];
+            }
+            categorized[mat.category].push(mat);
+        });
+
+        res.json({
+            success: true,
+            level: level,
+            categorized: categorized,
+            totalMaterials: materials.length
+        });
+    } catch (error) {
+        console.error('Error fetching study materials:', error);
+        res.status(500).json({ error: 'Failed to fetch study materials' });
+    }
 };
 
 const loadCertiPage = async (req, res) => {
@@ -162,6 +205,8 @@ const loadErrorPage = async (req, res) => {
     return res.render('404');
 };
 
+
+
 module.exports = {
     load_stDashboard,
     logout_user,
@@ -170,7 +215,8 @@ module.exports = {
     updateProfilePicture,
     changePassword,
     loadEventsPage,
-    loadStudyPage,
     loadCertiPage,
-    loadErrorPage
+    loadErrorPage,
+    loadStudyPage,
+    getStudyMaterials
 };

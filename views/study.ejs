@@ -85,39 +85,6 @@
             </div>
         </div>
 
-        <!-- Modal for Video Player -->
-        <div id="video-modal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="video-title">Video Player</h3>
-                    <span class="close" onclick="closeVideo()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <video id="video-player" controls width="100%">
-                        <source id="video-source" src="" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
-            </div>
-        </div>
-
-        <!-- Audio Player -->
-        <div id="audio-player" class="audio-player">
-            <div class="audio-header">
-                <h4 id="audio-title">Audio Player</h4>
-                <span class="close" onclick="closeAudio()">&times;</span>
-            </div>
-            <div class="audio-controls">
-                <button id="play-pause-btn" onclick="toggleAudio()">
-                    <i class="fas fa-play"></i>
-                </button>
-                <audio id="audio-element" controls>
-                    <source id="audio-source" src="" type="audio/mpeg">
-                    Your browser does not support the audio element.
-                </audio>
-            </div>
-        </div>
-
         <script>
             // Global variables
             let currentLevel = '<%= user.exam_level %>';
@@ -152,11 +119,15 @@
                     const data = await response.json();
                     
                     if (data.success) {
+                    if (Object.keys(data.categorized).length === 0) {
+                        showNoMaterials(level);
+                    } else {
                         renderMaterials(data.categorized, level);
                         showMaterials();
-                    } else {
-                        showError(data.error || 'Failed to load materials');
                     }
+                } else {
+                        showError(data.message || 'Failed to load materials');
+                }
                 } catch (error) {
                     console.error('Error loading materials:', error);
                     showError('Network error occurred');
@@ -208,17 +179,13 @@
 
             // Render materials HTML
             function renderMaterials(categorized, level) {
-                if (Object.keys(categorized).length === 0) {
-                    showNoMaterials(level);
-                    return;
-                }
-
+                
                 let html = '';
                 
                 for (const [category, materials] of Object.entries(categorized)) {
                     html += `
-                        <section class="materials-section">
-                            <h3 class="section-title">
+                         <section class="materials-section">
+                           <h3 class="section-title">
                                 ${getCategoryIcon(category)}
                                 ${category}
                             </h3>
@@ -928,9 +895,7 @@
 
             #audio-element {
                 flex: 1;
-            }
-
-            /* Responsive Design */
+            }            /* Responsive Design */
             @media (max-width: 768px) {
                 .header-content {
                     flex-direction: column;
@@ -943,8 +908,54 @@
                 }
 
                 .material-grid {
-                    grid-template-columns: 1fr;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 1rem;
                 }
+
+                .material-card {
+                    min-height: auto;
+                }
+
+                .card-thumbnail, .card-image {
+                    height: 120px;
+                }
+
+                .card-content {
+                    padding: 1rem;
+                }
+
+                .card-content h4 {
+                    font-size: 1rem;
+                    margin-bottom: 0.4rem;
+                }
+
+                .material-type {
+                    font-size: 0.7rem;
+                    padding: 0.2rem 0.6rem;
+                    margin-bottom: 0.8rem;
+                }
+
+                .material-meta {
+                    font-size: 0.8rem;
+                    margin-bottom: 0.8rem;
+                    flex-wrap: wrap;
+                  
+                }
+
+                .material-level {
+                    margin-bottom: 0.3rem;
+                
+                }
+
+                .material-date {
+                    margin-left: 4px;
+                }
+                
+                .view-btn {
+                    padding: 0.6rem 0.8rem;
+                    font-size: 0.9rem;
+                }
+
 
                 .level-dropdown {
                     min-width: auto;
@@ -967,6 +978,39 @@
             @media (max-width: 480px) {
                 .main-content {
                     padding: 0 1rem 1rem;
+                }
+
+                .material-grid {
+                    gap: 0.8rem;
+                }
+
+                .card-thumbnail, .card-image {
+                    height: 100px;
+                }
+
+                .card-content {
+                    padding: 0.8rem;
+                }
+
+                .card-content h4 {
+                    font-size: 0.9rem;
+                    margin-bottom: 0.3rem;
+                }
+
+                .material-type {
+                    font-size: 0.65rem;
+                    padding: 0.15rem 0.5rem;
+                    margin-bottom: 0.6rem;
+                }
+
+                .material-meta {
+                    font-size: 0.75rem;
+                    margin-bottom: 0.6rem;
+                }
+
+                .view-btn {
+                    padding: 0.5rem 0.6rem;
+                    font-size: 0.85rem;
                 }
 
                 .quote-section {

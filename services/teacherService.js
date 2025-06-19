@@ -85,10 +85,40 @@ const getAllUniqueCategories = async () => {
   return categories;
 };
 
+const deleteMaterial = async (materialId) => {
+  try {
+    const material = await StudyMaterial.findById(materialId);
+    if (!material) {
+      return {
+        success: false,
+        status: 404,
+        message: "Study material not found"
+      };
+    }
+
+    await StudyMaterial.deleteOne({ _id: materialId });
+    
+    return {
+      success: true,
+      status: 200,
+      message: "Study material deleted successfully"
+    };
+  } catch (error) {
+    console.error("Service error in deleteMaterial:", error);
+    return {
+      success: false,
+      status: 500,
+      message: "Failed to delete study material",
+      details: error.message
+    };
+  }
+};
+
 module.exports = {
     getAllStudents,
     getDeleteStudent,
     saveMaterial,
     getMaterials,
-    getAllUniqueCategories
+    getAllUniqueCategories,
+    deleteMaterial
 };

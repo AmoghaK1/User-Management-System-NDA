@@ -131,18 +131,20 @@ const form = document.getElementById('uploadForm');
         
         const fileIcon = material.type === 'pdf' ? 'fa-file-pdf' : 'fa-file-image';
         const levelColor = getLevelColor(material.level);
-        
-        div.innerHTML = `
+          div.innerHTML = `
           <div class="material-header">
             <div class="file-icon">
               <i class="fas ${fileIcon}"></i>
             </div>
             <div class="material-actions">
-              <button class="action-btn" onclick="viewMaterial('${material.url}')">
+              <button class="action-btn" onclick="viewMaterial('${material.url}')" title="View Material">
                 <i class="fas fa-eye"></i>
               </button>
-              <button class="action-btn" onclick="downloadMaterial('${material.url}')">
+              <button class="action-btn" onclick="downloadMaterial('${material.url}')" title="Download Material">
                 <i class="fas fa-download"></i>
+              </button>
+              <button class="action-btn delete-btn" onclick="deleteMaterial('${material._id}')" title="Delete Material">
+                <i class="fas fa-trash"></i>
               </button>
             </div>
           </div>
@@ -187,7 +189,46 @@ const form = document.getElementById('uploadForm');
       a.href = url;
       a.download = '';
       a.click();
-    }    form.addEventListener('submit', async (e) => {
+    }    async function deleteMaterial(materialId) {
+      // Validate materialId
+      if (!materialId || materialId === 'undefined') {
+        showMessage('Error: Invalid material ID. Please refresh the page and try again.', 'error');
+        return;
+      }
+
+      // Show confirmation dialog
+      if (!confirm('Are you sure you want to delete this study material? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        showLoadingSpinner();
+        
+        console.log('Deleting material with ID:', materialId); // Debug log
+        
+        const response = await fetch(`/material/delete/${materialId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          showMessage(result.message || 'Material deleted successfully!', 'success');
+          fetchMaterials(); // Refresh the materials list
+        } else {
+          showMessage(result.message || 'Failed to delete material. Please try again.', 'error');
+        }
+
+      } catch (error) {
+        console.error('Delete error:', error);
+        showMessage('Failed to delete material. Please check your connection and try again.', 'error');
+      } finally {
+        hideLoadingSpinner();
+      }
+    }form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const submitBtn = form.querySelector('button[type="submit"]');

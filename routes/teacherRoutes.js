@@ -28,5 +28,7 @@ teacher_route.get('/material/fetch', auth.ensureAuthenticated, teacherController
 
 teacher_route.get('/material/categories', auth.ensureAuthenticated, teacherController.getAllCategories);
 
+// Delete study material
+teacher_route.delete('/material/delete/:materialId', auth.ensureAuthenticated, teacherController.deleteMaterial);
 
 module.exports = teacher_route;

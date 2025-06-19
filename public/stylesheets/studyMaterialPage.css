@@ -443,6 +443,17 @@ body {
   transform: scale(1.1);
 }
 
+.action-btn.delete-btn {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.action-btn.delete-btn:hover {
+  background: #DC2626;
+  color: white;
+  transform: scale(1.1);
+}
+
 .material-content h3 {
   color: #1E293B;
   font-size: 1.2rem;

@@ -113,6 +113,32 @@ const getAllCategories = async (req, res) => {
   }
 };
 
+const deleteMaterial = async (req, res) => {
+  try {
+    const { materialId } = req.params;
+    
+    const result = await teacherService.deleteMaterial(materialId);
+    
+    if (!result.success) {
+      return res.status(result.status || 400).json({
+        success: false,
+        message: result.message
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: result.message
+    });
+  } catch (error) {
+    console.error("Controller error in deleteMaterial:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unexpected error occurred while deleting material"
+    });
+  }
+};
+
 module.exports = {
     load_trDashboard,
     Teacher_getAllStudents,
@@ -120,5 +146,6 @@ module.exports = {
     uploadMaterial,
     getMaterialsByLevel,
     loadUploadMaterial,
-    getAllCategories
+    getAllCategories,
+    deleteMaterial
 }

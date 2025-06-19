@@ -1,5 +1,6 @@
 class StudyMaterialDTO {
-  constructor({ title, type, url, category, level, createdAt }) {
+  constructor({ _id, title, type, url, category, level, createdAt }) {
+    this._id = _id;
     this.title = title;
     this.type = type;
     this.url = url;

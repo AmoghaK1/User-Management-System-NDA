@@ -9,14 +9,14 @@ teacher_route.use(bodyParser.json());
 teacher_route.use(bodyParser.urlencoded({extended: true}));
 
 const teacherController = require('../controllers/teacherController');
-const userController = require('../controllers/studentController');
+const loginController = require('../controllers/loginController');
 const { studyMaterialUpload } = require('../config/studyMaterial');
 const passport = require('passport');
 
 teacher_route.get('/tr-dashboard', auth.ensureAuthenticated, teacherController.load_trDashboard);
 teacher_route.post('/delete-student',auth.ensureAuthenticated, teacherController.Teacher_deleteStudent);
 teacher_route.get('/get-all-students',auth.ensureAuthenticated, teacherController.Teacher_getAllStudents);
-teacher_route.get('/teacher-register',auth.ensureAuthenticated, userController.logout_user);
+teacher_route.get('/teacher-register',auth.ensureAuthenticated, loginController.loadRegister);
 
 teacher_route.get('/material/upload', auth.ensureAuthenticated, teacherController.loadUploadMaterial);
 

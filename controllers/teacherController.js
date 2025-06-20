@@ -139,6 +139,18 @@ const deleteMaterial = async (req, res) => {
   }
 };
 
+const loadStudentDatabaseMain = (req, res) => {
+    res.render('student_database_main');
+}
+
+const loadStudentDbDetails = (req, res) => {
+    res.render('student_db_details');
+}
+
+const loadUpdateFee = (req, res) => {
+    res.render('stdb_update_fees');
+}
+
 module.exports = {
     load_trDashboard,
     Teacher_getAllStudents,
@@ -147,5 +159,8 @@ module.exports = {
     getMaterialsByLevel,
     loadUploadMaterial,
     getAllCategories,
-    deleteMaterial
+    deleteMaterial,
+    loadStudentDatabaseMain,
+    loadStudentDbDetails,
+    loadUpdateFee
 }

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Student Fees - NDA</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: 1fr;
+        }
+
+        .month-status-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .month-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .month-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .status-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #e74c3c;
+            text-transform: uppercase;
+        }
+
+        .divider {
+            height: 4px;
+            background: linear-gradient(90deg, #6c5ce7 0%, #8e44ad 100%);
+            border-radius: 2px;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .payment-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            flex: 1;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .radio-option:hover {
+            border-color: #6c5ce7;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.1);
+        }
+
+        .radio-option input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"]:checked {
+            border-color: #6c5ce7;
+            background: #6c5ce7;
+        }
+
+        .radio-option input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .radio-option input[type="radio"]:checked + .radio-label {
+            color: #6c5ce7;
+            font-weight: 600;
+        }        .radio-option.selected {
+            border-color: #6c5ce7;
+            background: white;
+            color: #555;
+        }
+
+        .radio-option.selected .radio-label {
+            color: #6c5ce7;
+            font-weight: 600;
+        }
+
+        .radio-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.5s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .submit-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn span {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Desktop Layout */
+        @media (min-width: 769px) {
+            body {
+                padding: 2rem;
+            }
+
+            .container {
+                grid-template-columns: 1fr 1.5fr;
+                gap: 3rem;
+            }
+
+            .month-status-section {
+                padding: 3rem;
+                height: fit-content;
+            }
+
+            .payment-section {
+                padding: 3rem;
+            }
+
+            .month-title {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .radio-group {
+                gap: 1.5rem;
+            }
+
+            .radio-option {
+                flex: none;
+                min-width: 150px;
+            }
+        }        /* Mobile Layout */
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+
+            .container {
+                gap: 1.5rem;
+            }            .month-status-section {
+                padding: 1.5rem;
+                background: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+            }
+
+            .payment-section {
+                padding: 1.5rem;
+            }
+
+            .month-title {
+                font-size: 1.8rem;
+            }
+
+            .section-title {
+                font-size: 1.3rem;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .radio-option {
+                flex: none;
+                min-width: auto;
+            }
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: #6c5ce7;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 18s infinite ease-in-out;
+        }
+
+        .particle:nth-child(1) {
+            width: 12px;
+            height: 12px;
+            left: 15%;
+            animation-delay: 0s;
+        }
+
+        .particle:nth-child(2) {
+            width: 8px;
+            height: 8px;
+            left: 75%;
+            animation-delay: 6s;
+        }
+
+        .particle:nth-child(3) {
+            width: 16px;
+            height: 16px;
+            left: 55%;
+            animation-delay: 12s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10%, 90% {
+                opacity: 0.1;
+            }
+            50% {
+                transform: translateY(-80px) rotate(180deg);
+                opacity: 0.3;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="container">
+        <!-- Month and Status Section -->
+        <div class="month-status-section">
+            <div class="month-header">
+                <h1 class="month-title">MARCH 2025</h1>
+                <div class="status-container">
+                    <span class="status-label">STATUS:</span>
+                    <span class="status-value">NOT PAID</span>
+                </div>
+            </div>
+            <div class="divider"></div>
+        </div>
+
+        <!-- Payment Form Section -->
+        <div class="payment-section">
+            <h2 class="section-title">ADD PAYMENT</h2>
+            
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label for="feeAmount" class="form-label">Enter Fee Amount</label>
+                    <input 
+                        type="number" 
+                        id="feeAmount" 
+                        name="feeAmount" 
+                        class="form-input" 
+                        placeholder="Enter amount in ₹"
+                        min="0"
+                        step="0.01"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmAmount" class="form-label">Confirm Fee Amount</label>
+                    <input 
+                        type="number" 
+                        id="confirmAmount" 
+                        name="confirmAmount" 
+                        class="form-input" 
+                        placeholder="Re-enter amount to confirm"
+                        min="0"
+                        step="0.01"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Payment Type</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="paymentType" value="gpay" required>
+                            <span class="radio-label">GPay</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="paymentType" value="cash" required>
+                            <span class="radio-label">Cash</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="paymentType" value="card" required>
+                            <span class="radio-label">Card</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="paymentType" value="upi" required>
+                            <span class="radio-label">UPI</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>Submit <i class="fas fa-arrow-right"></i></span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Handle radio button selection styling
+        document.querySelectorAll('input[name="paymentType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove selected class from all options
+                document.querySelectorAll('.radio-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // Add selected class to current option
+                this.closest('.radio-option').classList.add('selected');
+            });
+        });
+
+        // Form validation
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const feeAmount = document.getElementById('feeAmount').value;
+            const confirmAmount = document.getElementById('confirmAmount').value;
+            const paymentType = document.querySelector('input[name="paymentType"]:checked');
+            
+            if (!feeAmount || !confirmAmount) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            if (feeAmount !== confirmAmount) {
+                alert('Fee amounts do not match. Please check and try again.');
+                return;
+            }
+            
+            if (!paymentType) {
+                alert('Please select a payment type.');
+                return;
+            }
+            
+            // Here you would normally submit the form to your server
+            alert(`Payment submitted successfully!\nAmount: ₹${feeAmount}\nPayment Type: ${paymentType.value.toUpperCase()}`);
+        });
+
+        // Amount matching validation
+        document.getElementById('confirmAmount').addEventListener('input', function() {
+            const feeAmount = document.getElementById('feeAmount').value;
+            const confirmAmount = this.value;
+            
+            if (feeAmount && confirmAmount && feeAmount !== confirmAmount) {
+                this.style.borderColor = '#e74c3c';
+                this.style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.1)';
+            } else {
+                this.style.borderColor = '';
+                this.style.boxShadow = '';
+            }
+        });
+    </script>
+</body>
+</html>

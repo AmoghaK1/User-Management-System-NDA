@@ -85,34 +85,14 @@
         <div class="quick-title">Add Student</div>
       </div>
       </a>
-    <a>
-      <div class="quick-card" id="deleteStudentCard">
-        <div class="quick-icon">
-          <i class="fa-solid fa-user-minus"></i>
-        </div>
-        <div class="quick-title">Delete Student</div>
-      </div>
-      </a>
-      <div id="deleteStudentModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h2>Delete Student</h2>
-    <div id="studentList">
-      <!-- Student list will be populated here -->
-    </div>
-    <div id="confirmation" style="display: none;">
-      <p>Are you sure you want to delete this student?</p>
-      <button id="confirmDelete">Yes, Delete</button>
-      <button id="cancelDelete">Cancel</button>
-    </div>
-  </div>
-</div>
-    <a>     
-    <div class="quick-card fee-collection-btn" >
+    
+      
+<a href="/student_database">     
+    <div class="quick-card" >
       <div class="quick-icon">
       <i class="fa-solid fa-money-bill-wave me-2"></i>
       </div>
-      <div class="quick-title">Fee Collection</div>
+      <div class="quick-title">Student Database</div>
     </div>
   </a>
       <a href="/material/upload">
@@ -131,29 +111,6 @@
         <div class="quick-title">Events</div>
       </div>
     </a>
-    </div>
-  </div>
-  
-  <!-- Fee Collection Modal -->
-  <div id="feeCollectionModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Student Fee Collection Details</h2>
-            <span class="close-modal">&times;</span>
-        </div>
-        <div class="modal-body">
-            <div id="paymentDetailsLoading" class="text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p>Loading payment details...</p>
-            </div>
-            <div class="table-responsive">
-                <table id="paymentDetailsTable" class="table table-striped" style="width:100%">
-                    <!-- DataTable will populate this -->
-                </table>
-            </div>
-        </div>
     </div>
   </div>
   

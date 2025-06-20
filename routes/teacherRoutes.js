@@ -14,7 +14,11 @@ const { studyMaterialUpload } = require('../config/studyMaterial');
 const passport = require('passport');
 
 teacher_route.get('/tr-dashboard', auth.ensureAuthenticated, teacherController.load_trDashboard);
-teacher_route.post('/delete-student',auth.ensureAuthenticated, teacherController.Teacher_deleteStudent);
+teacher_route.get('/student_database',auth.ensureAuthenticated, teacherController.loadStudentDatabaseMain);
+
+teacher_route.get('/student-db-details', auth.ensureAuthenticated, teacherController.loadStudentDbDetails);
+
+teacher_route.get('/update-fee', auth.ensureAuthenticated, teacherController.loadUpdateFee);
 teacher_route.get('/get-all-students',auth.ensureAuthenticated, teacherController.Teacher_getAllStudents);
 teacher_route.get('/teacher-register',auth.ensureAuthenticated, loginController.loadRegister);
 
@@ -30,5 +34,7 @@ teacher_route.get('/material/categories', auth.ensureAuthenticated, teacherContr
 
 // Delete study material
 teacher_route.delete('/material/delete/:materialId', auth.ensureAuthenticated, teacherController.deleteMaterial);
+
+
 
 module.exports = teacher_route;

@@ -16,7 +16,7 @@ const passport = require('passport');
 teacher_route.get('/tr-dashboard', auth.ensureAuthenticated, teacherController.load_trDashboard);
 teacher_route.get('/student_database',auth.ensureAuthenticated, teacherController.loadStudentDatabaseMain);
 
-teacher_route.get('/student-db-details', auth.ensureAuthenticated, teacherController.loadStudentDbDetails);
+teacher_route.get('/student-db-details/:id', auth.ensureAuthenticated, teacherController.loadStudentDbDetails);
 
 teacher_route.get('/update-fee', auth.ensureAuthenticated, teacherController.loadUpdateFee);
 teacher_route.get('/get-all-students',auth.ensureAuthenticated, teacherController.Teacher_getAllStudents);
@@ -34,7 +34,10 @@ teacher_route.get('/material/categories', auth.ensureAuthenticated, teacherContr
 
 // Delete study material
 teacher_route.delete('/material/delete/:materialId', auth.ensureAuthenticated, teacherController.deleteMaterial);
+teacher_route.delete('/students/:id', auth.ensureAuthenticated, teacherController.Teacher_deleteStudent);
 
+// Update student fee status (month/quarter paid)
+teacher_route.post('/student-db-details/:id/update-fee', auth.ensureAuthenticated, teacherController.updateStudentFee);
 
 
 module.exports = teacher_route;

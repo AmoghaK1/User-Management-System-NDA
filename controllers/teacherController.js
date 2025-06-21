@@ -1,4 +1,6 @@
 const teacherService = require('../services/teacherService');
+const { getAllStudents} = require('../services/teacherService');
+const PaymentStatus = require('../models/paymentModel');
 
 const load_trDashboard = async(req,res)=>{
     if(req.user.email !== "rajjii11@gmail.com"){
@@ -24,7 +26,7 @@ const Teacher_getAllStudents = async (req, res) => {
 const Teacher_deleteStudent = async (req, res) => {
    
     try {
-        const { studentId } = req.body;
+        const studentId = req.params.id;
         // Find the student first to verify they exist
         const result = await teacherService.getDeleteStudent(studentId);
         if (!result.success) {
@@ -34,10 +36,8 @@ const Teacher_deleteStudent = async (req, res) => {
             });
         }
 
-         return res.status(200).json({
-            success: true,
-            message: result.message
-        });
+        req.flash('success', 'Student deleted successfully');
+        return res.redirect('/student_database');
     } catch (error) {
         console.error("Controller error in Teacher_deleteStudent:", error);
         return res.status(500).json({
@@ -139,17 +139,66 @@ const deleteMaterial = async (req, res) => {
   }
 };
 
-const loadStudentDatabaseMain = (req, res) => {
-    res.render('student_database_main');
-}
+const loadStudentDatabaseMain = async (req, res) => {
+    try {
+        const students = await getAllStudents();
+        res.render('student_database_main', { students });
+    } catch (error) {
+        console.error('Error loading student database:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
 
-const loadStudentDbDetails = (req, res) => {
-    res.render('student_db_details');
-}
+const loadStudentDbDetails = async (req, res) => {
+    try {
+        const studentId = req.params.id;
+        const details = await teacherService.getStudentDetailsWithPayment(studentId);
+        if (!details || !details.student) {
+            req.flash('error', 'Student not found');
+            return res.redirect('/student_database');
+        }
+        res.render('student_db_details', { student: details.student, payment: details.payment });
+    } catch (error) {
+        console.error('Error loading student details:', error);
+        req.flash('error', 'Could not load student details');
+        res.redirect('/student_database');
+    }
+};
 
 const loadUpdateFee = (req, res) => {
-    res.render('stdb_update_fees');
+    const { studentId, year, month, quarter, isQuarterly } = req.query;
+    res.render('stdb_update_fees', {
+        studentId,
+        year,
+        month,
+        quarter,
+        isQuarterly
+    });
 }
+
+const updateStudentFee = async (req, res) => {
+    const { id } = req.params;
+    const { year, month, quarter, isQuarterly, amount, paymentType } = req.body;
+    try {
+        let paymentStatus = await PaymentStatus.findOne({ userId: id, year });
+        if (!paymentStatus) paymentStatus = new PaymentStatus({ userId: id, year });
+        if (isQuarterly === 'true') {
+            paymentStatus.quarters.set(String(quarter), 'Paid');
+            const startMonth = (quarter - 1) * 3;
+            for (let i = startMonth; i < startMonth + 3; i++) {
+                paymentStatus.months.set(String(i), 'Paid');
+            }
+        } else {
+            paymentStatus.months.set(String(month), 'Paid');
+        }
+        // Optionally, you can store amount/paymentType in a separate array or object
+        await paymentStatus.save();
+        // Redirect to student details page after update
+        res.redirect(`/student-db-details/${id}`);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
 
 module.exports = {
     load_trDashboard,
@@ -162,5 +211,6 @@ module.exports = {
     deleteMaterial,
     loadStudentDatabaseMain,
     loadStudentDbDetails,
-    loadUpdateFee
+    loadUpdateFee,
+    updateStudentFee
 }

@@ -114,11 +114,20 @@ const deleteMaterial = async (materialId) => {
   }
 };
 
+const getStudentDetailsWithPayment = async (studentId) => {
+    const student = await User.findById(studentId).lean();
+    if (!student) return null;
+    const currentYear = new Date().getFullYear();
+    const payment = await PaymentStatus.findOne({ userId: studentId, year: currentYear }).lean();
+    return { student, payment };
+};
+
 module.exports = {
     getAllStudents,
     getDeleteStudent,
     saveMaterial,
     getMaterials,
     getAllUniqueCategories,
-    deleteMaterial
+    deleteMaterial,
+    getStudentDetailsWithPayment,
 };

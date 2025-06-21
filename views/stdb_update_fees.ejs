@@ -422,19 +422,23 @@
                 </div>
             </div>
             <div class="divider"></div>
-        </div>
+        </div> 
 
         <!-- Payment Form Section -->
         <div class="payment-section">
             <h2 class="section-title">ADD PAYMENT</h2>
-            
-            <form id="paymentForm">
+            <% if (typeof studentId !== 'undefined' && studentId) { %>
+            <form id="paymentForm" method="POST" action="/student-db-details/<%= studentId %>/update-fee">
+                <input type="hidden" name="year" value="<%= typeof year !== 'undefined' ? year : '' %>">
+                <input type="hidden" name="month" value="<%= typeof month !== 'undefined' ? month : '' %>">
+                <input type="hidden" name="quarter" value="<%= typeof quarter !== 'undefined' ? quarter : '' %>">
+                <input type="hidden" name="isQuarterly" value="<%= typeof isQuarterly !== 'undefined' ? isQuarterly : '' %>">
                 <div class="form-group">
                     <label for="feeAmount" class="form-label">Enter Fee Amount</label>
                     <input 
                         type="number" 
                         id="feeAmount" 
-                        name="feeAmount" 
+                        name="amount" 
                         class="form-input" 
                         placeholder="Enter amount in ₹"
                         min="0"
@@ -483,6 +487,9 @@
                     <span>Submit <i class="fas fa-arrow-right"></i></span>
                 </button>
             </form>
+            <% } else { %>
+                <div style="color: red; text-align: center;">Student ID is missing. Cannot submit payment.</div>
+            <% } %>
         </div>
     </div>
 
@@ -502,7 +509,8 @@
 
         // Form validation
         document.getElementById('paymentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+            // Remove e.preventDefault() so the form submits normally
+            // e.preventDefault();
             
             const feeAmount = document.getElementById('feeAmount').value;
             const confirmAmount = document.getElementById('confirmAmount').value;

@@ -7,6 +7,7 @@ const session = require("express-session");
 const passport = require("passport");
 const config = require("./config/config");
 const path = require('path');
+const methodOverride = require('method-override');
 
 require("./config/passport")(passport);
 
@@ -40,6 +41,9 @@ app.use(session({
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Method override
+app.use(methodOverride('_method'));
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));

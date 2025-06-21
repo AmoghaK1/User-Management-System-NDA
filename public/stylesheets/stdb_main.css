@@ -1,4 +1,4 @@
- * {
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -398,3 +398,214 @@
     color: #207544;
     border: 1px solid #b7f5c6;
 }
+
+/* Search and Filter Styles */
+        .search-filter-container {
+            padding: 2rem 2rem 1rem 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            background: rgba(108, 92, 231, 0.05);
+            border-bottom: 1px solid rgba(108, 92, 231, 0.1);
+        }
+
+        .search-bar {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            color: #7f8c8d;
+            font-size: 1rem;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+
+        .search-input:focus + .search-icon,
+        .search-input:not(:placeholder-shown) + .search-icon {
+            color: #6c5ce7;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 0.5rem;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .clear-search:hover {
+            background: #ff5252;
+            transform: scale(1.1);
+        }
+
+        .filter-container {
+            min-width: 200px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 25px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #6c5ce7;
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .results-counter {
+            padding: 0 2rem 1rem 2rem;
+            text-align: right;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .search-empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #7f8c8d;
+        }
+
+        .search-empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #bdc3c7;
+        }
+
+        .search-empty-state h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .search-empty-state p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Mobile Responsive Styles for Search */
+        @media (max-width: 768px) {
+            .search-filter-container {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .search-bar {
+                min-width: unset;
+                width: 100%;
+            }
+
+            .search-input {
+                padding: 0.65rem 1rem 0.65rem 2.25rem;
+                font-size: 0.95rem;
+            }
+
+            .search-icon {
+                left: 0.85rem;
+                font-size: 0.9rem;
+            }
+
+            .clear-search {
+                width: 26px;
+                height: 26px;
+                font-size: 0.7rem;
+            }
+
+            .filter-container {
+                min-width: unset;
+                width: 100%;
+            }
+
+            .filter-select {
+                padding: 0.65rem 1rem;
+                font-size: 0.95rem;
+                padding-right: 2.25rem;
+                background-size: 0.9rem;
+            }
+
+            .results-counter {
+                padding: 0 1rem 0.75rem 1rem;
+                text-align: center;
+                font-size: 0.85rem;
+            }
+
+            .search-empty-state {
+                padding: 2rem 1rem;
+            }
+
+            .search-empty-state i {
+                font-size: 2.5rem;
+            }
+
+            .search-empty-state h3 {
+                font-size: 1.1rem;
+            }
+
+            .search-empty-state p {
+                font-size: 0.9rem;
+            }        }
+
+        /* Smooth transitions for filtered results */
+        .student-card {
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        a[style*="display: none"] {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        a[style*="display: block"] {
+            opacity: 1;
+            transform: scale(1);
+        }

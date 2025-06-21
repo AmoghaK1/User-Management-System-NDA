@@ -85,7 +85,14 @@
         <div class="quick-title">Add Student</div>
       </div>
       </a>
-    
+    <a>
+      <div class="quick-card fee-collection-btn">
+        <div class="quick-icon">
+          <i class="fa-solid fa-money-bill-wave me-2"></i>
+        </div>
+        <div class="quick-title">Fee Collection</div>
+      </div>
+      </a>
       
 <a href="/student_database">     
     <div class="quick-card" >
@@ -113,6 +120,31 @@
     </a>
     </div>
   </div>
+
+    
+  <!-- Fee Collection Modal -->
+  <div id="feeCollectionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Student Fee Collection Details</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="paymentDetailsLoading" class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading payment details...</p>
+            </div>
+            <div class="table-responsive">
+                <table id="paymentDetailsTable" class="table table-striped" style="width:100%">
+                    <!-- DataTable will populate this -->
+                </table>
+            </div>
+        </div>
+    </div>
+  </div>
+
   
   <!-- Include jQuery first -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

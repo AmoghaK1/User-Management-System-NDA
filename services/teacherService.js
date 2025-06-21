@@ -8,7 +8,7 @@ const StudyMaterialDTO = require('../dtos/studyMaterialDTO');
 
 const getAllStudents = async () => {
     try{    
-        const students = await User.find({ is_admin: 0 }).select("_id name email");
+        const students = await User.find({ is_admin: 0 }).select("_id name email exam_level");
         return students;
     }
     catch(error){

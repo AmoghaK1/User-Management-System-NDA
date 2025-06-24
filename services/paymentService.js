@@ -13,7 +13,9 @@ const getPaymentStatusService = async (userId) => {
     let paymentStatus = await PaymentStatus.findOne({ userId, year: currentYear });
     
     if (!paymentStatus) {
-        paymentStatus = new PaymentStatus({ userId, year: currentYear });
+        const user = await User.findById(userId);
+        if (!user) throw new Error('User not found');
+        paymentStatus = new PaymentStatus({ userId, userName: user.name, year: currentYear });
     }
 
     return paymentStatus;
@@ -27,7 +29,9 @@ const updatePaymentService = async (userId, year, month, quarter, isQuarterly) =
 
     if (!paymentStatus) {
         console.log('No existing payment status found, creating new one.');
-        paymentStatus = new PaymentStatus({ userId, year });
+        const user = await User.findById(userId);
+        if (!user) throw new Error('User not found');
+        paymentStatus = new PaymentStatus({ userId, userName: user.name, year: currentYear });
     }        if (isQuarterlyBool) {
         // Validate quarter (must be a number between 1 and 4)
         const quarterNum = parseInt(quarter, 10);
@@ -77,8 +81,10 @@ const getStudentPaymentDetailsService = async () => {
 
 const createOrderService = async (body, userId) => {
     const { name, amount, description, email, contact, year, month, quarter, isQuarterly } = body;
-
-    let paymentStatus = await PaymentStatus.findOne({ userId, year }) || new PaymentStatus({ userId, year });
+    const user = await User.findById(userId);
+    if (!user) throw new Error('User not found');
+       
+    let paymentStatus = await PaymentStatus.findOne({ userId, year }) || new PaymentStatus({ userId, userName: user.name, year: currentYear });
 
     if (isQuarterly) {
         const startMonth = (quarter - 1) * 3;

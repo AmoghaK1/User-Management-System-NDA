@@ -16,12 +16,34 @@
 
     <div class="container">
         <!-- Month and Status Section -->
+        <%
+            // Prepare month name and status dynamically
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            let displayMonth = '';
+            let displayYear = '';
+            let displayStatus = '';
+            if (typeof isQuarterly !== 'undefined' && isQuarterly && typeof quarter !== 'undefined' && quarter) {
+                // Quarterly mode
+                const quarterNames = ['Q1 (Jan-Mar)', 'Q2 (Apr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Oct-Dec)'];
+                displayMonth = quarterNames[quarter - 1] || '';
+                displayYear = typeof year !== 'undefined' ? year : '';
+                displayStatus = typeof status !== 'undefined' ? status : 'NOT PAID';
+            } else if (typeof month !== 'undefined' && month !== '') {
+                // Monthly mode
+                displayMonth = monthNames[month] || '';
+                displayYear = typeof year !== 'undefined' ? year : '';
+                displayStatus = typeof status !== 'undefined' ? status : 'NOT PAID';
+            }
+        %>
         <div class="month-status-section">
             <div class="month-header">
-                <h1 class="month-title">MARCH 2025</h1>
+                <h1 class="month-title"><%= displayMonth %> <%= displayYear %></h1>
                 <div class="status-container">
                     <span class="status-label">STATUS:</span>
-                    <span class="status-value">NOT PAID</span>
+                    <span class="status-value"><%= displayStatus %></span>
                 </div>
             </div>
             <div class="divider"></div>

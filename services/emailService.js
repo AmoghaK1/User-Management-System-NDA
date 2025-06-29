@@ -17,7 +17,7 @@ const sendVerification = async (user) => {
     // Read HTML template
     let emailTemplate;
     try {
-        const emailTemplatePath = path.resolve(__dirname, '../views/verificationEmail.html');
+        const emailTemplatePath = path.resolve(__dirname, '../views/login/verificationEmail.html');
         emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
     } catch (err) {
         console.error("Failed to read email template:", err);

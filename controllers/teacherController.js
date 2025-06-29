@@ -6,11 +6,11 @@ const load_trDashboard = async(req,res)=>{
     if(req.user.email !== "rajjii11@gmail.com"){
         return res.redirect('/st-dashboard')
     }
-    res.render('teacher-dashboard');
+    res.render('teacher/teacher-dashboard');
 }
 
 const loadUploadMaterial = (req, res) => {
-  res.render('studyMaterialPage'); 
+  res.render('teacher/studyMaterialPage'); 
 };
 
 const Teacher_getAllStudents = async (req, res) => {
@@ -142,7 +142,7 @@ const deleteMaterial = async (req, res) => {
 const loadStudentDatabaseMain = async (req, res) => {
     try {
         const students = await getAllStudents();
-        res.render('student_database_main', { students });
+        res.render('teacher/student_database_main', { students });
     } catch (error) {
         console.error('Error loading student database:', error);
         res.status(500).send('Internal Server Error');
@@ -157,7 +157,7 @@ const loadStudentDbDetails = async (req, res) => {
             req.flash('error', 'Student not found');
             return res.redirect('/student_database');
         }
-        res.render('student_db_details', { student: details.student, payment: details.payment });
+        res.render('teacher/student_db_details', { student: details.student, payment: details.payment });
     } catch (error) {
         console.error('Error loading student details:', error);
         req.flash('error', 'Could not load student details');
@@ -167,7 +167,7 @@ const loadStudentDbDetails = async (req, res) => {
 
 const loadUpdateFee = (req, res) => {
     const { studentId, year, month, quarter, isQuarterly } = req.query;
-    res.render('stdb_update_fees', {
+    res.render('teacher/stdb_update_fees', {
         studentId,
         year,
         month,

@@ -70,7 +70,7 @@ app.use('/', paymentRoutes);
 
 // Landing page
 app.get('/', (req, res) => {
-  res.render('landing2');
+  res.render('student/landing2');
 });
 
 // Start server

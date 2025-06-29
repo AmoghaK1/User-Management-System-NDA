@@ -20,7 +20,7 @@ user_route.get('/signup', auth.redirectIfAuthenticated, (req, res) => {
     const formData = req.flash('formData')[0] || {};
     
     
-    res.render('signup', { 
+    res.render('login/signup', { 
         error, 
         success, 
         formData 
@@ -42,12 +42,12 @@ user_route.post('/login', (req, res, next) => {
         
         // If no user found or authentication fails
         if (!user) {
-            return res.render("login", { error: info.message, success: null });
+            return res.render("login/login", { error: info.message, success: null });
         }
 
         // Check if user is verified
         if (!user.is_verified && user.email != "rajjii11@gmail.com") {
-            return res.render("login", { 
+            return res.render("login/login", { 
                 error: "Please verify your email before logging in. Check your inbox for verification link.", 
                 success: null 
             });

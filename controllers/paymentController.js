@@ -9,7 +9,7 @@ const { formatPaymentStatusDto } = require('../dtos/paymentDTO');
 
 const renderDashboard = async (req, res) => {
     try {
-        res.render('accounts2');
+        res.render('student/accounts2');
     } catch (err) {
         console.error('Error rendering page:', err.message);
         if (err.status) {

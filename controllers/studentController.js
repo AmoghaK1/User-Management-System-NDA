@@ -20,7 +20,7 @@ const formatUserDates = (user) => {
 const load_stDashboard = async (req, res) => {
     try {
         if (!req.isAuthenticated()) return res.redirect('/login');
-        return res.render('student-dashboard', { user: req.user });
+        return res.render('student/student-dashboard', { user: req.user });
     } catch (error) {
         console.log(error.message);
         return res.redirect('/login');
@@ -43,14 +43,14 @@ const loadProfile = async (req, res) => {
         if (!req.isAuthenticated()) return res.redirect('/login');
 
         const user = formatUserDates(req.user.toObject());
-        return res.render('student-profile', {
+        return res.render('student/student-profile', {
             user,
             error: null,
             success: null
         });
     } catch (error) {
         console.error("Profile loading error:", error);
-        return res.render('student-profile', {
+        return res.render('student/student-profile', {
             user: req.user,
             error: "Error loading profile",
             success: null
@@ -149,7 +149,7 @@ const changePassword = async (req, res) => {
 };
 
 const loadEventsPage = async (req, res) => {
-    return res.render('events');
+    return res.render('student/events');
 };
 
 const loadStudyPage = async (req, res) => {
@@ -159,7 +159,7 @@ const loadStudyPage = async (req, res) => {
         'Visharad Purna', 'Alankar Pratham', 'Alankar Purna'
     ];
 
-    res.render('study', {
+    res.render('student/study', {
         levels,
         selectedLevel: levels[0], // Default to first level
         categorized: {} // Empty initially, will be loaded via AJAX
@@ -198,11 +198,11 @@ const getStudyMaterials = async (req, res) => {
 };
 
 const loadCertiPage = async (req, res) => {
-    return res.render('certificates');
+    return res.render('student/certificates');
 };
 
 const loadErrorPage = async (req, res) => {
-    return res.render('404');
+    return res.render('misc/404');
 };
 
 

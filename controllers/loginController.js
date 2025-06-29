@@ -8,7 +8,7 @@ const { handleUserRegistration } = require('../services/loginService');
 
 const loadRegister = async(req,res)=> {
     try {
-        res.render('signup', { error: null, formData: {} }); // Always pass an empty formData object
+        res.render('login/signup', { error: null, formData: {} }); // Always pass an empty formData object
     } catch (error) {
         console.log(error.message);
     }
@@ -48,7 +48,7 @@ const verifyEmail = async (req, res) => {
         const { userId , uniqueString} = req.params;
         const { success , message , redirectUrl} = await getVerifiedEmail(userId, uniqueString);
 
-        return res.render('verifiedPage',{
+        return res.render('login/verifiedPage',{
             error: !success,
             message, 
             redirectUrl: success ? redirectUrl : undefined
@@ -56,7 +56,7 @@ const verifyEmail = async (req, res) => {
     }catch(error){
         console.error("Error verification controller error : ", error);
 
-        return res.render('verifiedPage', {
+        return res.render('login/verifiedPage', {
             error: true,
             message: "An error occurred while verifying your email. Please try again later."
         });
@@ -64,22 +64,22 @@ const verifyEmail = async (req, res) => {
 };
 
 const loadVerifiedPage = async(req,res) => {
-    res.render("verifiedPage");
+    res.render("login/verifiedPage");
 }
 
 const loadLogin = async(req,res) => {
-    res.render('login', { error: null, success: null }); // Ensures both variables are always defined
+    res.render('login/login', { error: null, success: null }); // Ensures both variables are always defined
 };
 
 const loadForgotPassword = async (req, res) => {
     try {
-        res.render('forgot-password', { 
+        res.render('login/forgot-password', { 
             error: null,
             success: null 
         });
     } catch (error) {
         console.error('Forgot password load error:', error);
-        res.render('login', { 
+        res.render('login/login', { 
             error: 'Error loading forgot password page',
             success: null
         });
@@ -91,14 +91,14 @@ const forgotPassword = async (req, res) => {
         const { email } = req.body;
         const result = await getForgotPassword(email);
 
-        res.render('forgot-password', { 
+        res.render('login/forgot-password', { 
             success: result.success ? result.message : null,
             error: result.success ? null : result.message
         });
 
     }catch(error){
         console.error('Forgot password error:', error);
-        res.render('forgot-password', { 
+        res.render('login/forgot-password', { 
         error: 'Error processing your request',
         success: null
     });
@@ -112,13 +112,13 @@ const loadResetPassword = async (req, res) => {
         const result = await getResetPasswordData(token);
 
         if (!result.user) {
-            return res.render('login', { 
+            return res.render('login/login', { 
                 error: result.error,
                 success: null 
             });
         }
 
-        res.render('reset-password', {
+        res.render('login/reset-password', {
             token: result.token,
             error: null,
             success: null
@@ -126,7 +126,7 @@ const loadResetPassword = async (req, res) => {
 
     } catch (error) {
         console.error('Reset password load error:', error);
-        res.render('login', {
+        res.render('login/login', {
             error: 'Error loading password reset page',
             success: null
         });
@@ -141,21 +141,21 @@ const resetPassword = async (req, res) => {
         const result = await getresetPassword(token, password, confirmPassword);
 
         if (!result.success) {
-            return res.render('reset-password', {
+            return res.render('login/reset-password', {
                 token,
                 error: result.message,
                 success: null
             });
         }
         
-        res.render('login', { 
+        res.render('login/login', { 
             success: result.message,
             error: null
         });
   }
   catch(error){
      console.error('Reset password error:', error);
-        res.render('reset-password', { 
+        res.render('login/reset-password', { 
             token: req.params.token,
             error: 'Error resetting password',
             success: null

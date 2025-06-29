@@ -265,8 +265,24 @@ function processQuarterlyPayment(quarter, year) {
             }
         },
         error: (err) => {
-            console.error('Order creation error:', err);
-            alert('There was an error processing your payment. Please try again later.');
+            
+            // Check if there's a specific error message from the server
+            let errorMessage = 'There was an error processing your payment. Please try again later.';
+            
+            if (err.responseJSON && err.responseJSON.msg) {
+                errorMessage = err.responseJSON.msg;
+            } else if (err.responseText) {
+                try {
+                    const response = JSON.parse(err.responseText);
+                    if (response.msg) {
+                        errorMessage = response.msg;
+                    }
+                } catch (e) {
+                    // If parsing fails, use default message
+                }
+            }
+            
+            alert(errorMessage);
         }
     });
 }

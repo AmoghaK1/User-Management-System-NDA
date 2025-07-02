@@ -278,6 +278,28 @@ const handleUserRegistration = async (data) => {
                return { success: false, message: 'Invalid email format' };
             }
             
+            // Validate birthdate
+            if (!birthdate) {
+                return { success: false, message: 'Birthdate is required' };
+            }
+            
+            const birthdateObj = new Date(birthdate);
+            if (isNaN(birthdateObj.getTime())) {
+                return { success: false, message: 'Invalid birthdate format' };
+            }
+            
+            // Check if birthdate is in the future
+            if (birthdateObj > new Date()) {
+                return { success: false, message: 'Birthdate cannot be in the future' };
+            }
+            
+            // Check if birthdate is reasonable (not more than 100 years ago)
+            const hundredYearsAgo = new Date();
+            hundredYearsAgo.setFullYear(hundredYearsAgo.getFullYear() - 100);
+            if (birthdateObj < hundredYearsAgo) {
+                return { success: false, message: 'Birthdate cannot be more than 100 years ago' };
+            }
+            
             // Hash the password
             const hashedPassword = await bcrypt.hash(password, 10);
     

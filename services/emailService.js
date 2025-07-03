@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
-const transporter = require('../config/nodemailer'); // move transporter there
+const transporter = require('../config/nodeMailer'); // move transporter there
 const userVerification = require('../models/userVerification');
 
 const sendVerification = async (user) => {

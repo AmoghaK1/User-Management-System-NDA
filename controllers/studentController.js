@@ -9,10 +9,20 @@ const StudyMaterial = require('../models/studyMaterialModel');
 // Helper: Format dates
 const formatUserDates = (user) => {
     if (user.birthdate) {
-        user.birthdate = new Date(user.birthdate).toLocaleDateString('en-GB');
+        const birthDate = new Date(user.birthdate);
+        if (!isNaN(birthDate.getTime())) {
+            user.birthdate = birthDate.toLocaleDateString('en-GB');
+        } else {
+            user.birthdate = 'Invalid Date';
+        }
     }
-    if (user.joinDate) {
-        user.joinDate = new Date(user.joinDate).toLocaleDateString('en-GB');
+    if (user.createdAt) {
+        const createdDate = new Date(user.createdAt);
+        if (!isNaN(createdDate.getTime())) {
+            user.createdAt = createdDate.toLocaleDateString('en-GB');
+        } else {
+            user.createdAt = 'Invalid Date';
+        }
     }
     return user;
 };

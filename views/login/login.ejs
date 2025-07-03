@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDA - Login</title>
+    <link rel="stylesheet" href="../stylesheets/login.css">
+    <link rel="stylesheet" href="../stylesheets/notifications.css">
+    <link rel="icon" type="image/png" href="../images/favicon-2.0.3/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="../images/favicon-2.0.3/favicon.svg" />
+    <link rel="shortcut icon" href="../images/favicon-2.0.3/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon-2.0.3/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Nrutyashree" />
+    <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+</head>
+<body>
+    <% if (error) { %>
+        <div class="error-message">
+            <span><%= error %></span>
+        </div>
+    <% } %>
+    
+    <% if (success) { %>
+        <div class="success-message">
+            <span><%= success %></span>
+        </div>
+    <% } %>
+       <!-- Rest of your HTML remains the same -->
+       <div class="login-container">
+        <div class="welcome-section">
+            <img src="../images/natraj-logo.png" alt="Nrutyashree Dance Academy Logo" class="logo">
+            <div class="welcome-content">
+                <h1>Welcome to<br>Nrutyashree Dance Academy!</h1>
+                <p>Discover the art of classical dance</p>
+            </div>
+        </div>
+        <div class="form-section">
+            <div class="login-form">
+                <h2>Login</h2>
+                <p class="subtitle">Please login to your student account</p>
+                <form method="post" action="/login">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                          <input type="password" id="password" name="password" required>
+                          <i class="fa-solid fa-eye" id="togglePassword"></i>
+                        </div>
+                      </div>
+                    <div class="remember-forgot">
+                        <div class="remember-me">
+                            <input type="checkbox" id="remember">
+                            <label for="remember">Remember Me</label>
+                        </div>  
+                        <a href="/forgot-password" class="forgot-password">Forgot Password?</a>
+                    </div>
+                    <button type="submit">Login</button>
+                    <div class="signup-prompt">
+                        New Student? <a href="/signup">Register</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="../javascripts/notifications.js"></script>
+    <script>
+        const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("password");
+
+    togglePassword.addEventListener("click", () => {
+        const type = passwordInput.type === "password" ? "text" : "password";
+        passwordInput.type = type;
+        togglePassword.classList.toggle("fa-eye");
+        togglePassword.classList.toggle("fa-eye-slash");
+    });     
+
+    </script>
+</body>
+
+</html>

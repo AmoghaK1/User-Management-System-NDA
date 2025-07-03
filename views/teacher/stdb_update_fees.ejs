@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Student Fees - NDA</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../stylesheets/stdb_update_fees.css">
+    <link rel="icon" type="image/png" href="../images/favicon-2.0.3/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="../images/favicon-2.0.3/favicon.svg" />
+    <link rel="shortcut icon" href="../images/favicon-2.0.3/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon-2.0.3/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Nrutyashree" />
+    <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
+</head>
+<body>
+    <div class="floating-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="container">
+        <!-- Month and Status Section -->
+        <%
+            // Prepare month name and status dynamically
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            let displayMonth = '';
+            let displayYear = '';
+            let displayStatus = '';
+            if (typeof isQuarterly !== 'undefined' && isQuarterly && typeof quarter !== 'undefined' && quarter) {
+                // Quarterly mode
+                const quarterNames = ['Q1 (Jan-Mar)', 'Q2 (Apr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Oct-Dec)'];
+                displayMonth = quarterNames[quarter - 1] || '';
+                displayYear = typeof year !== 'undefined' ? year : '';
+                displayStatus = typeof status !== 'undefined' ? status : 'NOT PAID';
+            } else if (typeof month !== 'undefined' && month !== '') {
+                // Monthly mode
+                displayMonth = monthNames[month] || '';
+                displayYear = typeof year !== 'undefined' ? year : '';
+                displayStatus = typeof status !== 'undefined' ? status : 'NOT PAID';
+            }
+        %>
+        <div class="month-status-section">
+            <div class="month-header">
+                <h1 class="month-title"><%= displayMonth %> <%= displayYear %></h1>
+                <div class="status-container">
+                    <span class="status-label">STATUS:</span>
+                    <span class="status-value"><%= displayStatus %></span>
+                </div>
+            </div>
+            <div class="divider"></div>
+        </div> 
+
+        <!-- Payment Form Section -->
+        <div class="payment-section">
+            <h2 class="section-title">ADD PAYMENT</h2>
+            <% if (typeof studentId !== 'undefined' && studentId) { %>
+            <form id="paymentForm" method="POST" action="/student-db-details/<%= studentId %>/update-fee">
+                <input type="hidden" name="year" value="<%= typeof year !== 'undefined' ? year : '' %>">
+                <input type="hidden" name="month" value="<%= typeof month !== 'undefined' ? month : '' %>">
+                <input type="hidden" name="quarter" value="<%= typeof quarter !== 'undefined' ? quarter : '' %>">
+                <input type="hidden" name="isQuarterly" value="<%= typeof isQuarterly !== 'undefined' ? isQuarterly : '' %>">
+                <div class="form-group">
+                    <label for="feeAmount" class="form-label">Enter Fee Amount</label>
+                    <input 
+                        type="number" 
+                        id="feeAmount" 
+                        name="amount" 
+                        class="form-input" 
+                        placeholder="Enter amount in ₹"
+                        min="0"
+                        step="0.01"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmAmount" class="form-label">Confirm Fee Amount</label>
+                    <input 
+                        type="number" 
+                        id="confirmAmount" 
+                        name="confirmAmount" 
+                        class="form-input" 
+                        placeholder="Re-enter amount to confirm"
+                        min="0"
+                        step="0.01"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Payment Type</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="paymentType" value="gpay" required>
+                            <span class="radio-label">GPay</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="paymentType" value="cash" required>
+                            <span class="radio-label">Cash</span>
+                        </label>
+                       
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>Submit <i class="fas fa-arrow-right"></i></span>
+                </button>
+            </form>
+            <% } else { %>
+                <div style="color: red; text-align: center;">Student ID is missing. Cannot submit payment.</div>
+            <% } %>
+        </div>
+    </div>
+
+    <script>
+        // Handle radio button selection styling
+        document.querySelectorAll('input[name="paymentType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove selected class from all options
+                document.querySelectorAll('.radio-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // Add selected class to current option
+                this.closest('.radio-option').classList.add('selected');
+            });
+        });
+
+        // Form validation
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            // Remove e.preventDefault() so the form submits normally
+            // e.preventDefault();
+            
+            const feeAmount = document.getElementById('feeAmount').value;
+            const confirmAmount = document.getElementById('confirmAmount').value;
+            const paymentType = document.querySelector('input[name="paymentType"]:checked');
+            
+            if (!feeAmount || !confirmAmount) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            if (feeAmount !== confirmAmount) {
+                alert('Fee amounts do not match. Please check and try again.');
+                return;
+            }
+            
+            if (!paymentType) {
+                alert('Please select a payment type.');
+                return;
+            }
+            
+            // Here you would normally submit the form to your server
+            alert(`Payment submitted successfully!\nAmount: ₹${feeAmount}\nPayment Type: ${paymentType.value.toUpperCase()}`);
+        });
+
+        // Amount matching validation
+        document.getElementById('confirmAmount').addEventListener('input', function() {
+            const feeAmount = document.getElementById('feeAmount').value;
+            const confirmAmount = this.value;
+            
+            if (feeAmount && confirmAmount && feeAmount !== confirmAmount) {
+                this.style.borderColor = '#e74c3c';
+                this.style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.1)';
+            } else {
+                this.style.borderColor = '';
+                this.style.boxShadow = '';
+            }
+        });
+    </script>
+</body>
+</html>

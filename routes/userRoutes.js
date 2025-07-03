@@ -7,7 +7,8 @@ const auth = require('../middlewares/auth');
 user_route.use(bodyParser.json());
 user_route.use(bodyParser.urlencoded({extended: true}));
 
-const userController = require('../controllers/userController');
+const loginController = require('../controllers/loginController');
+const studentController = require(`../controllers/studentController`);
 const passport = require('passport');
 
 
@@ -19,21 +20,21 @@ user_route.get('/signup', auth.redirectIfAuthenticated, (req, res) => {
     const formData = req.flash('formData')[0] || {};
     
     
-    res.render('signup', { 
+    res.render('login/signup', { 
         error, 
         success, 
         formData 
     });
 });
-user_route.post('/signup', userController.addUser);
-user_route.get('/user/verify/:userId/:uniqueString', userController.verifyEmail);
-user_route.get('/verified', userController.loadVerifiedPage);
-user_route.get('/login', auth.redirectIfAuthenticated, userController.loadLogin);
+user_route.post('/signup',  loginController.addUser);
+user_route.get('/user/verify/:userId/:uniqueString', loginController.verifyEmail);
+user_route.get('/verified', loginController.loadVerifiedPage);
+user_route.get('/login', auth.redirectIfAuthenticated, loginController.loadLogin);
 
-user_route.get('/forgot-password', auth.redirectIfAuthenticated, userController.loadForgotPassword);
-user_route.post('/forgot-password', userController.forgotPassword);
-user_route.get('/reset-password/:token', userController.loadResetPassword);
-user_route.post('/reset-password/:token', userController.resetPassword);
+user_route.get('/forgot-password', auth.redirectIfAuthenticated, loginController.loadForgotPassword);
+user_route.post('/forgot-password', loginController.forgotPassword);
+user_route.get('/reset-password/:token', loginController.loadResetPassword);
+user_route.post('/reset-password/:token', loginController.resetPassword);
 
 user_route.post('/login', (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
@@ -41,12 +42,12 @@ user_route.post('/login', (req, res, next) => {
         
         // If no user found or authentication fails
         if (!user) {
-            return res.render("login", { error: info.message, success: null });
+            return res.render("login/login", { error: info.message, success: null });
         }
 
         // Check if user is verified
         if (!user.is_verified && user.email != "rajjii11@gmail.com") {
-            return res.render("login", { 
+            return res.render("login/login", { 
                 error: "Please verify your email before logging in. Check your inbox for verification link.", 
                 success: null 
             });
@@ -65,15 +66,17 @@ user_route.post('/login', (req, res, next) => {
     })(req, res, next);
 });
 
-// Rest of the routes remain the same
-user_route.get('/st-dashboard', auth.ensureAuthenticated, userController.load_stDashboard);
-user_route.get('/logout', userController.logout_user);
-user_route.get('/st-profile', auth.ensureAuthenticated, userController.loadProfile);
-user_route.put('/api/profile/update', auth.ensureAuthenticated, userController.updateProfile);
-user_route.post('/api/profile/update-picture', auth.ensureAuthenticated, userController.updateProfilePicture);
-user_route.post('/api/profile/change-password', auth.ensureAuthenticated, userController.changePassword);
-user_route.get('/events', auth.ensureAuthenticated, userController.loadEventsPage);
-user_route.get('/study', auth.ensureAuthenticated, userController.loadStudyPage);
-user_route.get('/certificates', auth.ensureAuthenticated, userController.loadCertiPage);
+user_route.get('/st-dashboard', auth.ensureAuthenticated, studentController.load_stDashboard);
+user_route.get('/logout', studentController.logout_user);
+user_route.get('/st-profile', auth.ensureAuthenticated, studentController.loadProfile);
+user_route.put('/api/profile/update', auth.ensureAuthenticated, studentController.updateProfile);
+user_route.post('/api/profile/update-picture', auth.ensureAuthenticated, studentController.updateProfilePicture);
+user_route.post('/api/profile/change-password', auth.ensureAuthenticated, studentController.changePassword);
+user_route.get('/events', auth.ensureAuthenticated, studentController.loadEventsPage);
+user_route.get('/study', auth.ensureAuthenticated, studentController.loadStudyPage);
+user_route.get('/api/study-materials', auth.ensureAuthenticated, studentController.getStudyMaterials);
+user_route.get('/certificates', auth.ensureAuthenticated, studentController.loadCertiPage);
+user_route.get('/study-materials', auth.ensureAuthenticated, studentController.loadStudyPage);
+
 
 module.exports = user_route;

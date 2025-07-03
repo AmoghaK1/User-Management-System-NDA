@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const feeStructure = {
-    "Regular Student": 1000,
+    "Senior Batch": 1000,
     "Prarambhik": 800,
     "Praveshika Pratham": 800,
     "Praveshika Purna": 800,
@@ -65,7 +65,7 @@ const userSchema = new mongoose.Schema ({
     },
     profilePicture: {
         type: String,
-        default: "https://res.cloudinary.com/dy2kitfup/image/upload/v1700000000/profile_pictures/o9ojcgon2k7icjmkyghb",
+        default: "https://res.cloudinary.com/dy2kitfup/image/upload/v1700000000/profile_pictures/jfjx3h5tzknc6tt2vusj",
     },
     resetPasswordToken: {
         type: String,
@@ -80,7 +80,8 @@ const userSchema = new mongoose.Schema ({
     
 });
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
+module.exports = User;
 
 

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Details - NDA</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../stylesheets/student_db_details.css">
+    <link rel="icon" type="image/png" href="../images/favicon-2.0.3/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="../images/favicon-2.0.3/favicon.svg" />
+    <link rel="shortcut icon" href="../images/favicon-2.0.3/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon-2.0.3/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Nrutyashree" />
+    <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
+</head>
+<body>
+    <div class="floating-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="container">
+         <%
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const year = payment && payment.year ? payment.year : new Date().getFullYear();
+      const quarterNames = ['Q1 (Jan-Mar)', 'Q2 (Apr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Oct-Dec)'];
+    %>
+        <!-- Student Profile Section -->
+        <div class="student-profile">
+            <div class="search-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            
+            <div class="profile-header">
+                
+                <div>
+                    <h1 class="profile-name">
+                        <%= student.name %>
+                        <span class="exam-level" style="display:inline-block;margin-left:1rem;background:linear-gradient(135deg,#6c5ce7 0%,#8e44ad 100%);color:white;padding:0.3rem 1rem;border-radius:25px;font-size:0.9rem;font-weight:600;vertical-align:middle;">
+                            <%= student.exam_level %>
+                        </span>
+                    </h1>
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <div class="detail-item">
+                    <span class="detail-label">Age:</span>
+                    <span><%= student.age %></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Phone:</span>
+                    <span><%= student.student_ph_no %></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Exam:</span>
+                    <span><%= student.exam_level %></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">DOB:</span>
+                    <span><%= student.birthdate ? student.birthdate.toLocaleDateString() : '' %></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Status Section -->
+        <div class="fee-section">
+            <div class="fee-header"> 
+                <h2 class="fee-title">FEE STATUS</h2>
+                <div class="fee-toggle">
+                    <button class="toggle-btn active" id="monthsBtn">Months</button>
+                    <button class="toggle-btn" id="quartersBtn">Quarter</button>
+                </div>
+            </div>
+            <div class="fee-amount">Current fee: <%= student.exam_fee %></div>
+            <div class="fee-list" id="monthsList">
+                <% for(let i = 0; i < 12; i++) { 
+                    const status = payment && payment.months && (payment.months[i] || (payment.months.get && payment.months.get(String(i)))) || 'Pending';
+                    const paid = status === 'Paid';
+                %>
+                    <div class="fee-item <%= paid ? 'paid' : 'unpaid' %>">
+                        <span class="fee-month"><%= monthNames[i] %> <%= year %></span>
+                        <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&month=<%= i %>&isQuarterly=false">
+                            <button class="edit-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </a>
+                    </div>
+                <% } %>
+            </div>
+            <div class="fee-list" id="quartersList" style="display:none;">
+                <% for(let q = 1; q <= 4; q++) { 
+                    const status = payment && payment.quarters && (payment.quarters[q] || (payment.quarters.get && payment.quarters.get(String(q)))) || 'Pending';
+                    const paid = status === 'Paid';
+                %>
+                    <div class="fee-item <%= paid ? 'paid' : 'unpaid' %>">
+                        <span class="fee-month"><%= quarterNames[q-1] %> <%= year %></span>
+                        <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&quarter=<%= q %>&isQuarterly=true">
+                            <button class="edit-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Toggle between months and quarters
+        document.addEventListener('DOMContentLoaded', function() {
+            const monthsBtn = document.getElementById('monthsBtn');
+            const quartersBtn = document.getElementById('quartersBtn');
+            const monthsList = document.getElementById('monthsList');
+            const quartersList = document.getElementById('quartersList');
+            monthsBtn.addEventListener('click', function() {
+                monthsBtn.classList.add('active');
+                quartersBtn.classList.remove('active');
+                monthsList.style.display = '';
+                quartersList.style.display = 'none';
+            });
+            quartersBtn.addEventListener('click', function() {
+                quartersBtn.classList.add('active');
+                monthsBtn.classList.remove('active');
+                monthsList.style.display = 'none';
+                quartersList.style.display = '';
+            });
+        });
+    </script>
+   
+</body>
+</html>

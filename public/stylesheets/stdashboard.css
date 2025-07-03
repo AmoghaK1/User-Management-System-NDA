@@ -188,11 +188,12 @@ body {
 /* Enhanced Main Section */
 .main-section {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 300px));
   gap: 25px;
   padding: 40px 20px;
   max-width: 1200px;
   margin: 0 auto 35vh auto;
+  justify-content: center;
 }
 
 .card {
@@ -345,6 +346,14 @@ body {
     padding: 25px;
   }
 
+  
+
+}
+
+@media screen and (max-width: 400px) {
+  #studymaterial {
+    padding-bottom: 1.45rem;
+  }
 }
 
 /* Footer Styles */

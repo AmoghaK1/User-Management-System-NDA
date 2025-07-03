@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const userVerification = require('../models/userVerification');
 const crypto = require('crypto');
-const transporter = require('../config/NodeMailer');
+const transporter = require('../config/nodeMailer');
 const { sendVerification } = require('../services/emailService');
 const PaymentStatus = require('../models/paymentModel');
 

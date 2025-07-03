@@ -12,6 +12,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon-2.0.3/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Nrutyashree" />
     <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
+    <!-- Add FontAwesome if not already present -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body class="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4 md:p-8 flex items-center justify-center">
     <script src="../javascripts/st-profile.js"></script>
@@ -153,15 +155,24 @@
             <form id="changePasswordForm" class="space-y-4 hidden">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Current Password</label>
-                    <input type="password" name="currentPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <div class="input-wrapper relative">
+                        <input type="password" name="currentPassword" id="currentPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm pr-12" required>
+                        <i class="fa-solid fa-eye absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500" id="toggleCurrentPassword" style="font-size: 1.1rem;"></i>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">New Password</label>
-                    <input type="password" name="newPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <div class="input-wrapper relative">
+                        <input type="password" name="newPassword" id="newPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm pr-12" required>
+                        <i class="fa-solid fa-eye absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500" id="toggleNewPassword" style="font-size: 1.1rem;"></i>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Confirm New Password</label>
-                    <input type="password" name="confirmPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    <div class="input-wrapper relative">
+                        <input type="password" name="confirmPassword" id="confirmPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm pr-12" required>
+                        <i class="fa-solid fa-eye absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500" id="toggleConfirmPassword" style="font-size: 1.1rem;"></i>
+                    </div>
                 </div>
                 <div class="flex justify-end space-x-3">
                     <button type="button" class="px-4 py-2 bg-gray-200 rounded-md" onclick="closeEditModal()">Cancel</button>
@@ -170,5 +181,62 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Password validation function (optional: add your own rules)
+        function isPasswordValid(password) {
+            // At least 8 chars, one uppercase, one lowercase, one digit
+            return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
+        }
+
+        // Password eye toggle logic for all password fields
+        function setupPasswordToggle(inputId, toggleId) {
+            const input = document.getElementById(inputId);
+            const toggle = document.getElementById(toggleId);
+            if (input && toggle) {
+                toggle.addEventListener('click', () => {
+                    const type = input.type === "password" ? "text" : "password";
+                    input.type = type;
+                    toggle.classList.toggle("fa-eye");
+                    toggle.classList.toggle("fa-eye-slash");
+                });
+            }
+        }
+        setupPasswordToggle("currentPassword", "toggleCurrentPassword");
+        setupPasswordToggle("newPassword", "toggleNewPassword");
+        setupPasswordToggle("confirmPassword", "toggleConfirmPassword");
+
+        // Password change form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('changePasswordForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    const errorDiv = document.getElementById('passwordClientError');
+                    errorDiv.style.display = "none";
+                    errorDiv.textContent = "";
+
+                    if (!isPasswordValid(newPassword)) {
+                        e.preventDefault();
+                        errorDiv.textContent = "New password must be at least 8 characters long and include an uppercase letter, a lowercase letter, and a digit.";
+                        errorDiv.style.display = "block";
+                        errorDiv.scrollIntoView({behavior: "smooth", block: "center"});
+                    } else if (newPassword !== confirmPassword) {
+                        e.preventDefault();
+                        errorDiv.textContent = "New password and confirm password do not match.";
+                        errorDiv.style.display = "block";
+                        errorDiv.scrollIntoView({behavior: "smooth", block: "center"});
+                    } else if (currentPassword === newPassword) {
+                        e.preventDefault();
+                        errorDiv.textContent = "New password cannot be the same as the current password.";
+                        errorDiv.style.display = "block";
+                        errorDiv.scrollIntoView({behavior: "smooth", block: "center"});
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

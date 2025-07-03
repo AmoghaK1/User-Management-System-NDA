@@ -25,15 +25,50 @@ const form = document.getElementById('uploadForm');
       e.preventDefault();
       fileUploadArea.classList.remove('drag-over');
       const files = e.dataTransfer.files;
+      
       if (files.length > 0) {
+        const file = files[0];
+        
+        // Check file size (30MB limit)
+        const maxSize = 30 * 1024 * 1024; // 30MB in bytes
+        if (file.size > maxSize) {
+          showMessage('File size must be less than 30MB. Please choose a smaller file.', 'error');
+          return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+          showMessage('Only PDF, JPG, JPEG, and PNG files are allowed.', 'error');
+          return;
+        }
+        
         fileInput.files = files;
-        updateFileUploadText(files[0].name);
+        updateFileUploadText(file.name);
       }
     });
 
     fileInput.addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
-        updateFileUploadText(e.target.files[0].name);
+        const file = e.target.files[0];
+        
+        // Check file size (30MB limit)
+        const maxSize = 30 * 1024 * 1024; // 30MB in bytes
+        if (file.size > maxSize) {
+          showMessage('File size must be less than 30MB. Please choose a smaller file.', 'error');
+          e.target.value = ''; // Clear the file input
+          return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+          showMessage('Only PDF, JPG, JPEG, and PNG files are allowed.', 'error');
+          e.target.value = ''; // Clear the file input
+          return;
+        }
+        
+        updateFileUploadText(file.name);
       }
     });
 
@@ -228,7 +263,7 @@ const form = document.getElementById('uploadForm');
       } finally {
         hideLoadingSpinner();
       }
-    }form.addEventListener('submit', async (e) => {
+    }    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const submitBtn = form.querySelector('button[type="submit"]');
@@ -240,6 +275,16 @@ const form = document.getElementById('uploadForm');
         if (categorySelect.value === '__new__') {
           formData.set('category', newCategoryInput.value.trim());
         }
+
+        // Validate file before submission
+        const fileInput = document.getElementById('file');
+        if (!fileInput.files || fileInput.files.length === 0) {
+          showMessage('Please select a file to upload.', 'error');
+          return;
+        }
+
+        const file = fileInput.files[0];
+        
 
         // Show loading spinner and disable button
         showLoadingSpinner();
@@ -261,7 +306,8 @@ const form = document.getElementById('uploadForm');
           newCategoryDiv.style.display = 'none';
           fetchMaterials(); // Refresh the materials list
         } else {
-          showMessage(result.message || 'Upload failed. Please try again.', 'error');
+          console.error('Upload failed:', result);
+          showMessage(result.message || result.error || 'Upload failed. Please try again.', 'error');
         }
 
       } catch (error) {

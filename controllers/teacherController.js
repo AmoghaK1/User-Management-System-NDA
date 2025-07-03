@@ -52,6 +52,18 @@ const uploadMaterial = async (req, res) => {
     const { title, category, level } = req.body;
     const file = req.file;
 
+    console.log('Upload request received:', {
+      title,
+      category,
+      level,
+      file: file ? {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        path: file.path
+      } : 'No file'
+    });
+
     if (!file) {
       return res.status(400).json({ message: 'File is required' });
     }
@@ -62,6 +74,8 @@ const uploadMaterial = async (req, res) => {
       : file.mimetype === 'application/pdf'
         ? 'pdf'
         : 'unknown';
+
+    console.log('Determined file type:', type);
 
     if (type === 'unknown') {
       return res.status(400).json({ message: 'Only images and PDFs are allowed' });
@@ -75,6 +89,8 @@ const uploadMaterial = async (req, res) => {
       level
     });
 
+    console.log('Material saved successfully:', materialDTO);
+
     res.status(201).json({
       message: 'Study material uploaded successfully',
       data: materialDTO
@@ -82,7 +98,7 @@ const uploadMaterial = async (req, res) => {
 
   } catch (err) {
     console.error('Upload Error:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 };
 

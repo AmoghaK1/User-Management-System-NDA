@@ -1,4 +1,4 @@
- /* Basic Reset and Body Styles */
+/* Basic Reset and Body Styles */
             * {
                 margin: 0;
                 padding: 0;
@@ -74,7 +74,7 @@
                 backdrop-filter: blur(10px);
                 border-radius: 15px;
                 border: 1px solid rgba(255, 255, 255, 0.2);
-                color: white;
+                color: rgb(46, 46, 46);
                 text-align: center;
             }
 
@@ -82,7 +82,7 @@
                 width: 50px;
                 height: 50px;
                 border: 4px solid rgba(255, 255, 255, 0.3);
-                border-top: 4px solid white;
+                border-top: 4px solid rgb(46, 46, 46);
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
                 margin-bottom: 1rem;
@@ -289,10 +289,49 @@
                 padding: 1.2rem;
             }
 
+            /* Fix alignment between PDF and image cards */
+            .material-card .card-content {
+                min-height: 140px; /* Ensure consistent content height */
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            /* Ensure PDF card thumbnails have consistent height with image cards */
+            .card-thumbnail {
+                height: 160px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                position: relative;
+            }
+
+            .pdf-thumbnail {
+                background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            }
+
+            .audio-thumbnail {
+                background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            }
+
+            .card-thumbnail i {
+                font-size: 3rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .pdf-preview, .audio-preview {
+                font-weight: bold;
+                font-size: 1.2rem;
+            }
+
             .card-content h4 {
                 font-size: 1.2rem;
                 margin-bottom: 0.5rem;
                 color: #333;
+                flex-shrink: 0; /* Prevent title from shrinking */
             }
 
             .material-type {
@@ -304,6 +343,7 @@
                 font-weight: 600;
                 display: inline-block;
                 margin-bottom: 1rem;
+                align-self: flex-start; /* Align to start */
             }
 
             .material-meta {
@@ -313,6 +353,7 @@
                 margin-bottom: 1rem;
                 font-size: 0.9rem;
                 color: #666;
+                flex-grow: 1; /* Allow this to grow and push button down */
             }
 
             .material-level {
@@ -341,6 +382,8 @@
                 align-items: center;
                 justify-content: center;
                 gap: 0.5rem;
+                margin-top: auto; /* Push button to bottom */
+                flex-shrink: 0; /* Prevent button from shrinking */
             }
 
             .view-btn:hover {

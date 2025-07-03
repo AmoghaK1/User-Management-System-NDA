@@ -121,6 +121,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Password validation function
+    const validatePassword = (password) => {
+        const errors = [];
+        
+        if (password.length < 8) {
+            errors.push("Password must be at least 8 characters long");
+        }
+        
+        if (!/(?=.*[a-z])/.test(password)) {
+            errors.push("Password must contain at least one lowercase letter");
+        }
+        
+        if (!/(?=.*[A-Z])/.test(password)) {
+            errors.push("Password must contain at least one uppercase letter");
+        }
+        
+        if (!/(?=.*\d)/.test(password)) {
+            errors.push("Password must contain at least one number");
+        }
+        
+        if (!/(?=.*[@$!%*?&])/.test(password)) {
+            errors.push("Password must contain at least one special character (@$!%*?&)");
+        }
+        
+        return errors;
+    };
+
     // Handle password change form submission
     document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -133,8 +160,35 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     
         // Client-side validation
+        if (!passwordData.currentPassword) {
+            alert("Please enter your current password");
+            return;
+        }
+
+        if (!passwordData.newPassword) {
+            alert("Please enter a new password");
+            return;
+        }
+
+        if (!passwordData.confirmPassword) {
+            alert("Please confirm your new password");
+            return;
+        }
+
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             alert("New passwords don't match!");
+            return;
+        }
+
+        // Validate new password format
+        const passwordErrors = validatePassword(passwordData.newPassword);
+        if (passwordErrors.length > 0) {
+            alert("Password validation failed:\n\n" + passwordErrors.join("\n"));
+            return;
+        }
+
+        if (passwordData.currentPassword === passwordData.newPassword) {
+            alert("New password must be different from current password");
             return;
         }
     
@@ -142,63 +196,59 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.disabled = true;
         submitButton.textContent = 'Changing Password...';
     
-        // Get the base URL of your API
-        const apiUrl = '/api/profile/change-password';
-        console.log('Attempting to send request to:', apiUrl);
-        console.log('Request payload:', JSON.stringify(passwordData, null, 2));
-    
         try {
-            console.log('Sending request...');
-            const response = await fetch(apiUrl, {
+            const response = await fetch('/api/profile/change-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Add a custom header to help identify the request in network tab
-                    'X-Request-Type': 'password-change'
                 },
                 body: JSON.stringify(passwordData),
-                // Add these options to help debug potential CORS issues
-                credentials: 'include',
-                mode: 'cors'
+                credentials: 'include'
             });
             
-            console.log('Response status:', response.status);
-            console.log('Response headers:', [...response.headers.entries()]);
-    
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-    
-            const contentType = response.headers.get('content-type');
-            console.log('Content-Type:', contentType);
-    
+            // Parse response data
             let data;
-            if (contentType && contentType.includes('application/json')) {
+            try {
                 data = await response.json();
-                console.log('Response data:', data);
-            } else {
-                throw new Error('Expected JSON response but got: ' + contentType);
+            } catch (parseError) {
+                throw new Error('Server returned invalid response. Please try again.');
             }
     
-            if (data.success) {
+            if (response.ok && data.success) {
                 alert('Password changed successfully!');
                 closeEditModal();
                 e.target.reset();
             } else {
-                alert(data.error || 'Failed to change password');
+                // Handle specific error cases
+                let errorMessage = 'Failed to change password';
+                
+                if (response.status === 401) {
+                    errorMessage = 'Current password is incorrect. Check forgot password if needed.';
+                } else if (response.status === 400) {
+                    if (data.error && data.error.toLowerCase().includes('current password')) {
+                        errorMessage = 'Current password is incorrect. Check forgot password if needed.';
+                    } else if (data.error && data.error.toLowerCase().includes('password')) {
+                        errorMessage = data.error;
+                    } else {
+                        errorMessage = data.error || 'Invalid request. Please check your input.';
+                    }
+                } else if (response.status === 500) {
+                    errorMessage = 'Server error occurred. Please try again later.';
+                } else if (data.error) {
+                    errorMessage = data.error;
+                }
+                
+                alert(errorMessage);
             }
         } catch (error) {
-            console.error('Detailed error information:', {
-                message: error.message,
-                name: error.name,
-                stack: error.stack
-            });
+            console.error('Password change error:', error);
             
-            let errorMessage = 'Network error occurred. ';
-            if (error.message.includes('Failed to fetch')) {
-                errorMessage += 'The server appears to be unavailable. Please check if the backend service is running.';
+            let errorMessage = 'An error occurred while changing password. ';
+            
+            if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                errorMessage += 'Please check your internet connection and try again.';
             } else if (error.message.includes('NetworkError')) {
-                errorMessage += 'This might be a CORS issue. Please check the server configuration.';
+                errorMessage += 'Network connection failed. Please check if you are connected to the internet.';
             } else {
                 errorMessage += error.message;
             }

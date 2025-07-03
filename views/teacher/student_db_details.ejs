@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Details - NDA</title>
+    <title>Student Details | NDA</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../stylesheets/student_db_details.css">
     <link rel="icon" type="image/png" href="../images/favicon-2.0.3/favicon-96x96.png" sizes="96x96" />
@@ -84,11 +84,13 @@
                 %>
                     <div class="fee-item <%= paid ? 'paid' : 'unpaid' %>">
                         <span class="fee-month"><%= monthNames[i] %> <%= year %></span>
-                        <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&month=<%= i %>&isQuarterly=false">
-                            <button class="edit-btn">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </a>
+                        <% if (!paid) { %>
+                            <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&month=<%= i %>&isQuarterly=false">
+                                <button class="edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </a>
+                        <% } %>
                     </div>
                 <% } %>
             </div>
@@ -99,11 +101,13 @@
                 %>
                     <div class="fee-item <%= paid ? 'paid' : 'unpaid' %>">
                         <span class="fee-month"><%= quarterNames[q-1] %> <%= year %></span>
-                        <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&quarter=<%= q %>&isQuarterly=true">
-                            <button class="edit-btn">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </a>
+                        <% if (!paid) { %>
+                            <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&quarter=<%= q %>&isQuarterly=true">
+                                <button class="edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </a>
+                        <% } %>
                     </div>
                 <% } %>
             </div>

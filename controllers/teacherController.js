@@ -1,6 +1,7 @@
 const teacherService = require('../services/teacherService');
 const { getAllStudents} = require('../services/teacherService');
 const PaymentStatus = require('../models/paymentModel');
+const feeCollectionEvents = require('../services/feeCollectionEvents');
 
 const load_trDashboard = async(req,res)=>{
     if(req.user.email !== "rajjii11@gmail.com"){
@@ -209,11 +210,67 @@ const updateStudentFee = async (req, res) => {
         }
         // Optionally, you can store amount/paymentType in a separate array or object
         await paymentStatus.save();
+
+        // Emit real-time event for fee collection update
+        feeCollectionEvents.notifyPaymentUpdate({
+            userId: id,
+            year,
+            month,
+            quarter,
+            isQuarterly
+        });
+
+        console.log(`💰 Manual fee update - Student: ${id}, Year: ${year}, Month: ${month}, Quarter: ${quarter}, Quarterly: ${isQuarterly}`);
+
         // Redirect to student details page after update
         res.redirect(`/student-db-details/${id}`);
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
+};
+
+const getFeeCollectionData = async (req, res) => {
+    try {
+        const { year } = req.query;
+        const collectionData = await teacherService.getMonthlyFeeCollection(year);
+        
+        res.status(200).json({
+            success: true,
+            data: collectionData
+        });
+    } catch (error) {
+        console.error("Error fetching fee collection data:", error);
+        res.status(500).json({
+            success: false,
+            error: "Failed to fetch fee collection data"
+        });
+    }
+};
+
+const getFeeCollectionSSE = (req, res) => {
+    // Set up Server-Sent Events
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+    });
+
+    // Send initial connection message
+    res.write(`data: ${JSON.stringify({ 
+        type: 'connected', 
+        message: 'Real-time fee collection updates connected',
+        timestamp: new Date().toISOString()
+    })}\n\n`);
+
+    // Add client to the event emitter
+    feeCollectionEvents.addClient(res);
+
+    // Handle client disconnect
+    req.on('close', () => {
+        console.log('📡 SSE client disconnected');
+    });
 };
 
 module.exports = {
@@ -228,5 +285,7 @@ module.exports = {
     loadStudentDatabaseMain,
     loadStudentDbDetails,
     loadUpdateFee,
-    updateStudentFee
+    updateStudentFee,
+    getFeeCollectionData,
+    getFeeCollectionSSE
 }

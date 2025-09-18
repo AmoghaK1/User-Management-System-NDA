@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Collection Data Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { max-width: 800px; margin: 0 auto; }
+        .test-button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .test-button:hover { background: #0056b3; }
+        .result { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007bff; }
+        .timestamp { color: #666; font-size: 0.9em; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Fee Collection Real-Time Data Test</h1>
+        
+        <div class="test-section">
+            <h3>Test Real-Time Data Fetching</h3>
+            <button class="test-button" onclick="testFeeDataFetch()">🔄 Fetch Fee Collection Data</button>
+            <button class="test-button" onclick="testMultipleFetches()">⚡ Test Multiple Fetches</button>
+            <button class="test-button" onclick="testRealTimeConnection()">📡 Test Real-Time Connection</button>
+            <button class="test-button" onclick="simulatePaymentUpdate()">💰 Simulate Payment Update</button>
+            <button class="test-button" onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+        
+        <div id="results"></div>
+        
+        <div class="instructions">
+            <h3>📋 How to Verify Real-Time Data:</h3>
+            <ol>
+                <li><strong>Check Console Logs:</strong> Open browser DevTools (F12) → Console tab to see real-time fetch logs</li>
+                <li><strong>Test Button:</strong> Click "Fetch Fee Collection Data" multiple times to see fresh timestamps</li>
+                <li><strong>Database Changes:</strong> Update a student's payment status in the database and click fetch again</li>
+                <li><strong>Network Tab:</strong> In DevTools → Network tab, see actual API calls being made</li>
+                <li><strong>Server Logs:</strong> Check your terminal/console where the server is running for database query logs</li>
+            </ol>
+            
+            <h3>🔍 What to Look For:</h3>
+            <ul>
+                <li>✅ New timestamps on each fetch</li>
+                <li>✅ Console logs showing "Fetching fee collection data for year: XXXX at [timestamp]"</li>
+                <li>✅ Different data when payment statuses change in database</li>
+                <li>✅ Network requests in DevTools showing fresh API calls</li>
+                <li>✅ Cache-busting parameter (?t=timestamp) in URLs</li>
+                <li>✅ Real-time SSE connection and payment update events</li>
+                <li>✅ Auto-refresh when students pay fees</li>
+            </ul>
+            
+            <h3>🧪 Real-Time Update Testing:</h3>
+            <ol>
+                <li><strong>Connect to Real-Time Events:</strong> Click "Test Real-Time Connection"</li>
+                <li><strong>Update Student Payment:</strong> Go to Student Database → Select student → Update fee status</li>
+                <li><strong>Watch for Auto-Update:</strong> Fee collection should refresh automatically</li>
+                <li><strong>Simulate Payment:</strong> Click "Simulate Payment Update" to test event flow</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let fetchCounter = 0;
+        let eventSource = null;
+
+        async function testFeeDataFetch() {
+            fetchCounter++;
+            const startTime = new Date();
+            addResult(`🚀 Test #${fetchCounter} - Starting fetch at ${startTime.toLocaleString()}`, 'info');
+            
+            try {
+                // Add cache-busting parameter to ensure fresh data
+                const response = await fetch(`/fee-collection-data?t=${Date.now()}`);
+                const data = await response.json();
+                const endTime = new Date();
+                const duration = endTime - startTime;
+                
+                if (data.success) {
+                    addResult(`✅ Test #${fetchCounter} - Success! Fetched in ${duration}ms`, 'success');
+                    addResult(`📊 Data: ${data.data.summary.totalStudents} students, ₹${data.data.summary.totalYearCollection} total collection`, 'info');
+                    console.log('Fee collection data:', data);
+                } else {
+                    addResult(`❌ Test #${fetchCounter} - Failed: ${data.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Test #${fetchCounter} - Network Error: ${error.message}`, 'error');
+                console.error('Fetch error:', error);
+            }
+        }
+
+        async function testMultipleFetches() {
+            addResult('⚡ Running 3 consecutive fetches to test real-time updates...', 'info');
+            for (let i = 0; i < 3; i++) {
+                await testFeeDataFetch();
+                if (i < 2) await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+            }
+        }
+
+        function testRealTimeConnection() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                addResult('📡 Closed existing real-time connection', 'info');
+                return;
+            }
+
+            addResult('📡 Connecting to real-time fee collection updates...', 'info');
+            
+            eventSource = new EventSource('/fee-collection-sse');
+            
+            eventSource.onopen = function(event) {
+                addResult('✅ Real-time connection established!', 'success');
+            };
+            
+            eventSource.addEventListener('payment-update', function(event) {
+                const data = JSON.parse(event.data);
+                addResult(`💰 Payment update received: ${data.message}`, 'success');
+                console.log('Payment update:', data);
+            });
+            
+            eventSource.addEventListener('fee-collection-refresh', function(event) {
+                const data = JSON.parse(event.data);
+                addResult(`📊 Fee collection refresh: ${data.message}`, 'success');
+                console.log('Fee collection refresh:', data);
+            });
+            
+            eventSource.onerror = function(event) {
+                addResult('❌ Real-time connection error', 'error');
+                console.error('SSE error:', event);
+            };
+
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'connected') {
+                    addResult('📡 Real-time connection handshake completed', 'info');
+                }
+            };
+        }
+
+        function simulatePaymentUpdate() {
+            addResult('💰 Simulating payment update...', 'info');
+            
+            // Dispatch a custom event to simulate payment
+            window.dispatchEvent(new CustomEvent('paymentSuccess', {
+                detail: {
+                    userId: 'test-user-123',
+                    month: new Date().getMonth(),
+                    year: new Date().getFullYear(),
+                    amount: 5000
+                }
+            }));
+            
+            addResult('✅ Payment update event dispatched', 'success');
+        }
+
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `
+                <div>${message}</div>
+                <div class="timestamp">⏰ ${new Date().toLocaleString()}</div>
+            `;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            fetchCounter = 0;
+        }
+
+        // Auto-test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('🎯 Fee Collection Data Tester Loaded - Ready for testing!', 'success');
+            addResult('💡 Tip: Open DevTools (F12) → Console tab to see detailed logs', 'info');
+        });
+    </script>
+</body>
+</html>

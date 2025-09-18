@@ -1,4 +1,4 @@
-/* Enhanced Fee Collection Modal Styles for better responsiveness */
+/* Simplified Fee Collection Modal Styles - Minimalistic Design */
 .modal {
     display: none;
     position: fixed;
@@ -12,42 +12,912 @@
 }
 
 .modal-content {
-    background-color: #fefefe;
+    background-color: #ffffff;
     margin: 2% auto;
     padding: 0;
-    border: 1px solid #888;
+    border: 1px solid #e0e0e0;
     width: 95%;
     max-width: 1200px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .modal-header {
     padding: 15px 20px;
-    background-color: #6B46C1;
+    background-color: #667eea;
     color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 8px 8px 0 0;
+    border-radius: 4px 4px 0 0;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .modal-body {
     padding: 20px;
     max-height: calc(100vh - 150px);
     overflow-y: auto;
+    background-color: #f8f9fa;
 }
 
 .close-modal {
     color: white;
     float: right;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
     cursor: pointer;
+    opacity: 0.8;
 }
 
 .close-modal:hover {
-    color: #f1f1f1;
+    opacity: 1;
+}
+
+/* Simplified Summary Cards */
+.fee-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.summary-card {
+    background: #ffffff;
+    color: #333;
+    padding: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+    transition: none;
+}
+
+.summary-card:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.summary-card.total {
+    border-left: 4px solid #22c55e;
+}
+
+.summary-card.current-month {
+    border-left: 4px solid #667eea;
+}
+
+.summary-card.pending {
+    border-left: 4px solid #ef4444;
+}
+
+.summary-icon {
+    font-size: 1.8rem;
+    margin-right: 15px;
+    opacity: 0.7;
+}
+
+.summary-card.total .summary-icon {
+    color: #22c55e;
+}
+
+.summary-card.current-month .summary-icon {
+    color: #667eea;
+}
+
+.summary-card.pending .summary-icon {
+    color: #ef4444;
+}
+
+.summary-content h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.summary-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.summary-content p {
+    margin: 5px 0 0 0;
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* Simplified Chart Container */
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+    border: 1px solid #e0e0e0;
+    height: 350px;
+}
+
+.chart-container canvas {
+    max-height: 300px !important;
+}
+
+/* Simplified Table Styles */
+.table-responsive {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 25px;
+    border: 1px solid #e0e0e0;
+}
+
+#feeCollectionTable {
+    margin: 0 !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+/* Simple Header */
+#feeCollectionTable thead th {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 15px 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#feeCollectionTable thead th:first-child {
+    border-top-left-radius: 4px;
+}
+
+#feeCollectionTable thead th:last-child {
+    border-top-right-radius: 4px;
+}
+
+/* Simple Table Body Rows */
+#feeCollectionTable tbody tr {
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#feeCollectionTable tbody tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+#feeCollectionTable tbody tr:hover {
+    background: #e3f2fd;
+}
+
+/* Simple Cells */
+#feeCollectionTable tbody td {
+    padding: 12px 10px;
+    border: none;
+    vertical-align: middle;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Simple Month Column */
+.month-cell {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Simple Collection Amount */
+.collection-amount {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #22c55e;
+}
+
+/* Simple Percentage Badges */
+.percentage-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-block;
+    min-width: 60px;
+}
+
+.percentage-high {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.percentage-medium {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.percentage-low {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Simple Student Count */
+.student-count {
+    font-weight: 500;
+    color: #555;
+}
+
+/* Remove complex DataTable styling and animations */
+.dataTables_wrapper {
+    margin-top: 15px;
+}
+
+.dataTables_wrapper .dt-buttons {
+    margin-bottom: 10px;
+}
+
+.dt-button {
+    margin-right: 5px !important;
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+    border-radius: 4px !important;
+    border: 1px solid #ddd !important;
+}
+
+/* Progress bars */
+.progress-bar-mini {
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.progress-fill-mini {
+    height: 100%;
+    background: #667eea;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 98%;
+        margin: 1% auto;
+        max-height: 95vh;
+        border-radius: 8px 8px 0 0;
+        position: fixed;
+        bottom: 0;
+        top: auto;
+        left: 1%;
+        right: 1%;
+    }
+    
+    .modal-header {
+        padding: 12px 15px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.2rem;
+        margin: 0;
+    }
+    
+    .close-modal {
+        font-size: 20px;
+    }
+    
+    .modal-body {
+        padding: 15px;
+        max-height: calc(95vh - 60px);
+    }
+    
+    /* Mobile Summary Cards */
+    .fee-summary-cards {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .summary-card {
+        padding: 15px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .summary-icon {
+        font-size: 1.5rem;
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    
+    .summary-content h3 {
+        font-size: 1.3rem;
+    }
+    
+    .summary-content p {
+        font-size: 0.85rem;
+    }
+    
+    /* Mobile Chart */
+    .chart-container {
+        padding: 15px;
+        height: 250px;
+        margin-bottom: 20px;
+    }
+    
+    .chart-container canvas {
+        max-height: 200px !important;
+    }
+    
+    /* Mobile Table */
+    .table-responsive {
+        border-radius: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    #feeCollectionTable {
+        font-size: 0.8rem;
+        min-width: 600px;
+    }
+    
+    #feeCollectionTable thead th {
+        padding: 10px 8px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+    
+    #feeCollectionTable tbody td {
+        padding: 8px 6px;
+        font-size: 0.75rem;
+    }
+    
+    .month-cell {
+        font-weight: 600;
+        color: #333;
+        min-width: 70px;
+    }
+    
+    .collection-amount {
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #22c55e;
+        white-space: nowrap;
+    }
+    
+    .student-count {
+        font-weight: 500;
+        color: #555;
+        text-align: center;
+    }
+    
+    .percentage-badge {
+        padding: 3px 6px;
+        font-size: 0.7rem;
+        min-width: 45px;
+    }
+    
+    .progress-bar-mini {
+        height: 3px;
+        margin-top: 3px;
+    }
+    
+    /* Mobile DataTable Controls */
+    .dataTables_wrapper {
+        font-size: 0.8rem;
+    }
+    
+    .dataTables_wrapper .dt-buttons {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .dt-button {
+        margin: 2px !important;
+        padding: 6px 10px !important;
+        font-size: 0.7rem !important;
+        border-radius: 4px !important;
+    }
+    
+    .dataTables_filter {
+        margin-bottom: 10px;
+    }
+    
+    .dataTables_filter input {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .dataTables_length select {
+        padding: 4px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .dataTables_info {
+        font-size: 0.75rem;
+        margin-top: 10px;
+    }
+    
+    .dataTables_paginate {
+        margin-top: 10px;
+    }
+    
+    .dataTables_paginate .paginate_button {
+        padding: 4px 8px !important;
+        margin: 0 2px !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    
+    .modal-header {
+        padding: 10px 12px;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .modal-body {
+        padding: 12px;
+        max-height: calc(100vh - 50px);
+    }
+    
+    /* Extra small screen adjustments */
+    .fee-summary-cards {
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .summary-card {
+        padding: 12px;
+    }
+    
+    .summary-content h3 {
+        font-size: 1.2rem;
+    }
+    
+    .chart-container {
+        padding: 10px;
+        height: 200px;
+        margin-bottom: 15px;
+    }
+    
+    .chart-container canvas {
+        max-height: 150px !important;
+    }
+    
+    #feeCollectionTable {
+        font-size: 0.7rem;
+        min-width: 500px;
+    }
+    
+    #feeCollectionTable thead th {
+        padding: 8px 4px;
+        font-size: 0.7rem;
+    }
+    
+    #feeCollectionTable tbody td {
+        padding: 6px 4px;
+        font-size: 0.7rem;
+    }
+    
+    .dt-button {
+        padding: 4px 8px !important;
+        font-size: 0.65rem !important;
+        margin: 1px !important;
+    }
+}
+
+/* DataTables Enhancements */
+.dataTables_wrapper {
+    padding: 20px;
+}
+
+.dataTables_length select,
+.dataTables_filter input {
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    padding: 8px 12px;
+    transition: all 0.3s ease;
+}
+
+.dataTables_length select:focus,
+.dataTables_filter input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.dataTables_info {
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Pagination Styling */
+.dataTables_paginate .paginate_button {
+    border-radius: 8px !important;
+    margin: 0 2px !important;
+    padding: 8px 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+    color: #4a5568 !important;
+    transition: all 0.3s ease !important;
+}
+
+.dataTables_paginate .paginate_button:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: #667eea !important;
+    transform: translateY(-1px);
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: #667eea !important;
+}
+
+/* Export Buttons Styling */
+.dt-buttons {
+    margin-bottom: 20px !important;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dt-button {
+    border-radius: 10px !important;
+    padding: 12px 20px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+}
+
+.dt-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
+}
+
+/* Loading Animation */
+.table-loading {
+    position: relative;
+}
+
+.table-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+    background-size: 200% 100%;
+    animation: loadingBar 2s ease infinite;
+    z-index: 10;
+}
+
+@keyframes loadingBar {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Responsive Enhancements */
+@media screen and (max-width: 768px) {
+    #feeCollectionTable thead th,
+    #feeCollectionTable tbody td {
+        padding: 12px 8px;
+        font-size: 0.85rem;
+    }
+    
+    .collection-amount {
+        font-size: 1rem;
+    }
+    
+    .percentage-badge {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        min-width: 60px;
+    }
+    
+    .dataTables_wrapper {
+        padding: 10px;
+    }
+}
+
+/* Interactive Elements */
+.month-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.collection-cell {
+    text-align: center;
+}
+
+.collection-trend {
+    margin-top: 4px;
+}
+
+.trend-up {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.trend-down {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.trend-neutral {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.student-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    padding: 8px;
+    border-radius: 8px;
+    margin: 2px;
+}
+
+.percentage-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-bar-mini {
+    width: 80%;
+    height: 6px;
+    background-color: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill-mini {
+    height: 100%;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border-radius: 3px;
+    transition: width 1s ease;
+}
+
+/* Hover Effects */
+.amount-hover {
+    background: linear-gradient(135deg, rgba(17, 153, 142, 0.1) 0%, rgba(56, 239, 125, 0.1) 100%);
+    border-radius: 8px;
+    transform: scale(1.02);
+}
+
+.badge-clicked {
+    animation: badgePulse 0.3s ease;
+}
+
+@keyframes badgePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Row Click Effect */
+#feeCollectionTable tbody tr {
+    cursor: pointer;
+}
+
+#feeCollectionTable tbody tr:active {
+    transform: scale(0.98);
+}
+
+/* Month Details Modal */
+.month-details-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: none;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content-details {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    min-width: 400px;
+    max-width: 90vw;
+}
+
+.modal-header-details {
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header-details h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.close-details {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.close-details:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body-details {
+    padding: 30px;
+}
+
+.detail-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 20px;
+}
+
+.detail-card {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e8eaff 100%);
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.detail-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+.detail-card i {
+    font-size: 2rem;
+    color: #667eea;
+    margin-bottom: 10px;
+}
+
+.detail-card h4 {
+    margin: 10px 0 5px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4a5568;
+}
+
+.detail-card p {
+    margin: 0;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Enhanced Search and Filter Styling */
+.dataTables_filter {
+    margin-bottom: 20px;
+}
+
+.dataTables_filter label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.dataTables_filter input {
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    min-width: 250px;
+    transition: all 0.3s ease;
+}
+
+.dataTables_filter input:focus {
+    background: white;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+/* Length selector styling */
+.dataTables_length label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.dataTables_length select {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+/* Table header sorting indicators */
+#feeCollectionTable thead th.sorting:before,
+#feeCollectionTable thead th.sorting_asc:before,
+#feeCollectionTable thead th.sorting_desc:before {
+    color: rgba(255, 255, 255, 0.7);
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+#feeCollectionTable thead th.sorting:before {
+    content: "\f0dc";
+}
+
+#feeCollectionTable thead th.sorting_asc:before {
+    content: "\f0de";
+}
+
+#feeCollectionTable thead th.sorting_desc:before {
+    content: "\f0dd";
 }
 
 .badge {

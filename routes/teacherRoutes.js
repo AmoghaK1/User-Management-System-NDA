@@ -39,5 +39,16 @@ teacher_route.delete('/students/:id', auth.ensureAuthenticated, teacherControlle
 // Update student fee status (month/quarter paid)
 teacher_route.post('/student-db-details/:id/update-fee', auth.ensureAuthenticated, teacherController.updateStudentFee);
 
+// Get fee collection data
+teacher_route.get('/fee-collection-data', auth.ensureAuthenticated, teacherController.getFeeCollectionData);
+
+// Server-Sent Events for real-time fee collection updates
+teacher_route.get('/fee-collection-sse', auth.ensureAuthenticated, teacherController.getFeeCollectionSSE);
+
+// Test page for fee collection data (remove in production)
+teacher_route.get('/fee-test', auth.ensureAuthenticated, (req, res) => {
+    res.render('misc/fee-test');
+});
+
 
 module.exports = teacher_route;

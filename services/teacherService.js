@@ -122,6 +122,105 @@ const getStudentDetailsWithPayment = async (studentId) => {
     return { student, payment };
 };
 
+const getMonthlyFeeCollection = async (year) => {
+    try {
+        const currentYear = year || new Date().getFullYear();
+        console.log(`🔄 Fetching fee collection data for year: ${currentYear} at ${new Date().toLocaleString()}`);
+        
+        // Get all students with their fee amounts
+        const students = await User.find({ is_admin: 0 }).select('_id name exam_fee exam_level').lean();
+        console.log(`📊 Found ${students.length} students in database`);
+        
+        // Get all payment statuses for the current year (without .lean() to preserve Maps)
+        const paymentStatuses = await PaymentStatus.find({ year: currentYear });
+        console.log(`💰 Found ${paymentStatuses.length} payment records for year ${currentYear}`);
+        
+        // Create a map for easy lookup
+        const paymentMap = new Map();
+        paymentStatuses.forEach(payment => {
+            paymentMap.set(payment.userId.toString(), payment);
+        });
+        
+        // Calculate monthly collections
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        
+        const monthlyData = [];
+        let totalYearCollection = 0;
+        let currentMonth = new Date().getMonth();
+        let currentMonthCollection = 0;
+        let totalPendingAmount = 0;
+        
+        // Only show months from January to current month (not future months)
+        for (let month = 0; month <= currentMonth; month++) {
+            let monthlyCollection = 0;
+            let studentsCount = 0;
+            let paidStudents = 0;
+            
+            students.forEach(student => {
+                const payment = paymentMap.get(student._id.toString());
+                const studentFee = parseFloat(student.exam_fee) || 0;
+                
+                // Handle Map objects properly
+                let monthStatus = 'Pending';
+                if (payment && payment.months) {
+                    monthStatus = payment.months.get(String(month)) || 'Pending';
+                }
+                
+                if (monthStatus === 'Paid') {
+                    monthlyCollection += studentFee;
+                    paidStudents++;
+                }
+                studentsCount++;
+                
+                // Calculate pending for current month and future months
+                if (month >= currentMonth && monthStatus !== 'Paid') {
+                    totalPendingAmount += studentFee;
+                }
+            });
+            
+            totalYearCollection += monthlyCollection;
+            
+            if (month === currentMonth) {
+                currentMonthCollection = monthlyCollection;
+            }
+            
+            monthlyData.push({
+                month: monthNames[month],
+                monthIndex: month,
+                collection: monthlyCollection,
+                totalStudents: studentsCount,
+                paidStudents: paidStudents,
+                pendingStudents: studentsCount - paidStudents,
+                collectionPercentage: studentsCount > 0 ? Math.round((paidStudents / studentsCount) * 100) : 0
+            });
+        }
+        
+        // Debug: Log the order of months being returned
+        console.log(`📅 Month order generated:`, monthlyData.map(m => `${m.monthIndex}-${m.month}`).join(', '));
+        
+        console.log(`✅ Calculated fee collection data - Total: ₹${totalYearCollection}, Current Month: ₹${currentMonthCollection}, Pending: ₹${totalPendingAmount}`);
+        
+        return {
+            year: currentYear,
+            monthlyData,
+            summary: {
+                totalYearCollection,
+                currentMonthCollection,
+                totalPendingAmount,
+                totalStudents: students.length,
+                averageMonthlyCollection: totalYearCollection / 12
+            }
+        };
+        
+    } catch (error) {
+        console.error("❌ Error calculating monthly fee collection:", error);
+        throw error;
+    }
+};
+
 module.exports = {
     getAllStudents,
     getDeleteStudent,
@@ -130,4 +229,5 @@ module.exports = {
     getAllUniqueCategories,
     deleteMaterial,
     getStudentDetailsWithPayment,
+    getMonthlyFeeCollection,
 };

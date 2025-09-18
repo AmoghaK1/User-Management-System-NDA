@@ -5,6 +5,7 @@ const {
     getStudentPaymentDetailsService 
 } = require('../services/paymentService');
 const { formatPaymentStatusDto } = require('../dtos/paymentDTO');
+const feeCollectionEvents = require('../services/feeCollectionEvents');
 
 
 const renderDashboard = async (req, res) => {
@@ -40,9 +41,21 @@ const updatePayment = async (req, res) => {
         const { userId, year, month, quarter, isQuarterly } = req.body;
         const paymentStatus = await updatePaymentService(userId, year, month, quarter, isQuarterly);
 
+        // Emit real-time event for fee collection update
+        feeCollectionEvents.notifyPaymentUpdate({
+            userId,
+            year,
+            month,
+            quarter,
+            isQuarterly
+        });
+
+        console.log(`💰 Payment updated - User: ${userId}, Year: ${year}, Month: ${month}, Quarter: ${quarter}, Quarterly: ${isQuarterly}`);
+
         return res.status(200).json({
             message: 'Payment status updated successfully',
-            paymentStatus
+            paymentStatus,
+            realTimeUpdate: true
         });
     } catch (error) {
         console.error('Error updating payment status:', error);

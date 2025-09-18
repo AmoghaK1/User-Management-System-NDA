@@ -90,19 +90,20 @@
         <div class="quick-title">Add Student</div>
       </div>
       </a>
-    <!-- <a>
+      
+      <a>
       <div class="quick-card fee-collection-btn">
         <div class="quick-icon">
-          <i class="fa-solid fa-money-bill-wave me-2"></i>
+          <i class="fa-solid fa-chart-bar"></i>
         </div>
         <div class="quick-title">Fee Collection</div>
       </div>
-      </a> -->
+      </a>
       
 <a href="/student_database">     
     <div class="quick-card" >
       <div class="quick-icon">
-      <i class="fa-solid fa-money-bill-wave me-2"></i>
+      <i class="fa-solid fa-database"></i>
       </div>
       <div class="quick-title">Student Database</div>
     </div>
@@ -127,22 +128,60 @@
   </div>
 
     
+    
   <!-- Fee Collection Modal -->
   <div id="feeCollectionModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Student Fee Collection Details</h2>
+            <h2 style="color: white;">Monthly Fee Collection Report</h2>
             <span class="close-modal">&times;</span>
         </div>
         <div class="modal-body">
-            <div id="paymentDetailsLoading" class="text-center">
+            <div id="feeCollectionLoading" class="text-center">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
-                <p>Loading payment details...</p>
+                <p>Loading fee collection data...</p>
             </div>
-            <div class="table-responsive">
-                <table id="paymentDetailsTable" class="table table-striped" style="width:100%">
+            
+            <!-- Summary Cards -->
+            <div class="fee-summary-cards" style="display: none;">
+                <div class="summary-card total">
+                    <div class="summary-icon">
+                        <i class="fa-solid fa-rupee-sign"></i>
+                    </div>
+                    <div class="summary-content">
+                        <h3 id="totalCollection">₹0</h3>
+                        <p>Total Collection</p>
+                    </div>
+                </div>
+                <div class="summary-card current-month">
+                    <div class="summary-icon">
+                        <i class="fa-solid fa-calendar-month"></i>
+                    </div>
+                    <div class="summary-content">
+                        <h3 id="currentMonthCollection">₹0</h3>
+                        <p>This Month</p>
+                    </div>
+                </div>
+                <div class="summary-card pending">
+                    <div class="summary-icon">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="summary-content">
+                        <h3 id="pendingCollection">₹0</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="chart-container" style="display: none;">
+                <canvas id="feeCollectionChart"></canvas>
+            </div>
+            
+            <div class="table-responsive" style="display: none;">
+                <table id="feeCollectionTable" class="table table-striped" style="width:100%">
                     <!-- DataTable will populate this -->
                 </table>
             </div>
@@ -153,6 +192,10 @@
   
   <!-- Include jQuery first -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Include jQuery Easing for smooth animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+  <!-- Include Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Include DataTables scripts -->
   <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
@@ -168,5 +211,8 @@
   
   <!-- Fee Collection JavaScript -->
   <script src="../javascripts/feeCollection.js"></script>
+  
+  <!-- Fee Collection Report JavaScript -->
+  <script src="../javascripts/feeCollectionReport.js"></script>
 </body>
 </html>

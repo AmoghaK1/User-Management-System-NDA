@@ -113,4 +113,43 @@ const sendVerification = async (user) => {
     }
 };
 
-module.exports = { sendVerification };
+const sendHealthCheckEmail = async (targetEmail) => {
+    const to = targetEmail || process.env.AUTH_EMAIL;
+
+    if (!to) {
+        throw new Error('Missing target email and AUTH_EMAIL for SendGrid health check');
+    }
+
+    const msg = {
+        to,
+        from: {
+            email: process.env.AUTH_EMAIL,
+            name: 'Nrutyashree Dance Academy'
+        },
+        subject: 'SendGrid production health check',
+        text: 'If you are reading this, SendGrid works in production.',
+        html: '<p>If you are reading this, SendGrid works in production.</p>'
+    };
+
+    try {
+        const [response] = await sgMail.send(msg);
+        return {
+            success: true,
+            statusCode: response && response.statusCode,
+            headers: response && response.headers
+        };
+    } catch (error) {
+        const formatted = {
+            success: false,
+            message: error.message || 'SendGrid health check failed',
+            statusCode: error.response && error.response.statusCode,
+            body: error.response && error.response.body,
+            headers: error.response && error.response.headers
+        };
+
+        console.error('SendGrid health check failed:', formatted);
+        throw formatted;
+    }
+};
+
+module.exports = { sendVerification, sendHealthCheckEmail };

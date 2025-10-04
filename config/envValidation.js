@@ -28,6 +28,13 @@ module.exports = function validateEnvironment() {
         }
     });
 
+    const healthToken = process.env.SENDGRID_HEALTH_TOKEN;
+    if (healthToken) {
+        console.log(`ℹ️  SENDGRID_HEALTH_TOKEN detected (masked): ${maskValue(healthToken)}`);
+    } else {
+        console.log('ℹ️  SENDGRID_HEALTH_TOKEN not set. SendGrid HTTP health endpoint will be disabled.');
+    }
+
     if (missing.length) {
         console.error('❌ Environment validation failed. Define the variables above and redeploy.');
     } else {

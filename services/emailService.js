@@ -105,7 +105,10 @@ const sendVerification = async (user) => {
         await sgMail.send(msg);
         console.log('Verification email sent successfully to:', user.email);
     } catch (error) {
-        console.error('Failed to send verification email:', error);
+        console.error('Failed to send verification email:', error.message || error);
+        if (error.response && error.response.body) {
+            console.error('SendGrid response body:', JSON.stringify(error.response.body, null, 2));
+        }
         throw error;
     }
 };

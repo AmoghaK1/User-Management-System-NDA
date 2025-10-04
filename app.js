@@ -8,11 +8,15 @@ const passport = require("passport");
 const config = require("./config/config");
 const path = require('path');
 const methodOverride = require('method-override');
+const validateEnvironment = require('./config/envValidation');
 
 require("./config/passport")(passport);
 
 const app = express();
-port = 7000;
+port = process.env.PORT || 7000;
+
+// Ensure critical environment variables are present
+validateEnvironment();
 mongoose.connect(process.env.MONGO_URI, {
   writeConcern: {
     w: 1  // Acknowledge write to primary node

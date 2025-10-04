@@ -35,7 +35,12 @@ const getResetPasswordData = async (token) => {
 const getVerifiedEmail = async (userId , uniqueString) => {
     let session = null;
     try {
+            console.log('[getVerifiedEmail] Starting verification', {
+                userId,
+                uniqueStringPreview: uniqueString ? `${uniqueString.slice(0, 8)}...${uniqueString.slice(-6)}` : null
+            });
             if (!userId || !uniqueString || !mongoose.Types.ObjectId.isValid(userId)) {
+                console.warn('[getVerifiedEmail] Invalid link format', { userId, uniqueStringPresent: !!uniqueString });
                 return {
                     success: false,
                     message: "Invalid verification link format."
@@ -48,9 +53,15 @@ const getVerifiedEmail = async (userId , uniqueString) => {
     
             // Find verification record
             const verificationRecord = await userVerification.findOne({ userId }).session(session);
+            console.log('[getVerifiedEmail] Verification record lookup', {
+                userId,
+                recordFound: !!verificationRecord,
+                expiresAt: verificationRecord ? verificationRecord.expiresAt : null
+            });
             
             if (!verificationRecord) {
                 // Delete user record if verification record not found
+                console.warn('[getVerifiedEmail] No verification record found', { userId });
                 await User.deleteOne({ _id: userId }).session(session);
                 await session.commitTransaction();
                 return {
@@ -61,6 +72,7 @@ const getVerifiedEmail = async (userId , uniqueString) => {
     
             // Check expiration
             if (verificationRecord.expiresAt < Date.now()) {
+                console.warn('[getVerifiedEmail] Verification link expired', { userId, expiresAt: verificationRecord.expiresAt });
                 await User.deleteOne({ _id: userId }).session(session);
                 await userVerification.deleteOne({ userId }).session(session);
                 await session.commitTransaction();
@@ -72,9 +84,11 @@ const getVerifiedEmail = async (userId , uniqueString) => {
     
             // Compare unique strings
             const isValid = await bcrypt.compare(uniqueString, verificationRecord.uniqueString);
+            console.log('[getVerifiedEmail] Unique string comparison', { userId, isValid });
             
             if (!isValid) {
                 // Delete user record if verification string is invalid
+                console.warn('[getVerifiedEmail] Unique string mismatch', { userId });
                 await User.deleteOne({ _id: userId }).session(session);
                 await userVerification.deleteOne({ userId }).session(session);
                 await session.commitTransaction();
@@ -86,6 +100,7 @@ const getVerifiedEmail = async (userId , uniqueString) => {
     
             // Check if user exists
             const user = await User.findById(userId).session(session);
+            console.log('[getVerifiedEmail] User lookup', { userFound: !!user, userId });
             if (!user) {
                 await userVerification.deleteOne({ userId }).session(session);
                 await session.commitTransaction();
@@ -97,6 +112,7 @@ const getVerifiedEmail = async (userId , uniqueString) => {
     
             // Skip if already verified
             if (user.is_verified) {
+                console.warn('[getVerifiedEmail] User already verified', { userId });
                 await userVerification.deleteOne({ userId }).session(session);
                 await session.commitTransaction();
                 return {
@@ -115,6 +131,7 @@ const getVerifiedEmail = async (userId , uniqueString) => {
             await session.commitTransaction();
     
             // Successful verification
+            console.log('[getVerifiedEmail] Verification successful', { userId });
             return {
                 success: true,
                 message: "Email verified successfully! You can now log in.",
@@ -122,6 +139,7 @@ const getVerifiedEmail = async (userId , uniqueString) => {
             };
     
         } catch (error) {
+        console.error('[getVerifiedEmail] Verification error', { userId, error });
         if (session) await session.abortTransaction();
 
         // Cleanup in case of failure

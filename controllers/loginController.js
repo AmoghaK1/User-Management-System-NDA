@@ -46,7 +46,20 @@ const sendVerificationEmail = async (user) => {
 const verifyEmail = async (req, res) => {
     try {
         const { userId , uniqueString} = req.params;
+        console.log('[verifyEmail] Incoming verification request', {
+            host: req.headers.host,
+            protocol: req.protocol,
+            userId,
+            uniqueStringPreview: uniqueString ? `${uniqueString.slice(0, 8)}...${uniqueString.slice(-6)}` : null
+        });
         const { success , message , redirectUrl} = await getVerifiedEmail(userId, uniqueString);
+
+        console.log('[verifyEmail] Verification result', {
+            userId,
+            success,
+            message,
+            redirectUrl
+        });
 
         return res.render('login/verifiedPage',{
             error: !success,

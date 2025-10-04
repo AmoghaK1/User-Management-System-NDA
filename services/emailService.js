@@ -53,15 +53,43 @@ const sendVerification = async (user) => {
         expiresAt: Date.now() + 6 * 60 * 60 * 1000 // 6 hours
     }).save();
 
-    // Prepare SendGrid message
+    // Prepare SendGrid message with anti-spam configurations
     const msg = {
         to: user.email,
         from: {
             email: process.env.AUTH_EMAIL,
             name: 'Nrutyashree Dance Academy'
         },
-        subject: 'Verify Your Nrutyashree Dance Academy Account',
+        replyTo: {
+            email: process.env.AUTH_EMAIL,
+            name: 'Nrutyashree Dance Academy Support'
+        },
+        subject: 'Complete Your Registration - Nrutyashree Dance Academy',
         html: emailHtml,
+        text: `Hello ${user.name || 'User'},\n\nWelcome to Nrutyashree Dance Academy!\n\nPlease verify your email address by clicking the link below:\n${verificationLink}\n\nThis link will expire in 6 hours.\n\nIf you didn't create this account, please ignore this email.\n\nBest regards,\nNrutyashree Dance Academy Team\n\nUnsubscribe: ${currentUrl}/unsubscribe`,
+        // Anti-spam headers and settings
+        categories: ['email-verification', 'transactional'],
+        customArgs: {
+            'user_id': user._id.toString(),
+            'email_type': 'verification'
+        },
+        trackingSettings: {
+            clickTracking: {
+                enable: true,
+                enableText: false
+            },
+            openTracking: {
+                enable: true
+            },
+            subscriptionTracking: {
+                enable: false
+            }
+        },
+        mailSettings: {
+            sandboxMode: {
+                enable: false
+            }
+        },
         // Note: SendGrid handles attachments differently
         // For embedded images, we'll need to convert to base64
         attachments: attachments.length > 0 ? attachments.map(att => ({
@@ -73,7 +101,13 @@ const sendVerification = async (user) => {
         })) : []
     };
 
-    await sgMail.send(msg);
+    try {
+        await sgMail.send(msg);
+        console.log('Verification email sent successfully to:', user.email);
+    } catch (error) {
+        console.error('Failed to send verification email:', error);
+        throw error;
+    }
 };
 
 module.exports = { sendVerification };

@@ -223,24 +223,76 @@ const getForgotPassword = async (email) => {
                     email: process.env.AUTH_EMAIL,
                     name: 'Nrutyashree Dance Academy'
                 },
-                subject: 'Password Reset Request',
-                text: `You are receiving this because you (or someone else) have requested a password reset for your account.\n\n
-                Please click on the following link to reset your password:\n\n
-                ${resetUrl}\n\n
-                If you didn't request this, please ignore this email.\n`,
+                replyTo: {
+                    email: process.env.AUTH_EMAIL,
+                    name: 'Nrutyashree Dance Academy Support'
+                },
+                subject: 'Reset Your Password - Nrutyashree Dance Academy',
+                text: `Hello,\n\nYou requested a password reset for your Nrutyashree Dance Academy account.\n\nClick the link below to reset your password:\n${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email. Your password will remain unchanged.\n\nBest regards,\nNrutyashree Dance Academy Team\n\nUnsubscribe: ${currentUrl}/unsubscribe`,
                 html: `
-                    <h2>Password Reset Request</h2>
-                    <p>You are receiving this because you (or someone else) have requested a password reset for your account.</p>
-                    <p>Please click on the following link to reset your password:</p>
-                    <p><a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
-                    <p>Or copy and paste this link in your browser: ${resetUrl}</p>
-                    <p>If you didn't request this, please ignore this email.</p>
-                    <br>
-                    <p>Best regards,<br>Nrutyashree Dance Academy Team</p>
-                `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="utf-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Password Reset - Nrutyashree Dance Academy</title>
+                    </head>
+                    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                            <h1 style="color: white; margin: 0;">Password Reset Request</h1>
+                        </div>
+                        <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                            <p style="font-size: 16px;">Hello,</p>
+                            <p style="font-size: 16px;">You requested a password reset for your Nrutyashree Dance Academy account.</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="${resetUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block; font-size: 16px;">Reset Your Password</a>
+                            </div>
+                            <p style="font-size: 14px; color: #666;">Or copy and paste this link in your browser:</p>
+                            <p style="font-size: 14px; word-break: break-all; background: #e9e9e9; padding: 10px; border-radius: 5px;">${resetUrl}</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 30px;">This link will expire in 1 hour for security reasons.</p>
+                            <p style="font-size: 14px; color: #999;">If you didn't request this password reset, please ignore this email. Your password will remain unchanged.</p>
+                            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                            <p style="font-size: 14px; color: #666;">
+                                Best regards,<br>
+                                <strong>Nrutyashree Dance Academy Team</strong><br>
+                                <a href="mailto:${process.env.AUTH_EMAIL}" style="color: #667eea;">${process.env.AUTH_EMAIL}</a>
+                            </p>
+                        </div>
+                    </body>
+                    </html>
+                `,
+                // Anti-spam headers and settings
+                categories: ['password-reset', 'transactional'],
+                customArgs: {
+                    'user_id': user._id.toString(),
+                    'email_type': 'password_reset'
+                },
+                trackingSettings: {
+                    clickTracking: {
+                        enable: true,
+                        enableText: false
+                    },
+                    openTracking: {
+                        enable: true
+                    },
+                    subscriptionTracking: {
+                        enable: false
+                    }
+                },
+                mailSettings: {
+                    sandboxMode: {
+                        enable: false
+                    }
+                }
             };
     
-            await sgMail.send(msg);
+            try {
+                await sgMail.send(msg);
+                console.log('Password reset email sent successfully to:', user.email);
+            } catch (error) {
+                console.error('Failed to send password reset email:', error);
+                throw error;
+            }
             return {
                 success: true,
                 message: 'An email has been sent with password reset instructions.'

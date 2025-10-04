@@ -78,5 +78,12 @@ user_route.get('/api/study-materials', auth.ensureAuthenticated, studentControll
 user_route.get('/certificates', auth.ensureAuthenticated, studentController.loadCertiPage);
 user_route.get('/study-materials', auth.ensureAuthenticated, studentController.loadStudyPage);
 
+// Unsubscribe route for email compliance
+user_route.get('/unsubscribe', (req, res) => {
+    res.render('misc/unsubscribe', { 
+        title: 'Unsubscribe - Nrutyashree Dance Academy',
+        message: 'You have been successfully unsubscribed from our mailing list.'
+    });
+});
 
 module.exports = user_route;

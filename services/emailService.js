@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
-const transporter = require('../config/nodeMailer'); // move transporter there
+const sgMail = require('../config/sendgrid');
 const userVerification = require('../models/userVerification');
 
 const sendVerification = async (user) => {
@@ -44,15 +44,7 @@ const sendVerification = async (user) => {
         console.warn('Failed to attach logo:', err);
     }
 
-    const mailOptions = {
-        from: process.env.AUTH_EMAIL,
-        to: user.email,
-        subject: 'Verify Your Nrutyashree Dance Academy Account',
-        html: emailHtml,
-        attachments
-    };
-
-    // Save verification data
+    // Save verification data first
     const hashedUniqueString = await bcrypt.hash(uniqueString, 10);
     await new userVerification({
         userId: user._id,
@@ -61,7 +53,27 @@ const sendVerification = async (user) => {
         expiresAt: Date.now() + 6 * 60 * 60 * 1000 // 6 hours
     }).save();
 
-    await transporter.sendMail(mailOptions);
+    // Prepare SendGrid message
+    const msg = {
+        to: user.email,
+        from: {
+            email: process.env.AUTH_EMAIL,
+            name: 'Nrutyashree Dance Academy'
+        },
+        subject: 'Verify Your Nrutyashree Dance Academy Account',
+        html: emailHtml,
+        // Note: SendGrid handles attachments differently
+        // For embedded images, we'll need to convert to base64
+        attachments: attachments.length > 0 ? attachments.map(att => ({
+            filename: att.filename,
+            content: require('fs').readFileSync(att.path).toString('base64'),
+            type: 'image/png',
+            disposition: 'inline',
+            content_id: att.cid
+        })) : []
+    };
+
+    await sgMail.send(msg);
 };
 
 module.exports = { sendVerification };

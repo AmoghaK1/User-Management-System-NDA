@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const userVerification = require('../models/userVerification');
 const crypto = require('crypto');
-const transporter = require('../config/nodeMailer');
+const sgMail = require('../config/sendgrid');
 const { sendVerification } = require('../services/emailService');
 const PaymentStatus = require('../models/paymentModel');
 
@@ -217,17 +217,30 @@ const getForgotPassword = async (email) => {
             // Send email
             const resetUrl = `${currentUrl}/reset-password/${token}`; // || `${req.protocol}://${req.get('host')}/reset-password/${token}`
             
-            const mailOptions = {
+            const msg = {
                 to: user.email,
-                from: process.env.AUTH_EMAIL,
+                from: {
+                    email: process.env.AUTH_EMAIL,
+                    name: 'Nrutyashree Dance Academy'
+                },
                 subject: 'Password Reset Request',
                 text: `You are receiving this because you (or someone else) have requested a password reset for your account.\n\n
                 Please click on the following link to reset your password:\n\n
                 ${resetUrl}\n\n
-                If you didn't request this, please ignore this email.\n`
+                If you didn't request this, please ignore this email.\n`,
+                html: `
+                    <h2>Password Reset Request</h2>
+                    <p>You are receiving this because you (or someone else) have requested a password reset for your account.</p>
+                    <p>Please click on the following link to reset your password:</p>
+                    <p><a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
+                    <p>Or copy and paste this link in your browser: ${resetUrl}</p>
+                    <p>If you didn't request this, please ignore this email.</p>
+                    <br>
+                    <p>Best regards,<br>Nrutyashree Dance Academy Team</p>
+                `
             };
     
-            await transporter.sendMail(mailOptions);
+            await sgMail.send(msg);
             return {
                 success: true,
                 message: 'An email has been sent with password reset instructions.'

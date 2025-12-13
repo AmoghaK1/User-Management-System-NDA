@@ -65,7 +65,7 @@ const userSchema = new mongoose.Schema ({
     },
     profilePicture: {
         type: String,
-        default: "https://res.cloudinary.com/dy2kitfup/image/upload/v1700000000/profile_pictures/jfjx3h5tzknc6tt2vusj",
+        default: "https://res.cloudinary.com/dy2kitfup/image/upload/v1700000000/profile_pictures/oi0mzzlbzrjspastm3dl",
     },
     resetPasswordToken: {
         type: String,

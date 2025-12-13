@@ -24,7 +24,7 @@ const addUser = async (req, res) => {
             return res.redirect(`/signup?error=${encodeURIComponent(result.message)}`);
         }
 
-        return res.redirect(`/signup?success=Registration%20successful!%20Please%20check%20your%20email%20for%20a%20verification%20link.`);
+        return res.redirect(`/signup?success=Registration%20successful!%20You%20can%20now%20log%20in.`);
     }
     catch(error){
         console.error("Error in addUser:", error);

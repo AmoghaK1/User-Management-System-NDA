@@ -78,12 +78,12 @@ const updateProfilePictureService = async (userId, filePath) => {
 };
 
 const changePasswordService = async (userId, currentPassword, newPassword, confirmPassword) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*\d).{5,}$/;
     if (!passwordRegex.test(newPassword)) {
         return {
             success: false,
             status: 400,
-            error: "Password must be at least 8 characters long, contain uppercase, lowercase, number, and special character"
+            error: "Password must be at least 5 characters long and contain at least one number"
         };
     }
 

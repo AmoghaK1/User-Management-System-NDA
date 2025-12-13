@@ -94,9 +94,9 @@ function validateForm() {
     const confirmPasswordInput = document.getElementById('confirmPassword');
     
     // Password strength requirements
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*\d).{5,}$/;
     if (!passwordRegex.test(passwordInput.value)) {
-        showError('password', 'Password must be at least 8 characters long, contain uppercase, lowercase, number, and special character (@$!%*?&) ');
+        showError('password', 'Password must be at least 5 characters long and contain at least one number');
         return false;
     }
 

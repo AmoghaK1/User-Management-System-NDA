@@ -179,19 +179,19 @@ const getresetPassword = async (token, password, confirmPassword) => {
             };
         }
 
-        if (password.length < 8) {
+        if (password.length < 5) {
             return{ 
                 token,
-                error: 'Password must be at least 8 characters',
+                error: 'Password must be at least 5 characters',
                 success: false
             };
         }
 
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        const passwordRegex = /^(?=.*\d).{5,}$/;
         if (!passwordRegex.test(password)) {
             return { 
                 token,
-                error: 'Password must be at least 8 characters long, contain uppercase, lowercase, number, and special character',
+                error: 'Password must be at least 5 characters long and contain at least one number',
                 success: false
             };
         }
@@ -398,26 +398,26 @@ const handleUserRegistration = async (data) => {
                 father_ph_no,
                 password: hashedPassword,
                 is_admin: 0,
-                is_verified: false
+                is_verified: true  // BYPASSING EMAIL VERIFICATION - Auto-verify users
             });
     
             const userData = await user.save();
             
             // Initialize payment status
-            initializePaymentStatus(userData._id).catch(err => {
-                console.error("Payment initialization error:", err);
-            });
-    
-            // Send verification email
-            try {
-                await sendVerification(userData);
-            } catch (emailError) {
-                console.error("Verification email error:", emailError);
-                await User.deleteOne({ _id: userData._id });
-                return  { 
-                    success: false, 
-                    message: 'Failed to send verification email. Please try again later.' };
-            }
+            await initializePaymentStatus(userData._id);
+            
+            console.log(`User ${userData.email} registered and auto-verified (SendGrid bypassed)`);
+            
+            // SENDGRID BYPASS: Commenting out email verification
+            // try {
+            //     await sendVerification(userData);
+            // } catch (emailError) {
+            //     console.error("Verification email error:", emailError);
+            //     await User.deleteOne({ _id: userData._id });
+            //     return  { 
+            //         success: false, 
+            //         message: 'Failed to send verification email. Please try again later.' };
+            // }
             return { success: true };
         } catch (error) {
             console.error("Service error in handleUserRegistration:", error);

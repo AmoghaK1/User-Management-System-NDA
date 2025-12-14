@@ -1,4 +1,7 @@
 const User = require('../models/userModel');
+const UserPG = require('../models/pg/userModel');
+const PaymentStatusPG = require('../models/pg/paymentModel');
+const { Op } = require('sequelize');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const userVerification = require('../models/userVerification');
@@ -7,9 +10,12 @@ const PaymentStatus = require('../models/paymentModel');
 
 const getResetPasswordData = async (token) => {
     try {
-        const user = await User.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
+        // Check PostgreSQL first
+        const user = await UserPG.findOne({
+            where: {
+                resetPasswordToken: token,
+                resetPasswordExpires: { [Op.gt]: new Date() }
+            }
         });
 
         if (!user) {
@@ -156,10 +162,12 @@ const getVerifiedEmail = async (userId , uniqueString) => {
 
 const getresetPassword = async (token, password, confirmPassword) => {
     try {
-        // Find user by token and check expiry
-        const user = await User.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
+        // Find user by token and check expiry in PostgreSQL
+        const user = await UserPG.findOne({
+            where: {
+                resetPasswordToken: token,
+                resetPasswordExpires: { [Op.gt]: new Date() }
+            }
         });
 
         if (!user) {
@@ -197,8 +205,8 @@ const getresetPassword = async (token, password, confirmPassword) => {
         // Hash new password and update user
         const hashedPassword = await bcrypt.hash(password, 10);
         user.password = hashedPassword;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
+        user.resetPasswordToken = null;
+        user.resetPasswordExpires = null;
         await user.save();
 
         return { 
@@ -215,8 +223,8 @@ const getresetPassword = async (token, password, confirmPassword) => {
 
 const getForgotPassword = async (email) => {
     try{
-     // Find user by email
-            const user = await User.findOne({ email });
+     // Find user by email in PostgreSQL
+            const user = await UserPG.findOne({ where: { email } });
             if (!user) {
                 return { 
                     success: false,
@@ -227,7 +235,7 @@ const getForgotPassword = async (email) => {
             // Generate token and set expiry (1 hour from now)
             const token = crypto.randomBytes(20).toString('hex');
             user.resetPasswordToken = token;
-            user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+            user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
             await user.save();
             const currentUrl = process.env.CURRENT_URL;
             // Send email
@@ -322,29 +330,34 @@ const getForgotPassword = async (email) => {
 
 const initializePaymentStatus = async (userId) => {
     const currentYear = new Date().getFullYear();
-    const user = await User.findById(userId);
+    const user = await UserPG.findByPk(userId);
     if (!user) throw new Error('User not found during payment init');
 
-    await PaymentStatus.findOneAndUpdate(
-        { userId, year: currentYear },
-        {
-            $setOnInsert: {
-                userName: user.name,
-                months: Object.fromEntries([...Array(12).keys()].map(m => [m, 'Pending'])),
-                quarters: { 1: 'Pending', 2: 'Pending', 3: 'Pending', 4: 'Pending' }
-            }
-        },
-        { upsert: true, new: true }
-    );
+    // Check if payment status already exists
+    const existingPayment = await PaymentStatusPG.findOne({
+        where: {
+            userId,
+            year: currentYear
+        }
+    });
+
+    if (!existingPayment) {
+        await PaymentStatusPG.create({
+            userId,
+            userName: user.name,
+            year: currentYear
+        });
+    }
 };
 
 
 const handleUserRegistration = async (data) => {
     try {    
      const { name, email, birthdate, age, student_ph_no, exam_level, mother_ph_no, father_ph_no, password, confirmPassword } = data;
-            // Check if email already exists
-            const existingUser = await User.findOne({ email });
-            if (existingUser) {
+            
+            // Check if email already exists in PostgreSQL
+            const existingUserPG = await UserPG.findOne({ where: { email } });
+            if (existingUserPG) {
                 return { success: false, message: 'Email already registered' };
             }
             
@@ -384,8 +397,8 @@ const handleUserRegistration = async (data) => {
             // Hash the password
             const hashedPassword = await bcrypt.hash(password, 10);
     
-            // Create new user
-            const user = new User({
+            // Create new user in PostgreSQL ONLY
+            const userPG = await UserPG.create({
                 name,
                 email,
                 birthdate,
@@ -398,15 +411,13 @@ const handleUserRegistration = async (data) => {
                 is_admin: 0,
                 is_verified: true  // BYPASSING EMAIL VERIFICATION - Auto-verify users
             });
-    
-            const userData = await user.save();
             
-            // Initialize payment status
-            await initializePaymentStatus(userData._id);
+            // Initialize payment status in PostgreSQL
+            await initializePaymentStatus(userPG.id);
             
-            console.log(`✅ SUCCESS: User ${userData.email} registered successfully (Email verification disabled)`);
+            console.log(`✅ SUCCESS: User ${userPG.email} registered in PostgreSQL (ID: ${userPG.id})`);
             
-            return { success: true };
+            return { success: true, userId: userPG.id };
         } catch (error) {
             console.error("Service error in handleUserRegistration:", error);
             throw error;

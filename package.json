@@ -33,7 +33,9 @@
     "nodemon": "^3.1.9",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
+    "pg": "^8.16.3",
     "razorpay": "^2.9.5",
+    "sequelize": "^6.37.7",
     "uuid": "^11.1.0"
   }
 }

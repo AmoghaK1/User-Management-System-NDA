@@ -9,6 +9,9 @@ const config = require("./config/config");
 const path = require('path');
 const methodOverride = require('method-override');
 const validateEnvironment = require('./config/envValidation');
+const { sequelize, testConnection } = require('./config/database');
+const UserPG = require('./models/pg/userModel');
+const PaymentStatusPG = require('./models/pg/paymentModel');
 
 require("./config/passport")(passport);
 
@@ -34,6 +37,18 @@ mongoose.connect(process.env.MONGO_URI, {
   console.error("Connection string (masked):", process.env.MONGO_URI ? "***provided***" : "MISSING");
   process.exit(1);
 });
+
+// PostgreSQL Connection
+(async () => {
+  const connected = await testConnection();
+  if (connected) {
+    // Sync database models (creates tables if they don't exist)
+    await sequelize.sync({ alter: false }); // Set to true to auto-update schema (use carefully in production)
+    console.log("✅ PostgreSQL models synchronized!");
+  } else {
+    console.warn("⚠️  PostgreSQL not connected - proceeding with MongoDB only");
+  }
+})();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

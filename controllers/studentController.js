@@ -29,10 +29,19 @@ const formatUserDates = (user) => {
 
 const load_stDashboard = async (req, res) => {
     try {
-        if (!req.isAuthenticated()) return res.redirect('/login');
+        console.log('📍 Dashboard route hit!');
+        console.log('📍 User authenticated?', req.isAuthenticated());
+        console.log('📍 User object:', req.user ? { id: req.user.id, email: req.user.email } : 'No user');
+        
+        if (!req.isAuthenticated()) {
+            console.log('⚠️  Not authenticated, redirecting to login');
+            return res.redirect('/login');
+        }
+        
+        console.log('✅ Rendering student dashboard...');
         return res.render('student/student-dashboard', { user: req.user });
     } catch (error) {
-        console.log(error.message);
+        console.error('❌ Dashboard error:', error);
         return res.redirect('/login');
     }
 };
@@ -52,7 +61,8 @@ const loadProfile = async (req, res) => {
     try {
         if (!req.isAuthenticated()) return res.redirect('/login');
 
-        const user = formatUserDates(req.user.toObject());
+        // Handle both PostgreSQL (plain object) and MongoDB (has toObject method)
+        const user = req.user.toObject ? formatUserDates(req.user.toObject()) : formatUserDates({...req.user});
         return res.render('student/student-profile', {
             user,
             error: null,
@@ -74,7 +84,9 @@ const updateProfile = async (req, res) => {
             return res.status(401).json({ error: "Not authenticated" });
         }
 
-        const result = await studentService.updateProfileService(req.body, req.user._id);
+        // Handle both PostgreSQL (id) and MongoDB (_id)
+        const userId = req.user.id || req.user._id;
+        const result = await studentService.updateProfileService(req.body, userId);
 
         if (result.error) {
             return res.status(400).json({ error: result.error });
@@ -102,7 +114,9 @@ const updateProfilePicture = async (req, res) => {
                 return res.status(400).json({ error: "No file uploaded" });
             }
 
-            const result = await studentService.updateProfilePictureService(req.user._id, req.file.path);
+            // Handle both PostgreSQL (id) and MongoDB (_id)
+            const userId = req.user.id || req.user._id;
+            const result = await studentService.updateProfilePictureService(userId, req.file.path);
 
             if (result.error) {
                 return res.status(result.status || 400).json({ error: result.error });
@@ -134,8 +148,10 @@ const changePassword = async (req, res) => {
             return res.status(400).json({ success: false, error: "All fields are required" });
         }
 
+        // Handle both PostgreSQL (id) and MongoDB (_id)
+        const userId = req.user.id || req.user._id;
         const result = await studentService.changePasswordService(
-            req.user._id,
+            userId,
             currentPassword,
             newPassword,
             confirmPassword
@@ -149,7 +165,7 @@ const changePassword = async (req, res) => {
 
     } catch (error) {
         console.error("Password change error:", {
-            userId: req?.user?._id,
+            userId: req?.user?.id || req?.user?._id,
             error: error.message,
             stack: error.stack
         });

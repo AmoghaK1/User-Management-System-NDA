@@ -38,30 +38,55 @@ user_route.post('/reset-password/:token', loginController.resetPassword);
 
 user_route.post('/login', (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
-        if (err) return next(err);
+        if (err) {
+            console.error('❌ Authentication error:', err);
+            return next(err);
+        }
         
         // If no user found or authentication fails
         if (!user) {
+            console.log('⚠️  No user found:', info?.message);
             return res.render("login/login", { error: info.message, success: null });
         }
 
+        console.log('✅ User found, checking verification...', user.email);
+
         // Check if user is verified
         if (!user.is_verified && user.email != "rajjii11@gmail.com") {
+            console.log('⚠️  User not verified:', user.email);
             return res.render("login/login", { 
                 error: "Please verify your email before logging in. Check your inbox for verification link.", 
                 success: null 
             });
         }
 
+        console.log('✅ User verified, logging in...');
         req.logIn(user, (err) => {
-            if (err) return next(err);
-
-            // Existing admin/user routing logic
-            if (user.email === "rajjii11@gmail.com") {
-                return res.redirect("/tr-dashboard");
+            if (err) {
+                console.error('❌ Login error:', err);
+                return next(err);
             }
 
-            return res.redirect("/st-dashboard");
+            console.log('✅ User logged in successfully:', user.email);
+
+            // Save session before redirecting
+            req.session.save((err) => {
+                if (err) {
+                    console.error('❌ Session save error:', err);
+                    return next(err);
+                }
+
+                console.log('✅ Session saved successfully');
+
+                // Existing admin/user routing logic
+                if (user.email === "rajjii11@gmail.com") {
+                    console.log('🔄 Redirecting to teacher dashboard...');
+                    return res.redirect("/tr-dashboard");
+                }
+
+                console.log('🔄 Redirecting to student dashboard...');
+                return res.redirect("/st-dashboard");
+            });
         });
     })(req, res, next);
 });

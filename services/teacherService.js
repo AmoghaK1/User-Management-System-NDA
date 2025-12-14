@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const UserPG = require('../models/pg/userModel');
 require("dotenv").config();
 const PaymentStatus = require('../models/paymentModel');
 const mongoose = require('mongoose')
@@ -8,7 +9,10 @@ const StudyMaterialDTO = require('../dtos/studyMaterialDTO');
 
 const getAllStudents = async () => {
     try{    
-        const students = await User.find({ is_admin: 0 }).select("_id name email exam_level");
+        const students = await UserPG.findAll({ 
+            where: { is_admin: 0 },
+            attributes: ["id", "name", "email", "exam_level"]
+        });
         return students;
     }
     catch(error){
@@ -20,7 +24,7 @@ const getAllStudents = async () => {
 
 const getDeleteStudent = async (studentId) => {
     try{
-        const student = await User.findById(studentId);
+        const student = await UserPG.findByPk(studentId);
         if (!student) {
             return {
                 success: false,
@@ -29,14 +33,14 @@ const getDeleteStudent = async (studentId) => {
             };
         };
 
-        // Start a session for transaction
+        // Start a session for MongoDB transaction (for payments)
         const session = await mongoose.startSession();
         session.startTransaction();
             // Delete the student's payment records first
         await PaymentStatus.deleteMany({ userId: studentId },{ session });
 
-        // Finally delete the student
-        await User.deleteOne({ _id: studentId } ,  { session });
+        // Delete from PostgreSQL
+        await student.destroy();
 
         // Commit the transaction
         await session.commitTransaction();
@@ -49,8 +53,10 @@ const getDeleteStudent = async (studentId) => {
             message: "Student and all related payment records deleted successfully" 
         };
     }catch(error){
-        await session.abortTransaction();
-        session.endSession();
+        if (session) {
+            await session.abortTransaction();
+            session.endSession();
+        }
         console.error("Service error in deleteStudent:", error);
         return {
             success: false,
@@ -115,7 +121,7 @@ const deleteMaterial = async (materialId) => {
 };
 
 const getStudentDetailsWithPayment = async (studentId) => {
-    const student = await User.findById(studentId).lean();
+    const student = await UserPG.findByPk(studentId, { raw: true });
     if (!student) return null;
     const currentYear = new Date().getFullYear();
     const payment = await PaymentStatus.findOne({ userId: studentId, year: currentYear }).lean();
@@ -128,7 +134,11 @@ const getMonthlyFeeCollection = async (year) => {
         console.log(`🔄 Fetching fee collection data for year: ${currentYear} at ${new Date().toLocaleString()}`);
         
         // Get all students with their fee amounts
-        const students = await User.find({ is_admin: 0 }).select('_id name exam_fee exam_level').lean();
+        const students = await UserPG.findAll({ 
+            where: { is_admin: 0 },
+            attributes: ['id', 'name', 'exam_fee', 'exam_level'],
+            raw: true
+        });
         console.log(`📊 Found ${students.length} students in database`);
         
         // Get all payment statuses for the current year (without .lean() to preserve Maps)
@@ -160,7 +170,9 @@ const getMonthlyFeeCollection = async (year) => {
             let paidStudents = 0;
             
             students.forEach(student => {
-                const payment = paymentMap.get(student._id.toString());
+                // Handle both PostgreSQL (id) and MongoDB (_id)
+                const studentId = student.id || student._id;
+                const payment = paymentMap.get(studentId.toString());
                 const studentFee = parseFloat(student.exam_fee) || 0;
                 
                 // Handle Map objects properly

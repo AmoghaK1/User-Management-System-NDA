@@ -1,5 +1,6 @@
 const PaymentStatus = require('../models/paymentModel');
 const User = require('../models/userModel');
+const UserPG = require('../models/pg/userModel');
 const razorpayInstance = require('../utils/razorpayInstance');
 const { formatStudentPaymentDetails } = require('../dtos/paymentDTO');
 
@@ -13,7 +14,7 @@ const getPaymentStatusService = async (userId) => {
     let paymentStatus = await PaymentStatus.findOne({ userId, year: currentYear });
     
     if (!paymentStatus) {
-        const user = await User.findById(userId);
+        const user = await UserPG.findByPk(userId);
         if (!user) throw new Error('User not found');
         paymentStatus = new PaymentStatus({ userId, userName: user.name, year: currentYear });
     }
@@ -29,7 +30,7 @@ const updatePaymentService = async (userId, year, month, quarter, isQuarterly) =
 
     if (!paymentStatus) {
         console.log('No existing payment status found, creating new one.');
-        const user = await User.findById(userId);
+        const user = await UserPG.findByPk(userId);
         if (!user) throw new Error('User not found');
         paymentStatus = new PaymentStatus({ userId, userName: user.name, year: currentYear });
     }        if (isQuarterlyBool) {
@@ -66,8 +67,8 @@ const updatePaymentService = async (userId, year, month, quarter, isQuarterly) =
 };
 
 const getStudentPaymentDetailsService = async () => {
-    // Get all users
-        const users = await User.find({}).lean(); 
+    // Get all users from PostgreSQL
+        const users = await UserPG.findAll({ raw: true }); 
 
         // Get payment statuses for current year
         const currentYear = new Date().getFullYear();
@@ -81,7 +82,7 @@ const getStudentPaymentDetailsService = async () => {
 
 const createOrderService = async (body, userId) => {
     const { name, amount, description, email, contact, year, month, quarter, isQuarterly } = body;
-    const user = await User.findById(userId);
+    const user = await UserPG.findByPk(userId);
     if (!user) throw new Error('User not found');
        
     let paymentStatus = await PaymentStatus.findOne({ userId, year }) || new PaymentStatus({ userId, userName: user.name, year: currentYear });

@@ -10,13 +10,15 @@ const formatStudentPaymentDetails = (users, paymentStatuses, year, currentMonth,
     const formattedPayments = [];
 
     users.forEach(user => {
-        if (!user || !user._id) {
-            console.warn('Skipping user with invalid _id:', user);
+        // Handle both PostgreSQL (id) and MongoDB (_id)
+        const userId = user.id || user._id;
+        if (!user || !userId) {
+            console.warn('Skipping user with invalid id:', user);
             return;
         }
 
         const paymentStatus = paymentStatuses.find(
-            status => status.userId?.toString() === user._id.toString()
+            status => status.userId?.toString() === userId.toString()
         );
 
         const monthStatuses = Array(12).fill('Pending');

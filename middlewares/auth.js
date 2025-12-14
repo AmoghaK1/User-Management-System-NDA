@@ -8,9 +8,15 @@ const redirectIfAuthenticated = (req, res, next) => {
 };
 
 const ensureAuthenticated = (req, res, next) => {
+    console.log('🔒 ensureAuthenticated middleware - isAuthenticated:', req.isAuthenticated());
+    console.log('🔒 Session ID:', req.sessionID);
+    console.log('🔒 Session data:', req.session);
+    console.log('🔒 User in request:', req.user);
+    
     if (req.isAuthenticated()) { 
         return next(); // Allow access to protected routes
     }
+    console.log('⚠️  Not authenticated, redirecting to login');
     res.redirect('/login'); // Redirect unauthenticated users
 };
 

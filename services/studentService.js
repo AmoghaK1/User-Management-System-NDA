@@ -1,4 +1,6 @@
 const User = require('../models/userModel');
+const UserPG = require('../models/pg/userModel');
+const { Op } = require('sequelize');
 const { cloudinary } = require('../config/cloudinary');
 const bcrypt = require('bcrypt');
 
@@ -19,9 +21,11 @@ const updateProfileService = async (body, stud_id) => {
     }
 
     if (body.email) {
-        const existingUser = await User.findOne({
-            email: body.email,
-            _id: { $ne: stud_id }
+        const existingUser = await UserPG.findOne({
+            where: {
+                email: body.email,
+                id: { [Op.ne]: stud_id }
+            }
         });
         if (existingUser) {
             console.warn(`Email already in use: ${body.email}`);
@@ -29,7 +33,7 @@ const updateProfileService = async (body, stud_id) => {
         }
     }
 
-    const user = await User.findById(stud_id);
+    const user = await UserPG.findByPk(stud_id);
     if (!user) {
         return { error: 'User not found' };
     }
@@ -40,12 +44,12 @@ const updateProfileService = async (body, stud_id) => {
 
     await user.save();
 
-    const userData = user.toObject();
+    const userData = user.toJSON();
     if (userData.birthdate) {
         userData.birthdate = new Date(userData.birthdate).toLocaleDateString('en-GB');
     }
-    if (userData.joinDate) {
-        userData.joinDate = new Date(userData.joinDate).toLocaleDateString('en-GB');
+    if (userData.createdAt) {
+        userData.joinDate = new Date(userData.createdAt).toLocaleDateString('en-GB');
     }
 
     return userData;
@@ -53,7 +57,7 @@ const updateProfileService = async (body, stud_id) => {
 
 const updateProfilePictureService = async (userId, filePath) => {
     try {
-        const user = await User.findById(userId);
+        const user = await UserPG.findByPk(userId);
         if (!user) {
             return { error: "User not found", status: 404 };
         }
@@ -95,7 +99,7 @@ const changePasswordService = async (userId, currentPassword, newPassword, confi
         };
     }
 
-    const user = await User.findById(userId);
+    const user = await UserPG.findByPk(userId);
     if (!user) {
         console.error('User not found in database:', userId);
         return {

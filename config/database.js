@@ -12,11 +12,11 @@ const sequelize = new Sequelize(process.env.DATABASE_URL || process.env.POSTGRES
     idle: 10000
   },
   dialectOptions: {
-    // Uncomment if using SSL (for cloud databases like Heroku, AWS RDS)
-    // ssl: {
-    //   require: true,
-    //   rejectUnauthorized: false
-    // }
+    // SSL required for cloud databases like Supabase
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
+    }
   }
 });
 

@@ -64,6 +64,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || config.session_secret,
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
+    // secure: false,
     maxAge: 1000 * 60 * 60 * 24,
     httpOnly: true,
     sameSite: 'lax'

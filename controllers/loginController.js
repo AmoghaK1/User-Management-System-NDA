@@ -17,17 +17,30 @@ const loadRegister = async(req,res)=> {
 
 const addUser = async (req, res) => {
     try{
+        console.log('[addUser] Registration attempt:', {
+            email: req.body.email,
+            name: req.body.name,
+            hasPassword: !!req.body.password,
+            hasAllFields: !!(req.body.name && req.body.email && req.body.birthdate && req.body.password)
+        });
+
         const result = await handleUserRegistration(req.body);
 
         if (!result.success){
+            console.error('[addUser] Registration failed:', result.message);
             req.flash('formData', req.body);
             return res.redirect(`/signup?error=${encodeURIComponent(result.message)}`);
         }
 
+        console.log('[addUser] Registration successful:', req.body.email);
         return res.redirect(`/signup?success=Registration%20successful!%20You%20can%20now%20log%20in.`);
     }
     catch(error){
-        console.error("Error in addUser:", error);
+        console.error("❌ [addUser] CRITICAL ERROR:", error);
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+        console.error("Request body:", JSON.stringify(req.body, null, 2));
         req.flash('formData', req.body);
         return res.redirect('/signup?error=Something%20went%20wrong.%20Try%20again%20later.');
     }

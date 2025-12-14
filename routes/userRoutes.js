@@ -10,7 +10,6 @@ user_route.use(bodyParser.urlencoded({extended: true}));
 const loginController = require('../controllers/loginController');
 const studentController = require(`../controllers/studentController`);
 const passport = require('passport');
-const { sendHealthCheckEmail } = require('../services/emailService');
 
 
 // In userRoutes.js
@@ -85,36 +84,6 @@ user_route.get('/unsubscribe', (req, res) => {
         title: 'Unsubscribe - Nrutyashree Dance Academy',
         message: 'You have been successfully unsubscribed from our mailing list.'
     });
-});
-
-// Minimal SendGrid health check endpoint (protected by token)
-user_route.get('/__sendgrid-health', async (req, res) => {
-    if (!process.env.SENDGRID_HEALTH_TOKEN) {
-        return res.status(404).send('Not found');
-    }
-
-    const token = req.query.token;
-    if (!token || token !== process.env.SENDGRID_HEALTH_TOKEN) {
-        return res.status(403).send('Forbidden');
-    }
-
-    try {
-        const result = await sendHealthCheckEmail(req.query.to);
-        return res.json({
-            ok: true,
-            statusCode: result.statusCode,
-            headers: result.headers
-        });
-    } catch (error) {
-        const status = error.statusCode || 500;
-        return res.status(status).json({
-            ok: false,
-            message: error.message || 'SendGrid health check failed',
-            statusCode: error.statusCode,
-            body: error.body,
-            headers: error.headers
-        });
-    }
 });
 
 module.exports = user_route;

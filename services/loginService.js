@@ -3,8 +3,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const userVerification = require('../models/userVerification');
 const crypto = require('crypto');
-const sgMail = require('../config/sendgrid');
-const { sendVerification } = require('../services/emailService');
 const PaymentStatus = require('../models/paymentModel');
 
 const getResetPasswordData = async (token) => {
@@ -406,18 +404,8 @@ const handleUserRegistration = async (data) => {
             // Initialize payment status
             await initializePaymentStatus(userData._id);
             
-            console.log(`User ${userData.email} registered and auto-verified (SendGrid bypassed)`);
+            console.log(`✅ SUCCESS: User ${userData.email} registered successfully (Email verification disabled)`);
             
-            // SENDGRID BYPASS: Commenting out email verification
-            // try {
-            //     await sendVerification(userData);
-            // } catch (emailError) {
-            //     console.error("Verification email error:", emailError);
-            //     await User.deleteOne({ _id: userData._id });
-            //     return  { 
-            //         success: false, 
-            //         message: 'Failed to send verification email. Please try again later.' };
-            // }
             return { success: true };
         } catch (error) {
             console.error("Service error in handleUserRegistration:", error);

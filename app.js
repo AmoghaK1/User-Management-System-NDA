@@ -16,15 +16,23 @@ const app = express();
 port = process.env.PORT || 7000;
 
 // Ensure critical environment variables are present
-validateEnvironment();
+const missingVars = validateEnvironment();
+if (missingVars.length > 0) {
+  console.error('❌ Cannot start server - missing required environment variables:', missingVars);
+  process.exit(1);
+}
+
+// MongoDB Connection with better error handling
 mongoose.connect(process.env.MONGO_URI, {
   writeConcern: {
     w: 1  // Acknowledge write to primary node
   }
 }).then(() => {
-  console.log("Connected to MongoDB!");
+  console.log("✅ Connected to MongoDB!");
 }).catch(err => {
-  console.error("MongoDB connection error:", err);
+  console.error("❌ MongoDB connection error:", err);
+  console.error("Connection string (masked):", process.env.MONGO_URI ? "***provided***" : "MISSING");
+  process.exit(1);
 });
 
 app.use(bodyParser.json());
@@ -38,8 +46,13 @@ app.set("view engine", "ejs");
 app.use(session({
   resave: false,
   saveUninitialized: false,
-  secret: config.session_secret,
-  cookie: { secure: false, maxAge: 1000 * 60 * 60 * 24 }
+  secret: process.env.SESSION_SECRET || config.session_secret,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 1000 * 60 * 60 * 24,
+    httpOnly: true,
+    sameSite: 'lax'
+  }
 }));
 
 // Passport middleware
@@ -77,9 +90,42 @@ app.get('/', (req, res) => {
   res.render('student/landing2');
 });
 
+// 404 Handler - Must be after all other routes
+app.use((req, res, next) => {
+  res.status(404).render('misc/404', { 
+    error: 'Page not found',
+    url: req.originalUrl 
+  });
+});
+
+// Global Error Handler - Must be last
+app.use((err, req, res, next) => {
+  console.error('Global Error Handler:', err);
+  console.error('Error Stack:', err.stack);
+  
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  res.status(err.status || 500);
+  
+  // Try to render error page, fallback to JSON if rendering fails
+  try {
+    res.render('misc/404', { 
+      error: isDevelopment ? err.message : 'Something went wrong. Please try again later.',
+      details: isDevelopment ? err.stack : null
+    });
+  } catch (renderError) {
+    console.error('Error rendering error page:', renderError);
+    res.json({
+      error: isDevelopment ? err.message : 'Internal Server Error',
+      details: isDevelopment ? err.stack : null
+    });
+  }
+});
+
 // Start server
 app.listen(port, () => {
   console.log(`Server started on Port ${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 module.exports = app;

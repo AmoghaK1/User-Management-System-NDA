@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const userVerification = require('../models/userVerification');
 const crypto = require('crypto');
 const PaymentStatus = require('../models/paymentModel');
+const transporter = require('../config/nodeMailer');
 
 const getResetPasswordData = async (token) => {
     try {
@@ -276,34 +277,11 @@ const getForgotPassword = async (email) => {
                         </div>
                     </body>
                     </html>
-                `,
-                // Anti-spam headers and settings
-                categories: ['password-reset', 'transactional'],
-                customArgs: {
-                    'user_id': user._id.toString(),
-                    'email_type': 'password_reset'
-                },
-                trackingSettings: {
-                    clickTracking: {
-                        enable: true,
-                        enableText: false
-                    },
-                    openTracking: {
-                        enable: true
-                    },
-                    subscriptionTracking: {
-                        enable: false
-                    }
-                },
-                mailSettings: {
-                    sandboxMode: {
-                        enable: false
-                    }
-                }
+                `
             };
     
             try {
-                await sgMail.send(msg);
+                await transporter.sendMail(msg);
                 console.log('Password reset email sent successfully to:', user.email);
             } catch (error) {
                 console.error('Failed to send password reset email:', error);

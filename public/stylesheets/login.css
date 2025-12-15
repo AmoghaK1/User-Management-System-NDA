@@ -8,7 +8,7 @@
 body {
     min-height: 100vh;
     display: flex;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8e4ff 100%);
+    background: linear-gradient(135deg, #ffe5f0 0%, #e8d5ff 100%);
 }
 
 .login-container {
@@ -65,18 +65,18 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(45deg, #4a154b, #7e22ce);
+    background: linear-gradient(45deg, #c2185b, #ab47bc);
     border-radius: 0px 0px 20px 20px;
     padding: 40px;
     text-align: center;
-    box-shadow: 0 10px 25px rgba(126, 34, 206, 0.2);
+    box-shadow: 0 10px 25px rgba(194, 24, 91, 0.2);
     transform: translateY(0);
     transition: all 0.3s ease;
 }
 
 .welcome-section:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(126, 34, 206, 0.3);
+    box-shadow: 0 15px 30px rgba(194, 24, 91, 0.3);
 }
 
 .logo {
@@ -136,7 +136,7 @@ body {
 
 h2 {
     margin-bottom: 10px;
-    color: #4a154b;
+    color: #c2185b;
     font-size: 1.8rem;
     font-weight: 600;
     letter-spacing: -0.5px;
@@ -172,13 +172,13 @@ input {
 
 input:hover {
     background-color: #ffffff;
-    border-color: #7e22ce;
+    border-color: #ab47bc;
 }
 
 input:focus {
     outline: none;
-    border-color: #7e22ce;
-    box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.1);
+    border-color: #ab47bc;
+    box-shadow: 0 0 0 3px rgba(171, 71, 188, 0.1);
     background-color: #ffffff;
 }
 
@@ -203,11 +203,11 @@ input:focus {
 
 .remember-me input[type="checkbox"] {
     width: auto;
-    accent-color: #7e22ce;
+    accent-color: #c2185b;
 }
 
 .forgot-password {
-    color: #7e22ce;
+    color: #ab47bc;
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 500;
@@ -215,7 +215,7 @@ input:focus {
 }
 
 .forgot-password:hover {
-    color: #4a154b;
+    color: #c2185b;
     text-decoration: underline;
 }
 
@@ -234,7 +234,7 @@ input:focus {
 button {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(45deg, #7e22ce, #9333ea);
+    background: linear-gradient(45deg, #c2185b, #ab47bc);
     color: white;
     border: none;
     border-radius: 8px;
@@ -242,13 +242,13 @@ button {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(126, 34, 206, 0.2);
+    box-shadow: 0 4px 6px rgba(194, 24, 91, 0.2);
 }
 
 button:hover {
-    background: linear-gradient(45deg, #6b21a8, #7e22ce);
+    background: linear-gradient(45deg, #ad1457, #9c27b0);
     transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(126, 34, 206, 0.3);
+    box-shadow: 0 6px 8px rgba(194, 24, 91, 0.3);
 }
 
 button:active {
@@ -263,14 +263,14 @@ button:active {
 }
 
 .signup-prompt a {
-    color: #7e22ce;
+    color: #ab47bc;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
 }
 
 .signup-prompt a:hover {
-    color: #4a154b;
+    color: #c2185b;
     text-decoration: underline;
 }
 

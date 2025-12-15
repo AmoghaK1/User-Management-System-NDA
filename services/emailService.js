@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
-const sgMail = require('../config/sendgrid');
+const transporter = require('../config/nodeMailer');
 const userVerification = require('../models/userVerification');
 
 const sendVerification = async (user) => {
@@ -53,103 +53,23 @@ const sendVerification = async (user) => {
         expiresAt: Date.now() + 6 * 60 * 60 * 1000 // 6 hours
     }).save();
 
-    // Prepare SendGrid message with anti-spam configurations
-    const msg = {
+    // Prepare nodemailer message
+    const mailOptions = {
+        from: `"Nrutyashree Dance Academy" <${process.env.AUTH_EMAIL}>`,
         to: user.email,
-        from: {
-            email: process.env.AUTH_EMAIL,
-            name: 'Nrutyashree Dance Academy'
-        },
-        replyTo: {
-            email: process.env.AUTH_EMAIL,
-            name: 'Nrutyashree Dance Academy Support'
-        },
         subject: 'Complete Your Registration - Nrutyashree Dance Academy',
+        text: `Hello ${user.name || 'User'},\n\nWelcome to Nrutyashree Dance Academy!\n\nPlease verify your email address by clicking the link below:\n${verificationLink}\n\nThis link will expire in 6 hours.\n\nIf you didn't create this account, please ignore this email.\n\nBest regards,\nNrutyashree Dance Academy Team`,
         html: emailHtml,
-        text: `Hello ${user.name || 'User'},\n\nWelcome to Nrutyashree Dance Academy!\n\nPlease verify your email address by clicking the link below:\n${verificationLink}\n\nThis link will expire in 6 hours.\n\nIf you didn't create this account, please ignore this email.\n\nBest regards,\nNrutyashree Dance Academy Team\n\nUnsubscribe: ${currentUrl}/unsubscribe`,
-        // Anti-spam headers and settings
-        categories: ['email-verification', 'transactional'],
-        customArgs: {
-            'user_id': user._id.toString(),
-            'email_type': 'verification'
-        },
-        trackingSettings: {
-            clickTracking: {
-                enable: true,
-                enableText: false
-            },
-            openTracking: {
-                enable: true
-            },
-            subscriptionTracking: {
-                enable: false
-            }
-        },
-        mailSettings: {
-            sandboxMode: {
-                enable: false
-            }
-        },
-        // Note: SendGrid handles attachments differently
-        // For embedded images, we'll need to convert to base64
-        attachments: attachments.length > 0 ? attachments.map(att => ({
-            filename: att.filename,
-            content: require('fs').readFileSync(att.path).toString('base64'),
-            type: 'image/png',
-            disposition: 'inline',
-            content_id: att.cid
-        })) : []
+        attachments: attachments
     };
 
     try {
-        await sgMail.send(msg);
+        await transporter.sendMail(mailOptions);
         console.log('Verification email sent successfully to:', user.email);
     } catch (error) {
         console.error('Failed to send verification email:', error.message || error);
-        if (error.response && error.response.body) {
-            console.error('SendGrid response body:', JSON.stringify(error.response.body, null, 2));
-        }
         throw error;
     }
 };
 
-const sendHealthCheckEmail = async (targetEmail) => {
-    const to = targetEmail || process.env.AUTH_EMAIL;
-
-    if (!to) {
-        throw new Error('Missing target email and AUTH_EMAIL for SendGrid health check');
-    }
-
-    const msg = {
-        to,
-        from: {
-            email: process.env.AUTH_EMAIL,
-            name: 'Nrutyashree Dance Academy'
-        },
-        subject: 'SendGrid production health check',
-        text: 'If you are reading this, SendGrid works in production.',
-        html: '<p>If you are reading this, SendGrid works in production.</p>'
-    };
-
-    try {
-        const [response] = await sgMail.send(msg);
-        return {
-            success: true,
-            statusCode: response && response.statusCode,
-            headers: response && response.headers
-        };
-    } catch (error) {
-        const formatted = {
-            success: false,
-            message: error.message || 'SendGrid health check failed',
-            statusCode: error.response && error.response.statusCode,
-            body: error.response && error.response.body,
-            headers: error.response && error.response.headers
-        };
-
-        console.error('SendGrid health check failed:', formatted);
-        throw formatted;
-    }
-};
-
-module.exports = { sendVerification, sendHealthCheckEmail };
+module.exports = { sendVerification };

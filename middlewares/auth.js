@@ -8,9 +8,20 @@ const redirectIfAuthenticated = (req, res, next) => {
 };
 
 const ensureAuthenticated = (req, res, next) => {
+    console.log('[ensureAuthenticated] Check:', {
+        isAuthenticated: req.isAuthenticated(),
+        hasUser: !!req.user,
+        sessionID: req.sessionID,
+        path: req.path,
+        cookies: req.headers.cookie ? 'present' : 'missing'
+    });
+    
     if (req.isAuthenticated()) { 
         return next(); // Allow access to protected routes
     }
+    
+    console.log('[ensureAuthenticated] Redirecting to login - user not authenticated');
+    req.flash('error', 'Please log in to access this page');
     res.redirect('/login'); // Redirect unauthenticated users
 };
 

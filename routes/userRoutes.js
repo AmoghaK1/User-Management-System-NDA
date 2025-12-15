@@ -37,16 +37,23 @@ user_route.get('/reset-password/:token', loginController.loadResetPassword);
 user_route.post('/reset-password/:token', loginController.resetPassword);
 
 user_route.post('/login', (req, res, next) => {
+    console.log('[Login Route] Login attempt:', { email: req.body.email });
+    
     passport.authenticate("local", (err, user, info) => {
-        if (err) return next(err);
+        if (err) {
+            console.error('[Login Route] Error:', err);
+            return next(err);
+        }
         
         // If no user found or authentication fails
         if (!user) {
+            console.log('[Login Route] Authentication failed:', info?.message);
             return res.render("login/login", { error: info.message, success: null });
         }
 
         // Check if user is verified
         if (!user.is_verified && user.email != "rajjii11@gmail.com") {
+            console.log('[Login Route] User not verified:', user.email);
             return res.render("login/login", { 
                 error: "Please verify your email before logging in. Check your inbox for verification link.", 
                 success: null 
@@ -54,13 +61,24 @@ user_route.post('/login', (req, res, next) => {
         }
 
         req.logIn(user, (err) => {
-            if (err) return next(err);
+            if (err) {
+                console.error('[Login Route] Session creation error:', err);
+                return next(err);
+            }
+
+            console.log('[Login Route] Login successful:', {
+                email: user.email,
+                sessionID: req.sessionID,
+                isAuthenticated: req.isAuthenticated()
+            });
 
             // Existing admin/user routing logic
             if (user.email === "rajjii11@gmail.com") {
+                console.log('[Login Route] Redirecting to teacher dashboard');
                 return res.redirect("/tr-dashboard");
             }
 
+            console.log('[Login Route] Redirecting to student dashboard');
             return res.redirect("/st-dashboard");
         });
     })(req, res, next);

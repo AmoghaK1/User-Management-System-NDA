@@ -15,6 +15,11 @@ require("./config/passport")(passport);
 const app = express();
 port = process.env.PORT || 7000;
 
+// Trust proxy for production environments (Render, Heroku, etc.)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Ensure critical environment variables are present
 const missingVars = validateEnvironment();
 if (missingVars.length > 0) {
@@ -51,8 +56,9 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     maxAge: 1000 * 60 * 60 * 24,
     httpOnly: true,
-    sameSite: 'lax'
-  }
+    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
+  },
+  proxy: process.env.NODE_ENV === 'production'
 }));
 
 // Passport middleware

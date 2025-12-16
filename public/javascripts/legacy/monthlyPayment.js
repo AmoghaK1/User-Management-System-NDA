@@ -1,39 +1,12 @@
+// LEGACY CODE: Monthly Payment System
+// This file contains the original monthly payment logic that has been replaced by quarterly and half-yearly payment systems
+
 const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
 let currentYear = new Date().getFullYear();
-
-// Store payment status in local storage as a backup
-let paymentStatus = {};
-
-function getCurrentDate() {
-    return new Date();
-}
-
-// Fetch payment status from the server
-async function fetchPaymentStatus() {
-    try {
-        const response = await fetch('/payment-status', { credentials: 'include' });
-        if (!response.ok) throw new Error('Network error');
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            paymentStatus = data.paymentStatus;
-        } else {
-            paymentStatus = JSON.parse(localStorage.getItem('paymentStatus')) || {};
-        }
-        
-        localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
-        return paymentStatus;
-    } catch (error) {
-        console.error('Fetch error:', error);
-        paymentStatus = JSON.parse(localStorage.getItem('paymentStatus')) || {};
-        return paymentStatus;
-    }
-}
 
 // Optimized function to create all month cards at once
 async function createAllMonthCards(year) {
@@ -125,20 +98,25 @@ async function createAllMonthCards(year) {
     grid.appendChild(fragment);
 }
 
-document.getElementById('monthsGrid').addEventListener('click', (event) => {
-    if (event.target.classList.contains('pay-now-btn')) {
-        // Get month and year from data attributes
-        const monthIndex = event.target.getAttribute('data-month');
-        const year = event.target.getAttribute('data-year');
+// Event delegation for monthly payment buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const monthsGrid = document.getElementById('monthsGrid');
+    if (monthsGrid) {
+        monthsGrid.addEventListener('click', (event) => {
+            if (event.target.classList.contains('pay-now-btn')) {
+                // Get month and year from data attributes
+                const monthIndex = event.target.getAttribute('data-month');
+                const year = event.target.getAttribute('data-year');
 
-        if (monthIndex !== null && year !== null) {
-            processPayment(months[monthIndex], parseInt(year));
-        }
+                if (monthIndex !== null && year !== null) {
+                    processPayment(months[monthIndex], parseInt(year));
+                }
+            }
+        });
     }
 });
 
-
-// ✅ Update months grid function
+// Update months grid function
 async function updateMonthsGrid() {
     await createAllMonthCards(currentYear);
     updateYearSummary();
@@ -168,7 +146,6 @@ function calculateLateFee(monthIndex, year) {
     // Cap at 0 (shouldn't be negative)
     return Math.max(0, monthsLate) * 50;
 }
-
 
 function processPayment(month, year) {
     const monthIndex = months.indexOf(month);
@@ -234,7 +211,9 @@ function processPayment(month, year) {
                                 
                                 // Update summary
                                 updateYearSummary();
-                                updateQuarterlyAfterMonthlyPayment(monthIndex);
+                                if (typeof updateQuarterlyAfterMonthlyPayment === 'function') {
+                                    updateQuarterlyAfterMonthlyPayment(monthIndex);
+                                }
                                 alert(`Payment Successful for ${month} ${year}`);
                             }
                         });
@@ -267,55 +246,15 @@ function processPayment(month, year) {
     });
 }
 
-// LEGACY CODE: Payment method selection function - Monthly payment option removed from UI
-/*
-function setPaymentMethod(method) {
-    const monthlySection = document.getElementById('monthlySection');
-    const quarterlySection = document.getElementById('quarterlySection');
-    const monthlyBtn = document.getElementById('monthlyPaymentBtn');
-    const quarterlyBtn = document.getElementById('quarterlyPaymentBtn');
-    
-    if (method === 'monthly') {
-        // Update button styles
-        monthlyBtn.classList.add('bg-purple-800');
-        quarterlyBtn.classList.remove('bg-purple-800');
-        
-        // Show monthly section
-        monthlySection.style.display = 'block';
-        quarterlySection.style.display = 'none';
-        
-        // Update monthly UI
-        updateMonthsGrid();
-        updateYearSummary();
-        
-        // Save preference
-        localStorage.setItem('paymentMethod', 'monthly');
-    } else {
-        // Update button styles
-        quarterlyBtn.classList.add('bg-purple-800');
-        monthlyBtn.classList.remove('bg-purple-800');
-        
-        // Show quarterly section
-        monthlySection.style.display = 'none';
-        quarterlySection.style.display = 'block';
-        
-        // Update quarterly UI (from quarterlyPayment.js)
-        updateQuarterlyGrid();
-        updateQuarterlySummary();
-        
-        // Save preference
-        localStorage.setItem('paymentMethod', 'quarterly');
-    }
-}
-*/
-
-// Initialize when DOM is fully loaded
+// Initialize monthly payment UI when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
     // Initial fetch of payment status
-    await fetchPaymentStatus();
+    if (typeof fetchPaymentStatus === 'function') {
+        await fetchPaymentStatus();
+    }
     
     // Set current year from actual date
-    currentYear = getCurrentDate().getFullYear();
+    currentYear = new Date().getFullYear();
     
     // Set up year navigation for monthly view
     const prevYearBtn = document.getElementById('prevYear');
@@ -326,23 +265,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (prevYearBtn) prevYearBtn.addEventListener('click', () => changeYear(-1));
     if (nextYearBtn) nextYearBtn.addEventListener('click', () => changeYear(1));
     
-    // LEGACY CODE: Monthly payment method selection - Removed from UI
-    /*
-    // Get payment method selection buttons (once user has already made an initial choice)
-    const monthlyPaymentBtn = document.getElementById('monthlyPaymentBtn');
-    const quarterlyPaymentBtn = document.getElementById('quarterlyPaymentBtn');
-    
-    // Add event listeners for payment method buttons (secondary navigation)
-    if (monthlyPaymentBtn) {
-        monthlyPaymentBtn.addEventListener('click', () => setPaymentMethod('monthly'));
-    }
-    
-    if (quarterlyPaymentBtn) {
-        quarterlyPaymentBtn.addEventListener('click', () => setPaymentMethod('quarterly'));
-    }
-    
     // Initialize UI
     await updateMonthsGrid();
-    updateYearSummary();
-    */
+    if (typeof updateYearSummary === 'function') {
+        updateYearSummary();
+    }
 });

@@ -6,6 +6,8 @@ const quarters = [
     { id: 4, name: 'Q4', months: ['October', 'November', 'December'] }
 ];
 
+let currentYear = new Date().getFullYear();
+
 async function getQuarterlyFeeStatus(quarter, year) {
     // Check if quarter is directly marked as paid
     if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
@@ -285,6 +287,17 @@ function processQuarterlyPayment(quarter, year) {
             alert(errorMessage);
         }
     });
+}
+
+// Summary update functions (optional - for UI updates)
+function updateQuarterlySummary() {
+    // Optional: Add summary statistics if needed in the UI
+    // Currently just a placeholder to prevent errors
+}
+
+function updateYearSummary() {
+    // Optional: Add year summary statistics if needed
+    // Currently just a placeholder to prevent errors
 }
 
 // Initialize quarterly payment view

@@ -23,6 +23,12 @@ async function getHalfYearlyFeeStatus(halfId, year) {
         return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
     }
     
+    // IMPORTANT: Only check payment status if it's for the same year
+    // If paymentStatus doesn't exist or is for a different year, treat as pending
+    if (!paymentStatus || !paymentStatus.year || paymentStatus.year !== year) {
+        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
+    }
+    
     // Check if half-year is directly marked as paid
     if (paymentStatus.halfYearly && paymentStatus.halfYearly[halfId] === 'Paid') {
         return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };

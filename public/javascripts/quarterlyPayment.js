@@ -25,6 +25,12 @@ async function getQuarterlyFeeStatus(quarter, year) {
         return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
     }
     
+    // IMPORTANT: Only check payment status if it's for the same year
+    // If paymentStatus doesn't exist or is for a different year, treat as pending
+    if (!paymentStatus || !paymentStatus.year || paymentStatus.year !== year) {
+        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
+    }
+    
     // Now check if quarter is directly marked as paid
     if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
         return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };

@@ -7,6 +7,22 @@ const halfYearlyPeriods = [
 let currentYearHalfYearly = new Date().getFullYear();
 
 async function getHalfYearlyFeeStatus(halfId, year) {
+    // Get current date information first
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    const currentHalf = currentMonth < 6 ? 'half1' : 'half2';
+    
+    // If it's a future year, all half-years are upcoming
+    if (year > currentYear) {
+        return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
+    }
+    
+    // If it's current year but H2 hasn't started yet, H2 is upcoming
+    if (year === currentYear && halfId === 'half2' && currentHalf === 'half1') {
+        return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
+    }
+    
     // Check if half-year is directly marked as paid
     if (paymentStatus.halfYearly && paymentStatus.halfYearly[halfId] === 'Paid') {
         return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
@@ -64,18 +80,8 @@ async function getHalfYearlyFeeStatus(halfId, year) {
         return { status: 'Partially Paid (Monthly)', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: false };
     }
 
-    // Get current date information
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    const currentHalf = currentMonth < 6 ? 'half1' : 'half2';
-    
-    // Determine status based on date
-    if (year < currentYear || (year === currentYear && (halfId === 'half1' || (halfId === 'half2' && currentHalf === 'half2')))) {
-        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
-    }
-    
-    return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
+    // For past or current half-year that's not paid, it's pending
+    return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
 }
 
 async function createAllHalfYearlyCards(year) {
@@ -157,11 +163,23 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function updateHalfYearlyGrid() {
+    await fetchPaymentStatus(currentYearHalfYearly);
     await createAllHalfYearlyCards(currentYearHalfYearly);
+    
+    // Toggle prev button visibility based on year
+    const prevBtn = document.getElementById('prevYearHalfYearly');
+    if (prevBtn) {
+        prevBtn.style.display = currentYearHalfYearly <= 2025 ? 'none' : 'block';
+    }
 }
 
 async function changeHalfYearlyYear(change) {
-    currentYearHalfYearly += change;
+    const newYear = currentYearHalfYearly + change;
+    // Don't allow going below 2025
+    if (newYear < 2025) {
+        return;
+    }
+    currentYearHalfYearly = newYear;
     const yearElement = document.getElementById('currentYearHalfYearly');
     if (yearElement) yearElement.textContent = currentYearHalfYearly;
     await updateHalfYearlyGrid();

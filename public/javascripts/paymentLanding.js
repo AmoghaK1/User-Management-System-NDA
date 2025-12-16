@@ -14,16 +14,17 @@ var paymentStatus = {
 };
 
 // Fetch the user's payment status from the server
-async function fetchPaymentStatus() {
+async function fetchPaymentStatus(year = null) {
     try {
+        const url = year ? `/payment-status?year=${year}` : '/payment-status';
         const response = await $.ajax({
-            url: '/payment-status',
+            url: url,
             type: 'GET'
         });
 
         if (response && response.success) {
             paymentStatus = response.paymentStatus;
-            console.log('Payment status fetched:', paymentStatus); // Debug log
+            console.log('Payment status fetched for year:', paymentStatus.year, paymentStatus);
             localStorage.setItem('paymentStatus', JSON.stringify(paymentStatus));
         }
     } catch (error) {

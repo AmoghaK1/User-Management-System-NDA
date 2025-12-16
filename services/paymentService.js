@@ -7,8 +7,8 @@ const { formatStudentPaymentDetails } = require('../dtos/paymentDTO');
 const { RAZORPAY_ID_KEY } = process.env;
 
 
-const getPaymentStatusService = async (userId) => {
-    const currentYear = new Date().getFullYear();
+const getPaymentStatusService = async (userId, year = null) => {
+    const currentYear = year || new Date().getFullYear();
     
     let paymentStatus = await PaymentStatus.findOne({ userId, year: currentYear });
     

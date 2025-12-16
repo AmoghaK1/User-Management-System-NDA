@@ -9,7 +9,23 @@ const quarters = [
 let currentYear = new Date().getFullYear();
 
 async function getQuarterlyFeeStatus(quarter, year) {
-    // Check if quarter is directly marked as paid
+    // Get current date information first
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    const currentQuarter = Math.floor(currentMonth / 3) + 1;
+    
+    // If it's a future year, all quarters are upcoming
+    if (year > currentYear) {
+        return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
+    }
+    
+    // If it's current year but future quarter, it's upcoming
+    if (year === currentYear && quarter > currentQuarter) {
+        return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
+    }
+    
+    // Now check if quarter is directly marked as paid
     if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
         return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
     }
@@ -44,18 +60,8 @@ async function getQuarterlyFeeStatus(quarter, year) {
         return { status: 'Partially Paid', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: true };
     }
 
-    // Get current date information
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    const currentQuarter = Math.floor(currentMonth / 3) + 1;
-    
-    // Determine status based on date
-    if (year < currentYear || (year === currentYear && quarter <= currentQuarter)) {
-        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
-    }
-    
-    return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
+    // For past or current quarter that's not paid, it's pending
+    return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
 }
 
 async function createAllQuarterlyCards(year) {
@@ -131,16 +137,27 @@ document.getElementById('quarterlyGrid').addEventListener('click', (event) => {
 });
 
 async function updateQuarterlyGrid() {
+    await fetchPaymentStatus(currentYear);
     await createAllQuarterlyCards(currentYear);
     updateQuarterlySummary();
+    
+    // Toggle prev button visibility based on year
+    const prevBtn = document.getElementById('prevYearQuarterly');
+    if (prevBtn) {
+        prevBtn.style.display = currentYear <= 2025 ? 'none' : 'block';
+    }
 }
 
 async function changeQuarterlyYear(change) {
-    currentYear += change;
+    const newYear = currentYear + change;
+    // Don't allow going below 2025
+    if (newYear < 2025) {
+        return;
+    }
+    currentYear = newYear;
     const yearElement = document.getElementById('currentYearQuarterly');
     if (yearElement) yearElement.textContent = currentYear;
     await updateQuarterlyGrid();
-    updateQuarterlySummary();
 }
 
 function calculateQuarterlyLateFee(quarter, year) {

@@ -98,7 +98,8 @@ const updatePayment = async (req, res) => {
 const getPaymentStatus = async (req, res) => {
     try {
         const userId = req.user._id;
-        const paymentStatus = await getPaymentStatusService(userId);
+        const year = req.query.year ? parseInt(req.query.year) : null;
+        const paymentStatus = await getPaymentStatusService(userId, year);
         const dto = formatPaymentStatusDto(paymentStatus);
 
         res.status(200).json({ success: true, paymentStatus: dto });

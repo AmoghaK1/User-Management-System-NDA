@@ -25,14 +25,11 @@ async function getQuarterlyFeeStatus(quarter, year) {
         return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
     }
     
-    // IMPORTANT: Only check payment status if it's for the same year
-    // If paymentStatus doesn't exist or is for a different year, treat as pending
-    if (!paymentStatus || !paymentStatus.year || paymentStatus.year !== year) {
-        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
-    }
+    // Only proceed with payment status checks if we have valid data for this year
+    const hasValidPaymentData = paymentStatus && paymentStatus.year === year;
     
     // Now check if quarter is directly marked as paid
-    if (paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
+    if (hasValidPaymentData && paymentStatus.quarters && paymentStatus.quarters[quarter] === 'Paid') {
         return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
     }
 
@@ -42,28 +39,32 @@ async function getQuarterlyFeeStatus(quarter, year) {
     
     // Check if all months in the quarter are paid individually
     let allMonthsPaid = true;
-    for (let i = startMonth; i <= endMonth; i++) {
-        if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
-            allMonthsPaid = false;
-            break;
+    if (hasValidPaymentData) {
+        for (let i = startMonth; i <= endMonth; i++) {
+            if (!paymentStatus.months || paymentStatus.months[i] !== 'Paid') {
+                allMonthsPaid = false;
+                break;
+            }
         }
-    }
-    
-    if (allMonthsPaid) {
-        return { status: 'Paid (Monthly)', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
+        
+        if (allMonthsPaid) {
+            return { status: 'Paid (Monthly)', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
+        }
     }
 
     // Check if any months in the quarter are paid
     let anyMonthPaid = false;
-    for (let i = startMonth; i <= endMonth; i++) {
-        if (paymentStatus.months && paymentStatus.months[i] === 'Paid') {
-            anyMonthPaid = true;
-            break;
+    if (hasValidPaymentData) {
+        for (let i = startMonth; i <= endMonth; i++) {
+            if (paymentStatus.months && paymentStatus.months[i] === 'Paid') {
+                anyMonthPaid = true;
+                break;
+            }
         }
-    }
-    
-    if (anyMonthPaid) {
-        return { status: 'Partially Paid', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: true };
+        
+        if (anyMonthPaid) {
+            return { status: 'Partially Paid', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: true };
+        }
     }
 
     // For past or current quarter that's not paid, it's pending

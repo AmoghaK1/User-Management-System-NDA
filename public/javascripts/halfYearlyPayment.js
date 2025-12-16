@@ -23,14 +23,11 @@ async function getHalfYearlyFeeStatus(halfId, year) {
         return { status: 'Upcoming', statusClass: 'upcoming-status', textColor: 'text-gray-600', showButton: false };
     }
     
-    // IMPORTANT: Only check payment status if it's for the same year
-    // If paymentStatus doesn't exist or is for a different year, treat as pending
-    if (!paymentStatus || !paymentStatus.year || paymentStatus.year !== year) {
-        return { status: 'Pending', statusClass: 'pending-status', textColor: 'text-orange-800', showButton: true };
-    }
+    // Only proceed with payment status checks if we have valid data for this year
+    const hasValidPaymentData = paymentStatus && paymentStatus.year === year;
     
     // Check if half-year is directly marked as paid
-    if (paymentStatus.halfYearly && paymentStatus.halfYearly[halfId] === 'Paid') {
+    if (hasValidPaymentData && paymentStatus.halfYearly && paymentStatus.halfYearly[halfId] === 'Paid') {
         return { status: 'Paid', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
     }
 
@@ -42,48 +39,54 @@ async function getHalfYearlyFeeStatus(halfId, year) {
     let allQuartersPaid = true;
     let anyQuarterPaid = false;
     
-    for (let quarterNum of quartersInHalf) {
-        if (paymentStatus.quarters && paymentStatus.quarters[quarterNum] === 'Paid') {
-            anyQuarterPaid = true;
-        } else {
-            allQuartersPaid = false;
+    if (hasValidPaymentData) {
+        for (let quarterNum of quartersInHalf) {
+            if (paymentStatus.quarters && paymentStatus.quarters[quarterNum] === 'Paid') {
+                anyQuarterPaid = true;
+            } else {
+                allQuartersPaid = false;
+            }
         }
-    }
-    
-    // If both quarters are paid, show as fully paid (quarterly)
-    if (allQuartersPaid && anyQuarterPaid) {
-        return { status: 'Paid (Quarterly)', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
-    }
-    
-    // If only one quarter is paid, show as partially paid
-    if (anyQuarterPaid) {
-        return { status: 'Partially Paid (Quarterly)', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: false };
+        
+        // If both quarters are paid, show as fully paid (quarterly)
+        if (allQuartersPaid && anyQuarterPaid) {
+            return { status: 'Paid (Quarterly)', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
+        }
+        
+        // If only one quarter is paid, show as partially paid
+        if (anyQuarterPaid) {
+            return { status: 'Partially Paid (Quarterly)', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: false };
+        }
     }
     
     // Check if all months in the half-year are paid individually
     let allMonthsPaid = true;
-    for (let monthIndex of period.monthIndices) {
-        if (!paymentStatus.months || paymentStatus.months[monthIndex] !== 'Paid') {
-            allMonthsPaid = false;
-            break;
+    if (hasValidPaymentData) {
+        for (let monthIndex of period.monthIndices) {
+            if (!paymentStatus.months || paymentStatus.months[monthIndex] !== 'Paid') {
+                allMonthsPaid = false;
+                break;
+            }
         }
-    }
-    
-    if (allMonthsPaid) {
-        return { status: 'Paid (Monthly)', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
+        
+        if (allMonthsPaid) {
+            return { status: 'Paid (Monthly)', statusClass: 'paid-status', textColor: 'text-green-800', showButton: false };
+        }
     }
 
     // Check if any months in the half-year are paid
     let anyMonthPaid = false;
-    for (let monthIndex of period.monthIndices) {
-        if (paymentStatus.months && paymentStatus.months[monthIndex] === 'Paid') {
-            anyMonthPaid = true;
-            break;
+    if (hasValidPaymentData) {
+        for (let monthIndex of period.monthIndices) {
+            if (paymentStatus.months && paymentStatus.months[monthIndex] === 'Paid') {
+                anyMonthPaid = true;
+                break;
+            }
         }
-    }
-    
-    if (anyMonthPaid) {
-        return { status: 'Partially Paid (Monthly)', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: false };
+        
+        if (anyMonthPaid) {
+            return { status: 'Partially Paid (Monthly)', statusClass: 'partial-status', textColor: 'text-blue-800', showButton: false };
+        }
     }
 
     // For past or current half-year that's not paid, it's pending
@@ -329,6 +332,10 @@ function processHalfYearlyPayment(halfId, year) {
 
 // Set up year navigation
 document.addEventListener('DOMContentLoaded', function() {
+    // Set initial year display
+    const yearElement = document.getElementById('currentYearHalfYearly');
+    if (yearElement) yearElement.textContent = currentYearHalfYearly;
+    
     const prevYearBtn = document.getElementById('prevYearHalfYearly');
     const nextYearBtn = document.getElementById('nextYearHalfYearly');
     

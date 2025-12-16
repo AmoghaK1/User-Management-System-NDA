@@ -21,9 +21,10 @@ const getPaymentStatusService = async (userId) => {
     return paymentStatus;
 };
 
-const updatePaymentService = async (userId, year, month, quarter, isQuarterly) => {
-     // Convert isQuarterly from string ('true'/'false') to boolean
+const updatePaymentService = async (userId, year, month, quarter, isQuarterly, halfId, isHalfYearly) => {
+     // Convert isQuarterly and isHalfYearly from string ('true'/'false') to boolean
     const isQuarterlyBool = isQuarterly === 'true';
+    const isHalfYearlyBool = isHalfYearly === 'true';
 
     let paymentStatus = await PaymentStatus.findOne({ userId, year });
 
@@ -31,8 +32,26 @@ const updatePaymentService = async (userId, year, month, quarter, isQuarterly) =
         console.log('No existing payment status found, creating new one.');
         const user = await User.findById(userId);
         if (!user) throw new Error('User not found');
-        paymentStatus = new PaymentStatus({ userId, userName: user.name, year: currentYear });
-    }        if (isQuarterlyBool) {
+        paymentStatus = new PaymentStatus({ userId, userName: user.name, year });
+    }
+
+    if (isHalfYearlyBool) {
+        // Handle half-yearly payment
+        if (!halfId || (halfId !== 'half1' && halfId !== 'half2')) {
+            const error = new Error('Invalid half-year value. Must be half1 or half2.');
+            error.status = 400;
+            throw error;
+        }
+
+        // Update half-yearly status
+        paymentStatus.halfYearly.set(halfId, 'Paid');
+        
+        // Update individual months (0-5 for half1, 6-11 for half2)
+        const startMonth = halfId === 'half1' ? 0 : 6;
+        for (let i = startMonth; i < startMonth + 6; i++) {
+            paymentStatus.months.set(String(i), 'Paid');
+        }
+    } else if (isQuarterlyBool) {
         // Validate quarter (must be a number between 1 and 4)
         const quarterNum = parseInt(quarter, 10);
         if (isNaN(quarterNum) || quarterNum < 1 || quarterNum > 4) {
@@ -80,13 +99,23 @@ const getStudentPaymentDetailsService = async () => {
 };
 
 const createOrderService = async (body, userId) => {
-    const { name, amount, description, email, contact, year, month, quarter, isQuarterly } = body;
+    const { name, amount, description, email, contact, year, month, quarter, isQuarterly, halfId, isHalfYearly } = body;
     const user = await User.findById(userId);
     if (!user) throw new Error('User not found');
        
-    let paymentStatus = await PaymentStatus.findOne({ userId, year }) || new PaymentStatus({ userId, userName: user.name, year: currentYear });
+    let paymentStatus = await PaymentStatus.findOne({ userId, year }) || new PaymentStatus({ userId, userName: user.name, year });
 
-    if (isQuarterly) {
+    if (isHalfYearly) {
+        // Check if half-year months are already paid
+        const startMonth = halfId === 'half1' ? 0 : 6;
+        for (let i = startMonth; i < startMonth + 6; i++) {
+            if (paymentStatus.months.get(String(i)) === 'Paid') {
+                const error = new Error('Some months in this half-year are already paid.');
+                error.status = 400;
+                throw error;
+            }
+        }
+    } else if (isQuarterly) {
         const startMonth = (quarter - 1) * 3;
         for (let i = startMonth; i < startMonth + 3; i++) {
             if (paymentStatus.months.get(String(i)) === 'Paid') {

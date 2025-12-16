@@ -28,6 +28,10 @@
       ];
       const year = payment && payment.year ? payment.year : new Date().getFullYear();
       const quarterNames = ['Q1 (Jan-Mar)', 'Q2 (Apr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Oct-Dec)'];
+      const halfYearlyNames = [
+        { id: 'half1', name: 'H1 (Jan-Jun)', months: 'January, February, March, April, May, June' },
+        { id: 'half2', name: 'H2 (Jul-Dec)', months: 'July, August, September, October, November, December' }
+      ];
     %>
         <!-- Student Profile Section -->
         <div class="student-profile">
@@ -74,6 +78,7 @@
                 <div class="fee-toggle">
                     <button class="toggle-btn active" id="monthsBtn">Months</button>
                     <button class="toggle-btn" id="quartersBtn">Quarter</button>
+                    <button class="toggle-btn" id="halfYearlyBtn">Half-Yearly</button>
                 </div>
             </div>
             <div class="fee-amount">Current fee: <%= student.exam_fee %></div>
@@ -111,26 +116,63 @@
                     </div>
                 <% } %>
             </div>
+            <div class="fee-list" id="halfYearlyList" style="display:none;">
+                <% halfYearlyNames.forEach(function(half) { 
+                    const status = payment && payment.halfYearly && (payment.halfYearly[half.id] || (payment.halfYearly.get && payment.halfYearly.get(half.id))) || 'Pending';
+                    const paid = status === 'Paid';
+                %>
+                    <div class="fee-item <%= paid ? 'paid' : 'unpaid' %>">
+                        <div>
+                            <span class="fee-month"><%= half.name %> <%= year %></span>
+                            <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;"><%= half.months %></div>
+                        </div>
+                        <% if (!paid) { %>
+                            <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&halfId=<%= half.id %>&isHalfYearly=true">
+                                <button class="edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </a>
+                        <% } %>
+                    </div>
+                <% }); %>
+            </div>
         </div>
     </div>
     <script>
-        // Toggle between months and quarters
+        // Toggle between months, quarters, and half-yearly
         document.addEventListener('DOMContentLoaded', function() {
             const monthsBtn = document.getElementById('monthsBtn');
             const quartersBtn = document.getElementById('quartersBtn');
+            const halfYearlyBtn = document.getElementById('halfYearlyBtn');
             const monthsList = document.getElementById('monthsList');
             const quartersList = document.getElementById('quartersList');
+            const halfYearlyList = document.getElementById('halfYearlyList');
+            
             monthsBtn.addEventListener('click', function() {
                 monthsBtn.classList.add('active');
                 quartersBtn.classList.remove('active');
+                halfYearlyBtn.classList.remove('active');
                 monthsList.style.display = '';
                 quartersList.style.display = 'none';
+                halfYearlyList.style.display = 'none';
             });
+            
             quartersBtn.addEventListener('click', function() {
                 quartersBtn.classList.add('active');
                 monthsBtn.classList.remove('active');
+                halfYearlyBtn.classList.remove('active');
                 monthsList.style.display = 'none';
                 quartersList.style.display = '';
+                halfYearlyList.style.display = 'none';
+            });
+            
+            halfYearlyBtn.addEventListener('click', function() {
+                halfYearlyBtn.classList.add('active');
+                monthsBtn.classList.remove('active');
+                quartersBtn.classList.remove('active');
+                monthsList.style.display = 'none';
+                quartersList.style.display = 'none';
+                halfYearlyList.style.display = '';
             });
         });
     </script>

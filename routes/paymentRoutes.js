@@ -10,6 +10,8 @@ const { ensureAuthenticated } = require('../middlewares/auth');
 
 // Update the route name to match the dashboard purpose
 payment_route.get('/accounts', ensureAuthenticated, paymentController.renderDashboard);
+payment_route.get('/quarterly-payments', ensureAuthenticated, paymentController.renderQuarterlyPayments);
+payment_route.get('/half-yearly-payments', ensureAuthenticated, paymentController.renderHalfYearlyPayments);
 payment_route.post('/createOrder', ensureAuthenticated, paymentController.createOrder);
 payment_route.post('/update-payment', ensureAuthenticated, paymentController.updatePayment);
 payment_route.get('/payment-status', ensureAuthenticated, paymentController.getPaymentStatus);

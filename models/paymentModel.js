@@ -13,6 +13,11 @@ const paymentStatusSchema = new mongoose.Schema({
         type: Map,
         of: String,
         default: () => new Map(Array.from({ length: 4 }, (_, i) => [String(i + 1), 'Pending']))
+    },
+    halfYearly: {
+        type: Map,
+        of: String,
+        default: () => new Map([['half1', 'Pending'], ['half2', 'Pending']])
     }
 });
 const PaymentStatus = mongoose.models.PaymentStatus || mongoose.model('PaymentStatus', paymentStatusSchema);

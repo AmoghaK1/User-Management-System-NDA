@@ -183,23 +183,34 @@ const loadStudentDbDetails = async (req, res) => {
 };
 
 const loadUpdateFee = (req, res) => {
-    const { studentId, year, month, quarter, isQuarterly } = req.query;
+    const { studentId, year, month, quarter, isQuarterly, halfId, isHalfYearly } = req.query;
     res.render('teacher/stdb_update_fees', {
         studentId,
         year,
         month,
         quarter,
-        isQuarterly
+        isQuarterly,
+        halfId,
+        isHalfYearly
     });
 }
 
 const updateStudentFee = async (req, res) => {
     const { id } = req.params;
-    const { year, month, quarter, isQuarterly, amount, paymentType } = req.body;
+    const { year, month, quarter, isQuarterly, halfId, isHalfYearly, amount, paymentType } = req.body;
     try {
         let paymentStatus = await PaymentStatus.findOne({ userId: id, year });
         if (!paymentStatus) paymentStatus = new PaymentStatus({ userId: id, year });
-        if (isQuarterly === 'true') {
+        
+        if (isHalfYearly === 'true') {
+            // Handle half-yearly payment
+            paymentStatus.halfYearly.set(halfId, 'Paid');
+            // Update individual months (0-5 for half1, 6-11 for half2)
+            const startMonth = halfId === 'half1' ? 0 : 6;
+            for (let i = startMonth; i < startMonth + 6; i++) {
+                paymentStatus.months.set(String(i), 'Paid');
+            }
+        } else if (isQuarterly === 'true') {
             paymentStatus.quarters.set(String(quarter), 'Paid');
             const startMonth = (quarter - 1) * 3;
             for (let i = startMonth; i < startMonth + 3; i++) {
@@ -217,10 +228,12 @@ const updateStudentFee = async (req, res) => {
             year,
             month,
             quarter,
-            isQuarterly
+            isQuarterly,
+            halfId,
+            isHalfYearly
         });
 
-        console.log(`💰 Manual fee update - Student: ${id}, Year: ${year}, Month: ${month}, Quarter: ${quarter}, Quarterly: ${isQuarterly}`);
+        console.log(`💰 Manual fee update - Student: ${id}, Year: ${year}, Month: ${month}, Quarter: ${quarter}, Quarterly: ${isQuarterly}, HalfId: ${halfId}, HalfYearly: ${isHalfYearly}`);
 
         // Redirect to student details page after update
         res.redirect(`/student-db-details/${id}`);

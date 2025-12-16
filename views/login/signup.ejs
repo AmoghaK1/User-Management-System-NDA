@@ -95,7 +95,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password">Password <small style="color: #666; font-size: 0.90em;">(min. 5 characters and 1 number)</small></label>
                     <div class="input-wrapper">
                       <input type="password" id="password" name="password" autocomplete="new-password" value="<%=typeof formData != "undefined" ? formData.password : '' %>" required>
                       <i class="fa-solid fa-eye" id="togglePassword"></i>

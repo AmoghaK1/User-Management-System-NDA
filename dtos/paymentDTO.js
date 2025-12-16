@@ -2,7 +2,8 @@ const formatPaymentStatusDto = (paymentStatus) => {
     return {
         year: paymentStatus.year,
         months: Object.fromEntries(paymentStatus.months),
-        quarters: Object.fromEntries(paymentStatus.quarters)
+        quarters: Object.fromEntries(paymentStatus.quarters),
+        halfYearly: Object.fromEntries(paymentStatus.halfYearly || new Map())
     };
 };
 

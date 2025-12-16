@@ -267,7 +267,8 @@ function processPayment(month, year) {
     });
 }
 
-// Payment method selection function after initial selection
+// LEGACY CODE: Payment method selection function - Monthly payment option removed from UI
+/*
 function setPaymentMethod(method) {
     const monthlySection = document.getElementById('monthlySection');
     const quarterlySection = document.getElementById('quarterlySection');
@@ -306,6 +307,7 @@ function setPaymentMethod(method) {
         localStorage.setItem('paymentMethod', 'quarterly');
     }
 }
+*/
 
 // Initialize when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', async function() {
@@ -324,6 +326,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (prevYearBtn) prevYearBtn.addEventListener('click', () => changeYear(-1));
     if (nextYearBtn) nextYearBtn.addEventListener('click', () => changeYear(1));
     
+    // LEGACY CODE: Monthly payment method selection - Removed from UI
+    /*
     // Get payment method selection buttons (once user has already made an initial choice)
     const monthlyPaymentBtn = document.getElementById('monthlyPaymentBtn');
     const quarterlyPaymentBtn = document.getElementById('quarterlyPaymentBtn');
@@ -340,4 +344,5 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize UI
     await updateMonthsGrid();
     updateYearSummary();
+    */
 });

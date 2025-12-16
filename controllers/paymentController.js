@@ -20,6 +20,30 @@ const renderDashboard = async (req, res) => {
     }
 };
 
+const renderQuarterlyPayments = async (req, res) => {
+    try {
+        res.render('student/quarterlyPayments');
+    } catch (err) {
+        console.error('Error rendering quarterly payments page:', err.message);
+        if (err.status) {
+            return res.status(err.status).json({ error: err.message });
+        }
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+const renderHalfYearlyPayments = async (req, res) => {
+    try {
+        res.render('student/halfYearlyPayments');
+    } catch (err) {
+        console.error('Error rendering half-yearly payments page:', err.message);
+        if (err.status) {
+            return res.status(err.status).json({ error: err.message });
+        }
+        res.status(500).send('Internal Server Error');
+    }
+};
+
 const createOrder = async (req, res) => {
     try {
         const orderData = await createOrderService(req.body, req.user._id);  // userId from auth middleware
@@ -38,8 +62,8 @@ const createOrder = async (req, res) => {
 
 const updatePayment = async (req, res) => {
     try {
-        const { userId, year, month, quarter, isQuarterly } = req.body;
-        const paymentStatus = await updatePaymentService(userId, year, month, quarter, isQuarterly);
+        const { userId, year, month, quarter, isQuarterly, halfId, isHalfYearly } = req.body;
+        const paymentStatus = await updatePaymentService(userId, year, month, quarter, isQuarterly, halfId, isHalfYearly);
 
         // Emit real-time event for fee collection update
         feeCollectionEvents.notifyPaymentUpdate({
@@ -47,7 +71,9 @@ const updatePayment = async (req, res) => {
             year,
             month,
             quarter,
-            isQuarterly
+            isQuarterly,
+            halfId,
+            isHalfYearly
         });
 
         console.log(`💰 Payment updated - User: ${userId}, Year: ${year}, Month: ${month}, Quarter: ${quarter}, Quarterly: ${isQuarterly}`);
@@ -101,6 +127,8 @@ const getStudentPaymentDetails = async (req, res) => {
 
 module.exports = {
     renderDashboard,
+    renderQuarterlyPayments,
+    renderHalfYearlyPayments,
     createOrder,
     updatePayment,
     getPaymentStatus,

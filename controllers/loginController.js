@@ -1,10 +1,13 @@
-require("dotenv").config();
-const { getResetPasswordData } = require('../services/loginService');
-const { sendVerification } = require('../services/emailService');
-const { getVerifiedEmail} = require('../services/loginService');
-const { getresetPassword } = require('../services/loginService');
-const { getForgotPassword } = require('../services/loginService');
-const { handleUserRegistration } = require('../services/loginService');
+require('dotenv').config();
+const {
+    handleUserRegistration,
+    sendSignupOtp,
+    verifySignupOtp,
+    requestPasswordResetOtp,
+    resendPasswordResetOtp,
+    completePasswordResetWithOtp
+} = require('../services/loginService');
+const { maskPhoneNumber } = require('../services/otpService');
 
 const loadRegister = async(req,res)=> {
     try {
@@ -16,7 +19,7 @@ const loadRegister = async(req,res)=> {
 }
 
 const addUser = async (req, res) => {
-    try{
+    try {
         console.log('[addUser] Registration attempt:', {
             email: req.body.email,
             name: req.body.name,
@@ -26,86 +29,156 @@ const addUser = async (req, res) => {
 
         const result = await handleUserRegistration(req.body);
 
-        if (!result.success){
+        if (!result.success) {
             console.error('[addUser] Registration failed:', result.message);
             req.flash('formData', req.body);
             return res.redirect(`/signup?error=${encodeURIComponent(result.message)}`);
         }
 
-        console.log('[addUser] Registration successful:', req.body.email);
-        return res.redirect(`/signup?success=Registration%20successful!%20You%20can%20now%20log%20in.`);
-    }
-    catch(error){
-        console.error("❌ [addUser] CRITICAL ERROR:", error);
-        console.error("Error name:", error.name);
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-        console.error("Request body:", JSON.stringify(req.body, null, 2));
+        const otpResult = await sendSignupOtp(result.user._id);
+        const maskedPhone = otpResult.maskedPhone || maskPhoneNumber(result.user.student_ph_no || '');
+
+        req.session.pendingSignup = {
+            userId: result.user._id.toString(),
+            email: result.user.email,
+            maskedPhone
+        };
+
+        if (!otpResult.success) {
+            console.error('[addUser] OTP dispatch failed:', otpResult.message);
+            req.session.pendingSignupError = otpResult.message || 'Unable to send OTP. Please try again.';
+        } else {
+            console.log('[addUser] Registration successful, OTP sent:', {
+                email: result.user.email,
+                maskedPhone
+            });
+        }
+
+        return res.redirect('/signup/verify-otp');
+    } catch (error) {
+        console.error('❌ [addUser] CRITICAL ERROR:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('Request body:', JSON.stringify(req.body, null, 2));
         req.flash('formData', req.body);
         return res.redirect('/signup?error=Something%20went%20wrong.%20Try%20again%20later.');
     }
 };
 
-const sendVerificationEmail = async (user) => {
-    try{
-       await sendVerification(user); 
-    }catch (error) {    
-        console.error("Error in sendVerificationEmail:", error);
-        throw new Error('Failed to send verification email');
+
+const loadLogin = async (req, res) => {
+    const successMessage = req.session.authSuccessMessage || req.query.success || null;
+    const errorMessage = req.query.error || null;
+
+    if (req.session.authSuccessMessage) {
+        delete req.session.authSuccessMessage;
     }
 
+    res.render('login/login', { error: errorMessage, success: successMessage });
 };
 
-const verifyEmail = async (req, res) => {
+const loadSignupOtp = (req, res) => {
+    const pending = req.session.pendingSignup;
+    if (!pending) {
+        return res.redirect('/signup');
+    }
+
+    const initialError = req.session.pendingSignupError || null;
+    if (req.session.pendingSignupError) {
+        delete req.session.pendingSignupError;
+    }
+
+    return res.render('login/signup-otp', {
+        error: initialError,
+        success: null,
+        email: pending.email,
+        maskedPhone: pending.maskedPhone
+    });
+};
+
+const verifySignupOtpController = async (req, res) => {
+    const pending = req.session.pendingSignup;
+    if (!pending) {
+        return res.redirect('/signup');
+    }
+
     try {
-        const { userId , uniqueString} = req.params;
-        console.log('[verifyEmail] Incoming verification request', {
-            host: req.headers.host,
-            protocol: req.protocol,
-            userId,
-            uniqueStringPreview: uniqueString ? `${uniqueString.slice(0, 8)}...${uniqueString.slice(-6)}` : null
-        });
-        const { success , message , redirectUrl} = await getVerifiedEmail(userId, uniqueString);
+        const { otpCode } = req.body;
+        const result = await verifySignupOtp(pending.userId, otpCode);
 
-        console.log('[verifyEmail] Verification result', {
-            userId,
-            success,
-            message,
-            redirectUrl
-        });
+        if (!result.success) {
+            return res.render('login/signup-otp', {
+                error: result.message,
+                success: null,
+                email: pending.email,
+                maskedPhone: pending.maskedPhone
+            });
+        }
 
-        return res.render('login/verifiedPage',{
-            error: !success,
-            message, 
-            redirectUrl: success ? redirectUrl : undefined
-        });
-    }catch(error){
-        console.error("Error verification controller error : ", error);
-
-        return res.render('login/verifiedPage', {
-            error: true,
-            message: "An error occurred while verifying your email. Please try again later."
+        delete req.session.pendingSignup;
+        req.session.authSuccessMessage = 'Phone number verified successfully. You can now log in.';
+        return res.redirect('/login');
+    } catch (error) {
+        console.error('[verifySignupOtpController] Error verifying OTP:', error);
+        return res.render('login/signup-otp', {
+            error: 'Failed to verify OTP. Please try again.',
+            success: null,
+            email: pending.email,
+            maskedPhone: pending.maskedPhone
         });
     }
 };
 
-const loadVerifiedPage = async(req,res) => {
-    res.render("login/verifiedPage");
-}
+const resendSignupOtp = async (req, res) => {
+    const pending = req.session.pendingSignup;
+    if (!pending) {
+        return res.redirect('/signup');
+    }
 
-const loadLogin = async(req,res) => {
-    res.render('login/login', { error: null, success: null }); // Ensures both variables are always defined
+    try {
+        const result = await sendSignupOtp(pending.userId);
+        if (!result.success) {
+            return res.render('login/signup-otp', {
+                error: result.message,
+                success: null,
+                email: pending.email,
+                maskedPhone: pending.maskedPhone
+            });
+        }
+
+        req.session.pendingSignup.maskedPhone = result.maskedPhone;
+
+        return res.render('login/signup-otp', {
+            error: null,
+            success: 'A new OTP has been sent to your phone.',
+            email: pending.email,
+            maskedPhone: result.maskedPhone
+        });
+    } catch (error) {
+        console.error('[resendSignupOtp] Error resending OTP:', error);
+        return res.render('login/signup-otp', {
+            error: 'Unable to resend OTP right now. Please try again later.',
+            success: null,
+            email: pending.email,
+            maskedPhone: pending.maskedPhone
+        });
+    }
 };
 
 const loadForgotPassword = async (req, res) => {
     try {
-        res.render('login/forgot-password', { 
+        const context = req.session.passwordReset || {};
+        res.render('login/forgot-password', {
             error: null,
-            success: null 
+            success: null,
+            otpSent: Boolean(context.userId),
+            maskedPhone: context.maskedPhone || null,
+            emailValue: context.email || ''
         });
     } catch (error) {
         console.error('Forgot password load error:', error);
-        res.render('login/login', { 
+        res.render('login/login', {
             error: 'Error loading forgot password page',
             success: null
         });
@@ -113,91 +186,123 @@ const loadForgotPassword = async (req, res) => {
 };
 
 const forgotPassword = async (req, res) => {
+    const intent = req.body.intent || 'request';
+    const sessionContext = req.session.passwordReset || {};
+
     try {
-        const { email } = req.body;
-        const result = await getForgotPassword(email);
+        if (intent === 'request') {
+            const { email } = req.body;
+            const result = await requestPasswordResetOtp(email);
 
-        res.render('login/forgot-password', { 
-            success: result.success ? result.message : null,
-            error: result.success ? null : result.message
-        });
+            if (!result.success) {
+                return res.render('login/forgot-password', {
+                    error: result.message,
+                    success: null,
+                    otpSent: false,
+                    maskedPhone: null,
+                    emailValue: email || ''
+                });
+            }
 
-    }catch(error){
-        console.error('Forgot password error:', error);
-        res.render('login/forgot-password', { 
-        error: 'Error processing your request',
-        success: null
-    });
-    }
-};
+            req.session.passwordReset = {
+                userId: result.userId,
+                maskedPhone: result.maskedPhone,
+                email: result.email
+            };
 
-const loadResetPassword = async (req, res) => {
-    try {
-        const { token } = req.params;
-
-        const result = await getResetPasswordData(token);
-
-        if (!result.user) {
-            return res.render('login/login', { 
-                error: result.error,
-                success: null 
+            return res.render('login/forgot-password', {
+                error: null,
+                success: 'OTP sent to your registered phone number.',
+                otpSent: true,
+                maskedPhone: result.maskedPhone,
+                emailValue: result.email
             });
         }
 
-        res.render('login/reset-password', {
-            token: result.token,
-            error: null,
-            success: null
+        if (intent === 'resend') {
+            if (!sessionContext.userId) {
+                return res.render('login/forgot-password', {
+                    error: 'Password reset session expired. Please request a new OTP.',
+                    success: null,
+                    otpSent: false,
+                    maskedPhone: null,
+                    emailValue: ''
+                });
+            }
+
+            const result = await resendPasswordResetOtp(sessionContext.userId);
+
+            if (!result.success) {
+                return res.render('login/forgot-password', {
+                    error: result.message,
+                    success: null,
+                    otpSent: true,
+                    maskedPhone: sessionContext.maskedPhone,
+                    emailValue: sessionContext.email
+                });
+            }
+
+            req.session.passwordReset.maskedPhone = result.maskedPhone;
+
+            return res.render('login/forgot-password', {
+                error: null,
+                success: 'A new OTP has been sent.',
+                otpSent: true,
+                maskedPhone: result.maskedPhone,
+                emailValue: sessionContext.email
+            });
+        }
+
+        if (!sessionContext.userId) {
+            return res.render('login/forgot-password', {
+                error: 'Password reset session expired. Please request a new OTP.',
+                success: null,
+                otpSent: false,
+                maskedPhone: null,
+                emailValue: ''
+            });
+        }
+
+        const { otpCode, password, confirmPassword } = req.body;
+        const result = await completePasswordResetWithOtp({
+            userId: sessionContext.userId,
+            otpCode,
+            password,
+            confirmPassword
         });
-
-    } catch (error) {
-        console.error('Reset password load error:', error);
-        res.render('login/login', {
-            error: 'Error loading password reset page',
-            success: null
-        });
-    }
-};
-
-const resetPassword = async (req, res) => {
-  try {
-        const { token } = req.params;
-        const { password, confirmPassword } = req.body;
-
-        const result = await getresetPassword(token, password, confirmPassword);
 
         if (!result.success) {
-            return res.render('login/reset-password', {
-                token,
+            return res.render('login/forgot-password', {
                 error: result.message,
-                success: null
+                success: null,
+                otpSent: true,
+                maskedPhone: sessionContext.maskedPhone,
+                emailValue: sessionContext.email
             });
         }
-        
-        res.render('login/login', { 
-            success: result.message,
-            error: null
+
+        delete req.session.passwordReset;
+        req.session.authSuccessMessage = result.message;
+        return res.redirect('/login');
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        return res.render('login/forgot-password', {
+            error: 'Error processing your request',
+            success: null,
+            otpSent: Boolean(sessionContext.userId),
+            maskedPhone: sessionContext.maskedPhone || null,
+            emailValue: sessionContext.email || ''
         });
-  }
-  catch(error){
-     console.error('Reset password error:', error);
-        res.render('login/reset-password', { 
-            token: req.params.token,
-            error: 'Error resetting password',
-            success: null
-        });
-  }
+    }
 };
 
 module.exports = {
     loadRegister,
     addUser,
     loadLogin,
-    loadVerifiedPage,
-    verifyEmail,
+    loadSignupOtp,
+    verifySignupOtp: verifySignupOtpController,
+    resendSignupOtp,
     loadForgotPassword,
-    forgotPassword,
-    loadResetPassword,
-    resetPassword,
-    sendVerificationEmail
+    forgotPassword
 };

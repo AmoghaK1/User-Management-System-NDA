@@ -27,14 +27,13 @@ user_route.get('/signup', auth.redirectIfAuthenticated, (req, res) => {
     });
 });
 user_route.post('/signup',  loginController.addUser);
-user_route.get('/user/verify/:userId/:uniqueString', loginController.verifyEmail);
-user_route.get('/verified', loginController.loadVerifiedPage);
+user_route.get('/signup/verify-otp', loginController.loadSignupOtp);
+user_route.post('/signup/verify-otp', loginController.verifySignupOtp);
+user_route.post('/signup/resend-otp', loginController.resendSignupOtp);
 user_route.get('/login', auth.redirectIfAuthenticated, loginController.loadLogin);
 
 user_route.get('/forgot-password', auth.redirectIfAuthenticated, loginController.loadForgotPassword);
 user_route.post('/forgot-password', loginController.forgotPassword);
-user_route.get('/reset-password/:token', loginController.loadResetPassword);
-user_route.post('/reset-password/:token', loginController.resetPassword);
 
 user_route.post('/login', (req, res, next) => {
     console.log('[Login Route] Login attempt:', { email: req.body.email });
@@ -55,7 +54,7 @@ user_route.post('/login', (req, res, next) => {
         if (!user.is_verified && user.email != "rajjii11@gmail.com") {
             console.log('[Login Route] User not verified:', user.email);
             return res.render("login/login", { 
-                error: "Please verify your email before logging in. Check your inbox for verification link.", 
+                error: "Please verify your phone number with the OTP sent during signup before logging in.", 
                 success: null 
             });
         }

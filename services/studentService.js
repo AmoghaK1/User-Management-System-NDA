@@ -6,9 +6,7 @@ const updateProfileService = async (body, stud_id) => {
     const allowedUpdates = [
         'name',
         'email',
-        'student_ph_no',
-        'father_ph_no',
-        'mother_ph_no'
+        'student_ph_no'
     ];
 
     const updates = Object.keys(body);

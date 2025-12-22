@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Pre-fill form with current values
         const form = document.getElementById('editProfileForm');
-        const fields = ['name', 'email', 'student_ph_no', 'father_ph_no', 'mother_ph_no'];
+        const fields = ['name', 'email', 'student_ph_no'];
         fields.forEach(field => {
             const input = form.querySelector(`[name="${field}"]`);
             const currentValue = document.querySelector(`[data-field="${field}"]`).textContent;

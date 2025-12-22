@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Phone | NDA</title>
+    <link rel="stylesheet" href="../stylesheets/login.css">
+    <link rel="stylesheet" href="../stylesheets/notifications.css">
+    <link rel="icon" type="image/png" href="../images/favicon-2.0.3/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="../images/favicon-2.0.3/favicon.svg" />
+    <link rel="shortcut icon" href="../images/favicon-2.0.3/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon-2.0.3/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Nrutyashree" />
+    <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
+</head>
+<body>
+    <% if (error) { %>
+        <div class="error-message">
+            <span><%= error %></span>
+        </div>
+    <% } %>
+
+    <% if (success) { %>
+        <div class="success-message">
+            <span><%= success %></span>
+        </div>
+    <% } %>
+
+    <div class="login-container">
+        <div class="welcome-section">
+            <img src="../images/natraj-logo.png" alt="Nrutyashree Dance Academy Logo" class="logo">
+            <div class="welcome-content">
+                <h1>Verify Your<br>Phone Number</h1>
+                <p>We sent a one-time password to continue</p>
+            </div>
+        </div>
+        <div class="form-section">
+            <div class="login-form">
+                <h2>Enter OTP</h2>
+                <p class="subtitle">
+                    OTP sent to <strong><%= maskedPhone || 'your phone' %></strong><br>
+                    Registered email: <strong><%= email %></strong>
+                </p>
+                <form method="post" action="/signup/verify-otp">
+                    <div class="form-group">
+                        <label for="otpCode">One-Time Password</label>
+                        <input type="text" id="otpCode" name="otpCode" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" placeholder="Enter OTP" required>
+                    </div>
+                    <button type="submit">Verify & Continue</button>
+                </form>
+                <form method="post" action="/signup/resend-otp" style="margin-top: 1rem; text-align: center;">
+                    <button type="submit" class="link-button">Resend OTP</button>
+                </form>
+                <div class="signup-prompt" style="margin-top: 1rem;">
+                    Entered wrong details? <a href="/signup">Register again</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../javascripts/notifications.js"></script>
+</body>
+</html>

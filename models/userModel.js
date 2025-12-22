@@ -32,8 +32,9 @@ const userSchema = new mongoose.Schema ({
         required:true
     },
     student_ph_no : {
-        type: Number,
-        required:true
+        type: String,
+        required:true,
+        trim: true
     },
     exam_level : {
         type: String,
@@ -41,14 +42,6 @@ const userSchema = new mongoose.Schema ({
     },
     exam_fee: { 
         type: Number, default: function() { return feeStructure[this.exam_level] || 800; } }, // Default 800
-    mother_ph_no : {
-        type: Number,
-        required:true
-    },
-    father_ph_no : {
-        type: Number,
-        required:true
-    },
     password : {
         type: String,
         required:true
@@ -59,6 +52,10 @@ const userSchema = new mongoose.Schema ({
     },
     is_verified : {
         type: Boolean
+    },
+    verifiedAt: {
+        type: Date,
+        default: null
     },
     createdAt: {  // Changed from joinDate to createdAt
         type: Date,

@@ -60,25 +60,11 @@ function validateForm() {
         return false;
     }
 
-    // Phone number validation (10 digits)
+    // Phone number validation
     const studentPhoneInput = document.getElementById('student_ph_no');
-    const phoneRegex = /^[6-9]\d{9}$/;
+    const phoneRegex = /^[0-9+\-()\s]{7,15}$/;
     if (!phoneRegex.test(studentPhoneInput.value.trim())) {
-        showError('student_ph_no', 'Phone number must be 10 digits and start with 6-9');
-        return false;
-    }
-
-    // Mother's phone number validation
-    const motherPhoneInput = document.getElementById('mother_ph_no');
-    if (!phoneRegex.test(motherPhoneInput.value.trim())) {
-        showError('mother_ph_no', 'Mother\'s phone number must be 10 digits and start with 6-9');
-        return false;
-    }
-
-    // Father's phone number validation
-    const fatherPhoneInput = document.getElementById('father_ph_no');
-    if (!phoneRegex.test(fatherPhoneInput.value.trim())) {
-        showError('father_ph_no', 'Father\'s phone number must be 10 digits and start with 6-9');
+        showError('student_ph_no', 'Enter a valid parent/student phone number. OTP will be sent here.');
         return false;
     }
 

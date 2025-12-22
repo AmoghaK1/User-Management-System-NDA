@@ -1,7 +1,10 @@
 const REQUIRED_ENV_VARS = [
     { key: 'MONGO_URI', mask: true },
     { key: 'AUTH_EMAIL', mask: false },
-    { key: 'CURRENT_URL', mask: false }
+    { key: 'CURRENT_URL', mask: false },
+    { key: 'TWILIO_ACCOUNT_SID', mask: true },
+    { key: 'TWILIO_AUTH_TOKEN', mask: true },
+    { key: 'TWILIO_VERIFY_SERVICE_SID', mask: true }
 ];
 
 const maskValue = (value = '') => {

@@ -255,6 +255,22 @@ button:active {
     transform: translateY(0);
 }
 
+.link-button {
+    width: auto;
+    background: none;
+    border: none;
+    color: #ab47bc;
+    box-shadow: none;
+    padding: 0;
+    font-weight: 600;
+}
+
+.link-button:hover {
+    color: #c2185b;
+    background: none;
+    transform: none;
+}
+
 .signup-prompt {
     text-align: center;
     margin-top: 20px;

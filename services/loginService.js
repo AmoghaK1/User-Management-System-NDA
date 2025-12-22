@@ -171,11 +171,16 @@ const verifySignupOtp = async (userId, otpCode) => {
     }
 };
 
-const requestPasswordResetOtp = async (email) => {
+const requestPasswordResetOtp = async (phoneNumber) => {
     try {
-        const user = await User.findOne({ email });
+        const normalizedPhone = normalizePhoneInput(phoneNumber);
+        if (!normalizedPhone) {
+            return { success: false, message: 'Phone number is required.' };
+        }
+
+        const user = await User.findOne({ student_ph_no: normalizedPhone });
         if (!user) {
-            return { success: false, message: 'No account with that email exists.' };
+            return { success: false, message: 'No account found for that phone number.' };
         }
 
         if (!user.student_ph_no) {
@@ -188,7 +193,7 @@ const requestPasswordResetOtp = async (email) => {
             success: true,
             userId: user._id.toString(),
             maskedPhone: otpService.maskPhoneNumber(user.student_ph_no),
-            email: user.email
+            phone: normalizedPhone
         };
     } catch (error) {
         console.error('[requestPasswordResetOtp] Failed to send OTP:', error);

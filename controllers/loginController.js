@@ -174,7 +174,7 @@ const loadForgotPassword = async (req, res) => {
             success: null,
             otpSent: Boolean(context.userId),
             maskedPhone: context.maskedPhone || null,
-            emailValue: context.email || ''
+            phoneValue: context.phone || ''
         });
     } catch (error) {
         console.error('Forgot password load error:', error);
@@ -191,8 +191,8 @@ const forgotPassword = async (req, res) => {
 
     try {
         if (intent === 'request') {
-            const { email } = req.body;
-            const result = await requestPasswordResetOtp(email);
+            const { phoneNumber } = req.body;
+            const result = await requestPasswordResetOtp(phoneNumber);
 
             if (!result.success) {
                 return res.render('login/forgot-password', {
@@ -200,14 +200,14 @@ const forgotPassword = async (req, res) => {
                     success: null,
                     otpSent: false,
                     maskedPhone: null,
-                    emailValue: email || ''
+                    phoneValue: phoneNumber || ''
                 });
             }
 
             req.session.passwordReset = {
                 userId: result.userId,
                 maskedPhone: result.maskedPhone,
-                email: result.email
+                phone: result.phone || phoneNumber || ''
             };
 
             return res.render('login/forgot-password', {
@@ -215,7 +215,7 @@ const forgotPassword = async (req, res) => {
                 success: 'OTP sent to your registered phone number.',
                 otpSent: true,
                 maskedPhone: result.maskedPhone,
-                emailValue: result.email
+                phoneValue: req.session.passwordReset.phone
             });
         }
 
@@ -226,7 +226,7 @@ const forgotPassword = async (req, res) => {
                     success: null,
                     otpSent: false,
                     maskedPhone: null,
-                    emailValue: ''
+                    phoneValue: ''
                 });
             }
 
@@ -238,7 +238,7 @@ const forgotPassword = async (req, res) => {
                     success: null,
                     otpSent: true,
                     maskedPhone: sessionContext.maskedPhone,
-                    emailValue: sessionContext.email
+                    phoneValue: sessionContext.phone
                 });
             }
 
@@ -249,7 +249,7 @@ const forgotPassword = async (req, res) => {
                 success: 'A new OTP has been sent.',
                 otpSent: true,
                 maskedPhone: result.maskedPhone,
-                emailValue: sessionContext.email
+                phoneValue: sessionContext.phone
             });
         }
 
@@ -259,7 +259,7 @@ const forgotPassword = async (req, res) => {
                 success: null,
                 otpSent: false,
                 maskedPhone: null,
-                emailValue: ''
+                phoneValue: ''
             });
         }
 
@@ -277,7 +277,7 @@ const forgotPassword = async (req, res) => {
                 success: null,
                 otpSent: true,
                 maskedPhone: sessionContext.maskedPhone,
-                emailValue: sessionContext.email
+                phoneValue: sessionContext.phone
             });
         }
 
@@ -291,7 +291,7 @@ const forgotPassword = async (req, res) => {
             success: null,
             otpSent: Boolean(sessionContext.userId),
             maskedPhone: sessionContext.maskedPhone || null,
-            emailValue: sessionContext.email || ''
+            phoneValue: sessionContext.phone || ''
         });
     }
 };

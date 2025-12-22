@@ -103,4 +103,9 @@ user_route.get('/unsubscribe', (req, res) => {
     });
 });
 
+// Contact Us page
+user_route.get('/contact', (req, res) => {
+    res.render('misc/contact');
+});
+
 module.exports = user_route;

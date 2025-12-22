@@ -10,7 +10,8 @@ const feeStructure = {
     "Visharad Pratham": 1200,
     "Visharad Purna": 1200,
     "Alankar Pratham": 1500,
-    "Alankar Purna": 1500
+    "Alankar Purna": 1500,
+    "TMA-BA": 1200
 }
 
 const userSchema = new mongoose.Schema ({

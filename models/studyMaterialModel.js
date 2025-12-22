@@ -31,7 +31,8 @@ const studyMaterialSchema = new mongoose.Schema({
       'Visharad Pratham',
       'Visharad Purna',
       'Alankar Pratham',
-      'Alankar Purna'
+      'Alankar Purna',
+      'TMA-BA'
     ],
     required: true
   },

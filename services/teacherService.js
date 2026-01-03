@@ -1,14 +1,13 @@
 const User = require('../models/userModel');
 require("dotenv").config();
 const PaymentStatus = require('../models/paymentModel');
-const mongoose = require('mongoose')
 const StudyMaterial = require('../models/studyMaterialModel');
 const StudyMaterialDTO = require('../dtos/studyMaterialDTO');
 
 
 const getAllStudents = async () => {
     try{    
-        const students = await User.find({ is_admin: 0 }).select("_id name email exam_level");
+        const students = await User.find({ is_admin: 0 });
         return students;
     }
     catch(error){
@@ -29,18 +28,14 @@ const getDeleteStudent = async (studentId) => {
             };
         };
 
-        // Start a session for transaction
-        const session = await mongoose.startSession();
-        session.startTransaction();
-            // Delete the student's payment records first
-        await PaymentStatus.deleteMany({ userId: studentId },{ session });
+        // Delete the student's payment records first
+        const paymentRecords = await PaymentStatus.find({ userid: studentId });
+        for (const payment of paymentRecords) {
+            await PaymentStatus.deleteById(payment.id);
+        }
 
         // Finally delete the student
-        await User.deleteOne({ _id: studentId } ,  { session });
-
-        // Commit the transaction
-        await session.commitTransaction();
-        session.endSession();
+        await User.deleteById(studentId);
 
         // Return success response
         return{ 
@@ -49,8 +44,6 @@ const getDeleteStudent = async (studentId) => {
             message: "Student and all related payment records deleted successfully" 
         };
     }catch(error){
-        await session.abortTransaction();
-        session.endSession();
         console.error("Service error in deleteStudent:", error);
         return {
             success: false,
@@ -61,21 +54,24 @@ const getDeleteStudent = async (studentId) => {
 };
 
 const saveMaterial = async ({ title, url, type, category, level }) => {
-  const newMaterial = new StudyMaterial({
+  const saved = await StudyMaterial.create({
     title,
     url,
     type,
     category,
     level
   });
-
-  const saved = await newMaterial.save();
   return new StudyMaterialDTO(saved);
 };
 
 const getMaterials = async (level) => {
   const query = level ? { level } : {};
-  const materials = await StudyMaterial.find(query).sort({ category: 1, createdAt: -1 });
+  const materials = await StudyMaterial.find(query);
+  // Sort manually in JavaScript
+  materials.sort((a, b) => {
+    if (a.category !== b.category) return a.category.localeCompare(b.category);
+    return new Date(b.createdat) - new Date(a.createdat);
+  });
 
   return materials.map((mat) => new StudyMaterialDTO(mat));
 };
@@ -96,7 +92,7 @@ const deleteMaterial = async (materialId) => {
       };
     }
 
-    await StudyMaterial.deleteOne({ _id: materialId });
+    await StudyMaterial.deleteById(materialId);
     
     return {
       success: true,
@@ -115,10 +111,10 @@ const deleteMaterial = async (materialId) => {
 };
 
 const getStudentDetailsWithPayment = async (studentId) => {
-    const student = await User.findById(studentId).lean();
+    const student = await User.findById(studentId);
     if (!student) return null;
     const currentYear = new Date().getFullYear();
-    const payment = await PaymentStatus.findOne({ userId: studentId, year: currentYear }).lean();
+    const payment = await PaymentStatus.findOne({ userid: studentId, year: currentYear });
     return { student, payment };
 };
 
@@ -128,17 +124,17 @@ const getMonthlyFeeCollection = async (year) => {
         console.log(`🔄 Fetching fee collection data for year: ${currentYear} at ${new Date().toLocaleString()}`);
         
         // Get all students with their fee amounts
-        const students = await User.find({ is_admin: 0 }).select('_id name exam_fee exam_level').lean();
+        const students = await User.find({ is_admin: 0 });
         console.log(`📊 Found ${students.length} students in database`);
         
-        // Get all payment statuses for the current year (without .lean() to preserve Maps)
+        // Get all payment statuses for the current year
         const paymentStatuses = await PaymentStatus.find({ year: currentYear });
         console.log(`💰 Found ${paymentStatuses.length} payment records for year ${currentYear}`);
         
         // Create a map for easy lookup
         const paymentMap = new Map();
         paymentStatuses.forEach(payment => {
-            paymentMap.set(payment.userId.toString(), payment);
+            paymentMap.set(payment.userid, payment);
         });
         
         // Calculate monthly collections
@@ -160,13 +156,13 @@ const getMonthlyFeeCollection = async (year) => {
             let paidStudents = 0;
             
             students.forEach(student => {
-                const payment = paymentMap.get(student._id.toString());
+                const payment = paymentMap.get(student.id);
                 const studentFee = parseFloat(student.exam_fee) || 0;
                 
-                // Handle Map objects properly
+                // Handle JSONB months object from PostgreSQL
                 let monthStatus = 'Pending';
                 if (payment && payment.months) {
-                    monthStatus = payment.months.get(String(month)) || 'Pending';
+                    monthStatus = payment.months[String(month)] || 'Pending';
                 }
                 
                 if (monthStatus === 'Paid') {

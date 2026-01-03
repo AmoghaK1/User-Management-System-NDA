@@ -93,14 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Add any other dashboard functionality here
-    // For example, handling notifications, phone calls, etc.
-
-    // Notification icon click handler
-    const notificationIcon = document.querySelector('.fa-bell');
-    if (notificationIcon) {
-        notificationIcon.addEventListener('click', function() {
-            // Add notification functionality here
-            alert('Notifications feature coming soon!');
-        });
-    }
+    // For example, handling phone calls, etc.
+    // Notification functionality is handled in student-dashboard.ejs
 });

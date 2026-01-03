@@ -1,9 +1,9 @@
 const formatPaymentStatusDto = (paymentStatus) => {
     return {
         year: paymentStatus.year,
-        months: Object.fromEntries(paymentStatus.months),
-        quarters: Object.fromEntries(paymentStatus.quarters),
-        halfYearly: Object.fromEntries(paymentStatus.halfYearly || new Map())
+        months: paymentStatus.months || {},
+        quarters: paymentStatus.quarters || {},
+        halfYearly: paymentStatus.halfyearly || {}
     };
 };
 
@@ -11,13 +11,13 @@ const formatStudentPaymentDetails = (users, paymentStatuses, year, currentMonth,
     const formattedPayments = [];
 
     users.forEach(user => {
-        if (!user || !user._id) {
-            console.warn('Skipping user with invalid _id:', user);
+        if (!user || !user.id) {
+            console.warn('Skipping user with invalid id:', user);
             return;
         }
 
         const paymentStatus = paymentStatuses.find(
-            status => status.userId?.toString() === user._id.toString()
+            status => status.userid === user.id
         );
 
         const monthStatuses = Array(12).fill('Pending');

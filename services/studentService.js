@@ -17,10 +17,8 @@ const updateProfileService = async (body, stud_id) => {
     }
 
     if (body.email) {
-        const existingUser = await User.findOne({
-            email: body.email,
-            _id: { $ne: stud_id }
-        });
+        const allUsers = await User.find({ email: body.email });
+        const existingUser = allUsers.find(u => u.id !== stud_id);
         if (existingUser) {
             console.warn(`Email already in use: ${body.email}`);
             return { error: 'Email already in use' };
@@ -32,21 +30,21 @@ const updateProfileService = async (body, stud_id) => {
         return { error: 'User not found' };
     }
 
+    const updateData = {};
     updates.forEach(update => {
-        user[update] = body[update];
+        updateData[update] = body[update];
     });
 
-    await user.save();
+    const updatedUser = await User.updateById(stud_id, updateData);
 
-    const userData = user.toObject();
-    if (userData.birthdate) {
-        userData.birthdate = new Date(userData.birthdate).toLocaleDateString('en-GB');
+    if (updatedUser.birthdate) {
+        updatedUser.birthdate = new Date(updatedUser.birthdate).toLocaleDateString('en-GB');
     }
-    if (userData.joinDate) {
-        userData.joinDate = new Date(userData.joinDate).toLocaleDateString('en-GB');
+    if (updatedUser.createdat) {
+        updatedUser.createdat = new Date(updatedUser.createdat).toLocaleDateString('en-GB');
     }
 
-    return userData;
+    return updatedUser;
 };
 
 const updateProfilePictureService = async (userId, filePath) => {
@@ -56,17 +54,16 @@ const updateProfilePictureService = async (userId, filePath) => {
             return { error: "User not found", status: 404 };
         }
 
-        if (user.profilePicture && !user.profilePicture.includes("pfp_final_1.png")) {
-            const publicId = user.profilePicture.split("/").pop().split(".")[0];
+        if (user.profilepicture && !user.profilepicture.includes("pfp_final_1.png")) {
+            const publicId = user.profilepicture.split("/").pop().split(".")[0];
             await cloudinary.uploader.destroy(`profile_pictures/${publicId}`);
         }
 
-        user.profilePicture = filePath;
-        await user.save();
+        const updatedUser = await User.updateById(userId, { profilepicture: filePath });
 
         return {
             message: "Profile picture updated successfully",
-            profilePicture: user.profilePicture
+            profilePicture: updatedUser.profilepicture
         };
 
     } catch (error) {
@@ -113,8 +110,7 @@ const changePasswordService = async (userId, currentPassword, newPassword, confi
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    await user.save();
+    await User.updateById(userId, { password: hashedPassword });
 
     return {
         success: true,

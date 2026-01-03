@@ -27,7 +27,10 @@
             <div><%= user.exam_level %></div>
         </div>
         <div class="navbar-icons">
-            <i class="fa-solid fa-bell nav-icon"></i>
+            <div class="notification-wrapper">
+                <i class="fa-solid fa-bell nav-icon" id="notification-bell"></i>
+                <span class="notification-badge" id="notification-badge" style="display: none;">1</span>
+            </div>
             <a href="tel:+919822155819"><i class="fa-solid fa-phone nav-icon"></i></a>
             <button id="logout-btn"><a href="logout">Logout</a></button>
         </div>
@@ -112,6 +115,131 @@
       &copy; 2009 Nrutyashree Dance Academy. All rights reserved.
   </div>
 </footer>
+
+  <!-- Fee Structure Notification Modal -->
+  <div id="feeModal" class="fee-modal" style="display: none;">
+    <div class="fee-modal-content">
+      <div class="fee-modal-header">
+        <h2><i class="fa-solid fa-bullhorn"></i> Updated Fee Structure Announcement</h2>
+        <span class="fee-modal-close" id="closeFeeModal">&times;</span>
+      </div>
+      <div class="fee-modal-body">
+        <p class="fee-announcement-text">
+          Dear Students,<br>
+          We would like to inform you about our updated monthly fee structure for the academic year. 
+          Please find the details below:
+        </p>
+        <div class="fee-table-container">
+          <table class="fee-table">
+            <thead>
+              <tr>
+                <th>Exam Level</th>
+                <th>Monthly Fee</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="exam-badge">Senior Batch</span></td>
+                <td class="fee-amount">₹1,100</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Prarambhik - 1st Exam</span></td>
+                <td class="fee-amount">₹900</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Praveshika Pratham - 2nd Exam</span></td>
+                <td class="fee-amount">₹900</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Praveshika Purna - 3rd Exam</span></td>
+                <td class="fee-amount">₹1,000</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Madhyama Pratham - 4th Exam</span></td>
+                <td class="fee-amount">₹1,000</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Madhyama Purna - 5th Exam</span></td>
+                <td class="fee-amount">₹1,000</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Visharad Pratham - 6th Exam</span></td>
+                <td class="fee-amount">₹1,200</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Visharad Purna - 7th Exam</span></td>
+                <td class="fee-amount">₹1,200</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Alankar Pratham - 8th Exam</span></td>
+                <td class="fee-amount">₹1,500</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">Alankar Purna - 9th Exam</span></td>
+                <td class="fee-amount">₹1,500</td>
+              </tr>
+              <tr>
+                <td><span class="exam-badge">TMV-BA</span></td>
+                <td class="fee-amount">₹1,200</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fee-note">
+          <i class="fa-solid fa-info-circle"></i> 
+          For any queries regarding the fee structure, please contact the administration.
+        </p>
+      </div>
+      <div class="fee-modal-footer">
+        <button class="fee-modal-btn" id="acknowledgeBtn">I Understand</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Permanent Fee Structure Notification Modal
+    (function() {
+      const modal = document.getElementById('feeModal');
+      const bell = document.getElementById('notification-bell');
+      const badge = document.getElementById('notification-badge');
+      const closeBtn = document.getElementById('closeFeeModal');
+      const acknowledgeBtn = document.getElementById('acknowledgeBtn');
+      
+      // Check if user has seen the notification
+      const hasSeenNotification = localStorage.getItem('feeNotificationSeen');
+      
+      // Show badge only if user hasn't seen it
+      if (hasSeenNotification !== 'true') {
+        badge.style.display = 'flex';
+      }
+      
+      // Open modal when bell is clicked (always works)
+      bell.addEventListener('click', function() {
+        modal.style.display = 'flex';
+        // Mark as seen and hide badge after first click
+        if (hasSeenNotification !== 'true') {
+          localStorage.setItem('feeNotificationSeen', 'true');
+          badge.style.display = 'none';
+        }
+      });
+      
+      // Close modal functions
+      function closeModal() {
+        modal.style.display = 'none';
+      }
+      
+      closeBtn.addEventListener('click', closeModal);
+      acknowledgeBtn.addEventListener('click', closeModal);
+      
+      // Close when clicking outside modal
+      window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+    })();
+  </script>
+
   <script src="../javascripts/st-dashboard.js"></script>
 </body>
 </html>

@@ -66,7 +66,7 @@
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">DOB:</span>
-                    <span><%= student.birthdate ? student.birthdate.toLocaleDateString() : '' %></span>
+                    <span><%= student.birthdate ? new Date(student.birthdate).toLocaleDateString() : '' %></span>
                 </div>
             </div>
         </div>
@@ -90,7 +90,7 @@
                     <div class="fee-item <%= paid ? 'paid' : 'unpaid' %>">
                         <span class="fee-month"><%= monthNames[i] %> <%= year %></span>
                         <% if (!paid) { %>
-                            <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&month=<%= i %>&isQuarterly=false">
+                            <a href="/update-fee?studentId=<%= student.id %>&year=<%= year %>&month=<%= i %>&isQuarterly=false">
                                 <button class="edit-btn">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -107,7 +107,7 @@
                     <div class="fee-item <%= paid ? 'paid' : 'unpaid' %>">
                         <span class="fee-month"><%= quarterNames[q-1] %> <%= year %></span>
                         <% if (!paid) { %>
-                            <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&quarter=<%= q %>&isQuarterly=true">
+                            <a href="/update-fee?studentId=<%= student.id %>&year=<%= year %>&quarter=<%= q %>&isQuarterly=true">
                                 <button class="edit-btn">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -118,7 +118,7 @@
             </div>
             <div class="fee-list" id="halfYearlyList" style="display:none;">
                 <% halfYearlyNames.forEach(function(half) { 
-                    const status = payment && payment.halfYearly && (payment.halfYearly[half.id] || (payment.halfYearly.get && payment.halfYearly.get(half.id))) || 'Pending';
+                    const status = payment && payment.halfyearly && (payment.halfyearly[half.id] || (payment.halfyearly.get && payment.halfyearly.get(half.id))) || 'Pending';
                     const paid = status === 'Paid';
                 %>
                     <div class="fee-item <%= paid ? 'paid' : 'unpaid' %>">
@@ -127,7 +127,7 @@
                             <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;"><%= half.months %></div>
                         </div>
                         <% if (!paid) { %>
-                            <a href="/update-fee?studentId=<%= student._id %>&year=<%= year %>&halfId=<%= half.id %>&isHalfYearly=true">
+                            <a href="/update-fee?studentId=<%= student.id %>&year=<%= year %>&halfId=<%= half.id %>&isHalfYearly=true">
                                 <button class="edit-btn">
                                     <i class="fas fa-edit"></i>
                                 </button>

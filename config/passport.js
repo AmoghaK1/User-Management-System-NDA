@@ -33,6 +33,7 @@ module.exports = (passport) => {
     );
 
     passport.serializeUser((user, done) => {
+        // For Supabase, user.id is already a UUID string
         done(null, user.id);
     });
 
@@ -47,8 +48,15 @@ module.exports = (passport) => {
                 });
             }
 
-            // For normal users, query from the database
+            // For normal users, query from Supabase
             const user = await User.findById(id);
+            
+            // Normalize field names for views (camelCase for compatibility)
+            if (user) {
+                user.profilePicture = user.profilepicture;
+                user.createdAt = user.createdat;
+            }
+            
             done(null, user);
         } catch (error) {
             done(error);

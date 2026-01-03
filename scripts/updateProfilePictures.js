@@ -1,25 +1,9 @@
-const mongoose = require("mongoose");
 require('dotenv').config();
 
 // Import the User model
 const User = require("../models/userModel");
 
-// Database connection
-async function connectDB() {
-    try {
-        await mongoose.connect(process.env.MONGO_URI, {
-            writeConcern: {
-                w: 1  // Acknowledge write to primary node
-            }
-        });
-        console.log("Connected to MongoDB!");
-    } catch (err) {
-        console.error("MongoDB connection error:", err);
-        process.exit(1);
-    }
-}
-
-// Function to update profile pictures
+// Function to update profile pictures using Supabase
 async function updateProfilePictures() {
     try {
         console.log("Starting profile picture update process...");
@@ -29,7 +13,7 @@ async function updateProfilePictures() {
         
         // Find all users with the old profile picture URL
         const usersToUpdate = await User.find({
-            profilePicture: oldProfilePictureUrl
+            profilepicture: oldProfilePictureUrl
         });
         
         console.log(`Found ${usersToUpdate.length} users with the old profile picture URL.`);
@@ -40,17 +24,17 @@ async function updateProfilePictures() {
         }
         
         // Update all users with the old URL
-        const updateResult = await User.updateMany(
-            { profilePicture: oldProfilePictureUrl },
-            { $set: { profilePicture: newProfilePictureUrl } }
-        );
+        let updatedCount = 0;
+        for (const user of usersToUpdate) {
+            await User.updateById(user.id, { profilepicture: newProfilePictureUrl });
+            updatedCount++;
+        }
         
-        console.log(`Successfully updated ${updateResult.modifiedCount} user(s).`);
-        console.log(`Matched ${updateResult.matchedCount} document(s).`);
+        console.log(`Successfully updated ${updatedCount} user(s).`);
         
         // Verify the update by checking if any users still have the old URL
         const remainingOldUsers = await User.find({
-            profilePicture: oldProfilePictureUrl
+            profilepicture: oldProfilePictureUrl
         });
         
         if (remainingOldUsers.length === 0) {
@@ -60,22 +44,20 @@ async function updateProfilePictures() {
         }
         
         // Show a summary of current profile picture URLs
-        const profilePictureStats = await User.aggregate([
-            {
-                $group: {
-                    _id: "$profilePicture",
-                    count: { $sum: 1 }
-                }
-            },
-            {
-                $sort: { count: -1 }
-            }
-        ]);
+        const allUsers = await User.find({});
+        const profilePictureStats = {};
+        
+        allUsers.forEach(user => {
+            const url = user.profilepicture || 'null';
+            profilePictureStats[url] = (profilePictureStats[url] || 0) + 1;
+        });
         
         console.log("\n📊 Profile Picture URL Statistics:");
-        profilePictureStats.forEach((stat, index) => {
-            console.log(`${index + 1}. ${stat._id || 'null'} - ${stat.count} user(s)`);
-        });
+        Object.entries(profilePictureStats)
+            .sort((a, b) => b[1] - a[1])
+            .forEach(([url, count], index) => {
+                console.log(`${index + 1}. ${url} - ${count} user(s)`);
+            });
         
     } catch (error) {
         console.error("Error updating profile pictures:", error);
@@ -86,7 +68,7 @@ async function updateProfilePictures() {
 // Main execution function
 async function main() {
     try {
-        await connectDB();
+        console.log("✅ Connected to Supabase!");
         await updateProfilePictures();
         
         console.log("\n🎉 Profile picture update process completed successfully!");
@@ -95,9 +77,7 @@ async function main() {
         console.error("Script execution failed:", error);
         process.exit(1);
     } finally {
-        // Close the database connection
-        await mongoose.connection.close();
-        console.log("Database connection closed.");
+        console.log("Script completed.");
         process.exit(0);
     }
 }

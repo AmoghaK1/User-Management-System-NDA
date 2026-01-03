@@ -46,7 +46,7 @@ const renderHalfYearlyPayments = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-        const orderData = await createOrderService(req.body, req.user._id);  // userId from auth middleware
+        const orderData = await createOrderService(req.body, req.user.id);  // userId from auth middleware
         res.status(200).json({ success: true, ...orderData });
     } catch (error) {
         console.error('createOrder error:', error);
@@ -97,7 +97,7 @@ const updatePayment = async (req, res) => {
 
 const getPaymentStatus = async (req, res) => {
     try {
-        const userId = req.user._id;
+        const userId = req.user.id;
         const year = req.query.year ? parseInt(req.query.year) : null;
         const paymentStatus = await getPaymentStatusService(userId, year);
         const dto = formatPaymentStatusDto(paymentStatus);

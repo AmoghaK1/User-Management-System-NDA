@@ -16,8 +16,8 @@ const formatUserDates = (user) => {
             user.birthdate = 'Invalid Date';
         }
     }
-    if (user.createdAt) {
-        const createdDate = new Date(user.createdAt);
+    if (user.createdat) {
+        const createdDate = new Date(user.createdat);
         if (!isNaN(createdDate.getTime())) {
             user.createdAt = createdDate.toLocaleDateString('en-GB');
         } else {
@@ -52,7 +52,9 @@ const loadProfile = async (req, res) => {
     try {
         if (!req.isAuthenticated()) return res.redirect('/login');
 
-        const user = formatUserDates(req.user.toObject());
+        // Create a copy of the user object
+        const userCopy = { ...req.user };
+        const user = formatUserDates(userCopy);
         return res.render('student/student-profile', {
             user,
             error: null,
@@ -74,7 +76,7 @@ const updateProfile = async (req, res) => {
             return res.status(401).json({ error: "Not authenticated" });
         }
 
-        const result = await studentService.updateProfileService(req.body, req.user._id);
+        const result = await studentService.updateProfileService(req.body, req.user.id);
 
         if (result.error) {
             return res.status(400).json({ error: result.error });
@@ -102,7 +104,7 @@ const updateProfilePicture = async (req, res) => {
                 return res.status(400).json({ error: "No file uploaded" });
             }
 
-            const result = await studentService.updateProfilePictureService(req.user._id, req.file.path);
+            const result = await studentService.updateProfilePictureService(req.user.id, req.file.path);
 
             if (result.error) {
                 return res.status(result.status || 400).json({ error: result.error });
@@ -135,7 +137,7 @@ const changePassword = async (req, res) => {
         }
 
         const result = await studentService.changePasswordService(
-            req.user._id,
+            req.user.id,
             currentPassword,
             newPassword,
             confirmPassword
@@ -149,7 +151,7 @@ const changePassword = async (req, res) => {
 
     } catch (error) {
         console.error("Password change error:", {
-            userId: req?.user?._id,
+            userId: req?.user?.id,
             error: error.message,
             stack: error.stack
         });

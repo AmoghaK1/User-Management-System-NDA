@@ -71,7 +71,13 @@ user_route.post('/login', (req, res, next) => {
     })(req, res, next);
 });
 
-user_route.get('/st-dashboard', auth.ensureAuthenticated, studentController.load_stDashboard);
+user_route.get('/st-dashboard', auth.ensureAuthenticated, (req, res, next) => {
+    // Redirect teachers to teacher dashboard
+    if (req.user && req.user.email === "rajjii11@gmail.com") {
+        return res.redirect("/tr-dashboard");
+    }
+    next();
+}, studentController.load_stDashboard);
 user_route.get('/logout', studentController.logout_user);
 user_route.get('/st-profile', auth.ensureAuthenticated, studentController.loadProfile);
 user_route.put('/api/profile/update', auth.ensureAuthenticated, studentController.updateProfile);

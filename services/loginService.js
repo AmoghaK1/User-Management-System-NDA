@@ -20,22 +20,42 @@ const validatePasswordPair = (password, confirmPassword) => {
     return null;
 };
 
-const initializePaymentStatus = async (userId) => {
+const initializePaymentStatus = async (userId, userName) => {
     const currentYear = new Date().getFullYear();
-    const user = await User.findById(userId);
-    if (!user) throw new Error('User not found during payment init');
 
-    await PaymentStatus.findOneAndUpdate(
-        { userId, year: currentYear },
-        {
-            $setOnInsert: {
-                userName: user.name,
-                months: Object.fromEntries([...Array(12).keys()].map(m => [m, 'Pending'])),
-                quarters: { 1: 'Pending', 2: 'Pending', 3: 'Pending', 4: 'Pending' }
-            }
-        },
-        { upsert: true, new: true }
-    );
+    // Check if payment status already exists for this user and year
+    const existingPaymentStatus = await PaymentStatus.findOne({ userid: userId, year: currentYear });
+    
+    if (!existingPaymentStatus) {
+        // Create default months (0-11 as Pending)
+        const defaultMonths = {};
+        for (let i = 0; i < 12; i++) {
+            defaultMonths[i] = 'Pending';
+        }
+
+        // Create default quarters (1-4 as Pending)
+        const defaultQuarters = {
+            1: 'Pending',
+            2: 'Pending',
+            3: 'Pending',
+            4: 'Pending'
+        };
+
+        // Create default half yearly
+        const defaultHalfYearly = {
+            'half1': 'Pending',
+            'half2': 'Pending'
+        };
+
+        await PaymentStatus.create({
+            userid: userId,
+            username: userName,
+            year: currentYear,
+            months: defaultMonths,
+            quarters: defaultQuarters,
+            halfyearly: defaultHalfYearly
+        });
+    }
 };
 
 
@@ -88,22 +108,22 @@ const handleUserRegistration = async (data) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = new User({
+        // Create user in Supabase
+        const userData = await User.create({
             name,
             email,
-            birthdate,
-            age,
+            birthdate: birthdateObj.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+            age: parseInt(age, 10),
             student_ph_no: primaryPhone,
             exam_level,
             password: hashedPassword,
             is_admin: 0,
             is_verified: true,
-            verifiedAt: new Date()
+            verifiedat: new Date().toISOString()
         });
 
-        const userData = await user.save();
-
-        await initializePaymentStatus(userData._id);
+        // Initialize payment status for the new user
+        await initializePaymentStatus(userData.id, userData.name);
 
         console.log(`✅ SUCCESS: User ${userData.email} registered successfully (phone verification skipped)`);
 
@@ -131,8 +151,9 @@ const resetPasswordByPhone = async ({ phoneNumber, password, confirmPassword }) 
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        user.password = hashedPassword;
-        await user.save();
+        
+        // Update user password in Supabase
+        await User.updateById(user.id, { password: hashedPassword });
 
         return { success: true, message: 'Password updated successfully. You can now log in.' };
     } catch (error) {

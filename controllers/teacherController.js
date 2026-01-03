@@ -199,28 +199,60 @@ const updateStudentFee = async (req, res) => {
     const { id } = req.params;
     const { year, month, quarter, isQuarterly, halfId, isHalfYearly, amount, paymentType } = req.body;
     try {
-        let paymentStatus = await PaymentStatus.findOne({ userId: id, year });
-        if (!paymentStatus) paymentStatus = new PaymentStatus({ userId: id, year });
+        let paymentStatus = await PaymentStatus.findOne({ userid: id, year });
+        
+        if (!paymentStatus) {
+            const user = await User.findById(id);
+            if (!user) {
+                return res.status(404).json({ success: false, error: 'User not found' });
+            }
+            
+            const defaultMonths = {};
+            for (let i = 0; i < 12; i++) {
+                defaultMonths[i] = 'Pending';
+            }
+            const defaultQuarters = { 1: 'Pending', 2: 'Pending', 3: 'Pending', 4: 'Pending' };
+            const defaultHalfYearly = { 'half1': 'Pending', 'half2': 'Pending' };
+            
+            paymentStatus = await PaymentStatus.create({ 
+                userid: id, 
+                username: user.name, 
+                year,
+                months: defaultMonths,
+                quarters: defaultQuarters,
+                halfyearly: defaultHalfYearly
+            });
+        }
+        
+        // Clone the JSONB objects to modify them
+        const months = { ...paymentStatus.months };
+        const quarters = { ...paymentStatus.quarters };
+        const halfyearly = { ...paymentStatus.halfyearly };
         
         if (isHalfYearly === 'true') {
             // Handle half-yearly payment
-            paymentStatus.halfYearly.set(halfId, 'Paid');
+            halfyearly[halfId] = 'Paid';
             // Update individual months (0-5 for half1, 6-11 for half2)
             const startMonth = halfId === 'half1' ? 0 : 6;
             for (let i = startMonth; i < startMonth + 6; i++) {
-                paymentStatus.months.set(String(i), 'Paid');
+                months[String(i)] = 'Paid';
             }
         } else if (isQuarterly === 'true') {
-            paymentStatus.quarters.set(String(quarter), 'Paid');
+            quarters[String(quarter)] = 'Paid';
             const startMonth = (quarter - 1) * 3;
             for (let i = startMonth; i < startMonth + 3; i++) {
-                paymentStatus.months.set(String(i), 'Paid');
+                months[String(i)] = 'Paid';
             }
         } else {
-            paymentStatus.months.set(String(month), 'Paid');
+            months[String(month)] = 'Paid';
         }
-        // Optionally, you can store amount/paymentType in a separate array or object
-        await paymentStatus.save();
+        
+        // Update in database
+        await PaymentStatus.updateById(paymentStatus.id, {
+            months,
+            quarters,
+            halfyearly
+        });
 
         // Emit real-time event for fee collection update
         feeCollectionEvents.notifyPaymentUpdate({
@@ -238,6 +270,7 @@ const updateStudentFee = async (req, res) => {
         // Redirect to student details page after update
         res.redirect(`/student-db-details/${id}`);
     } catch (err) {
+        console.error('Error updating student fee:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 };

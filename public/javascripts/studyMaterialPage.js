@@ -178,7 +178,7 @@ const form = document.getElementById('uploadForm');
               <button class="action-btn" onclick="downloadMaterial('${material.url}')" title="Download Material">
                 <i class="fas fa-download"></i>
               </button>
-              <button class="action-btn delete-btn" onclick="deleteMaterial('${material._id}')" title="Delete Material">
+              <button class="action-btn delete-btn" onclick="deleteMaterial('${material.id}')" title="Delete Material">
                 <i class="fas fa-trash"></i>
               </button>
             </div>

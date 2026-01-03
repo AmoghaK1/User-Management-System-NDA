@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 const express = require("express");
 const bodyParser = require('body-parser');
@@ -27,18 +27,20 @@ if (missingVars.length > 0) {
   process.exit(1);
 }
 
-// MongoDB Connection with better error handling
-mongoose.connect(process.env.MONGO_URI, {
-  writeConcern: {
-    w: 1  // Acknowledge write to primary node
-  }
-}).then(() => {
-  console.log("✅ Connected to MongoDB!");
-}).catch(err => {
-  console.error("❌ MongoDB connection error:", err);
-  console.error("Connection string (masked):", process.env.MONGO_URI ? "***provided***" : "MISSING");
+// Supabase Connection
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Supabase configuration error: SUPABASE_URL or SUPABASE_KEY is missing');
   process.exit(1);
-});
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+console.log("✅ Connected to Supabase!");
+
+// Make supabase available globally (optional)
+global.supabase = supabase;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

@@ -27,9 +27,6 @@ user_route.get('/signup', auth.redirectIfAuthenticated, (req, res) => {
     });
 });
 user_route.post('/signup',  loginController.addUser);
-user_route.get('/signup/verify-otp', loginController.loadSignupOtp);
-user_route.post('/signup/verify-otp', loginController.verifySignupOtp);
-user_route.post('/signup/resend-otp', loginController.resendSignupOtp);
 user_route.get('/login', auth.redirectIfAuthenticated, loginController.loadLogin);
 
 user_route.get('/forgot-password', auth.redirectIfAuthenticated, loginController.loadForgotPassword);
@@ -48,15 +45,6 @@ user_route.post('/login', (req, res, next) => {
         if (!user) {
             console.log('[Login Route] Authentication failed:', info?.message);
             return res.render("login/login", { error: info.message, success: null });
-        }
-
-        // Check if user is verified
-        if (!user.is_verified && user.email != "rajjii11@gmail.com") {
-            console.log('[Login Route] User not verified:', user.email);
-            return res.render("login/login", { 
-                error: "Please verify your phone number with the OTP sent during signup before logging in.", 
-                success: null 
-            });
         }
 
         req.logIn(user, (err) => {

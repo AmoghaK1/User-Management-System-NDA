@@ -1,7 +1,6 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const PaymentStatus = require('../models/paymentModel');
-const otpService = require('./otpService');
 
 const PASSWORD_REGEX = /^(?=.*\d).{5,}$/;
 
@@ -55,7 +54,7 @@ const handleUserRegistration = async (data) => {
 
         const primaryPhone = normalizePhoneInput(student_ph_no);
         if (!primaryPhone || !PHONE_REGEX.test(primaryPhone)) {
-            return { success: false, message: 'A valid parent/student phone number is required for OTP verification.' };
+            return { success: false, message: 'A valid parent/student phone number is required to register.' };
         }
 
         const passwordError = validatePasswordPair(password, confirmPassword);
@@ -98,14 +97,15 @@ const handleUserRegistration = async (data) => {
             exam_level,
             password: hashedPassword,
             is_admin: 0,
-            is_verified: false
+            is_verified: true,
+            verifiedAt: new Date()
         });
 
         const userData = await user.save();
 
         await initializePaymentStatus(userData._id);
 
-        console.log(`✅ SUCCESS: User ${userData.email} registered successfully (OTP verification pending)`);
+        console.log(`✅ SUCCESS: User ${userData.email} registered successfully (phone verification skipped)`);
 
         return { success: true, user: userData };
     } catch (error) {
@@ -113,65 +113,7 @@ const handleUserRegistration = async (data) => {
         throw error;
     }
 };
-
-const sendSignupOtp = async (userId) => {
-    let maskedPhone;
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return { success: false, message: 'Account not found. Please register again.' };
-        }
-
-        if (!user.student_ph_no) {
-            return { success: false, message: 'Phone number is required for OTP verification.' };
-        }
-
-        maskedPhone = otpService.maskPhoneNumber(user.student_ph_no);
-        await otpService.sendOtp({ phoneNumber: user.student_ph_no });
-
-        return {
-            success: true,
-            maskedPhone,
-            email: user.email
-        };
-    } catch (error) {
-        console.error('[sendSignupOtp] Failed to send OTP:', error);
-        return { success: false, message: 'Failed to send OTP. Please try again.', maskedPhone };
-    }
-};
-
-const verifySignupOtp = async (userId, otpCode) => {
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return { success: false, message: 'Account not found. Please register again.' };
-        }
-
-        if (user.is_verified) {
-            return { success: true, message: 'Account already verified.' };
-        }
-
-        const approved = await otpService.verifyOtp({
-            phoneNumber: user.student_ph_no,
-            code: otpCode
-        });
-
-        if (!approved) {
-            return { success: false, message: 'Invalid or expired OTP. Please try again.' };
-        }
-
-        user.is_verified = true;
-        user.verifiedAt = new Date();
-        await user.save();
-
-        return { success: true };
-    } catch (error) {
-        console.error('[verifySignupOtp] Failed to verify OTP:', error);
-        return { success: false, message: 'Failed to verify OTP. Please try again later.' };
-    }
-};
-
-const requestPasswordResetOtp = async (phoneNumber) => {
+const resetPasswordByPhone = async ({ phoneNumber, password, confirmPassword }) => {
     try {
         const normalizedPhone = normalizePhoneInput(phoneNumber);
         if (!normalizedPhone) {
@@ -181,61 +123,6 @@ const requestPasswordResetOtp = async (phoneNumber) => {
         const user = await User.findOne({ student_ph_no: normalizedPhone });
         if (!user) {
             return { success: false, message: 'No account found for that phone number.' };
-        }
-
-        if (!user.student_ph_no) {
-            return { success: false, message: 'No phone number is linked to this account.' };
-        }
-
-        await otpService.sendOtp({ phoneNumber: user.student_ph_no });
-
-        return {
-            success: true,
-            userId: user._id.toString(),
-            maskedPhone: otpService.maskPhoneNumber(user.student_ph_no),
-            phone: normalizedPhone
-        };
-    } catch (error) {
-        console.error('[requestPasswordResetOtp] Failed to send OTP:', error);
-        return { success: false, message: 'Failed to send OTP. Please try again later.' };
-    }
-};
-
-const resendPasswordResetOtp = async (userId) => {
-    let maskedPhone;
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return { success: false, message: 'Password reset session expired. Please start again.' };
-        }
-
-        maskedPhone = otpService.maskPhoneNumber(user.student_ph_no);
-        await otpService.sendOtp({ phoneNumber: user.student_ph_no });
-
-        return {
-            success: true,
-            maskedPhone
-        };
-    } catch (error) {
-        console.error('[resendPasswordResetOtp] Failed to resend OTP:', error);
-        return { success: false, message: 'Failed to resend OTP. Please try again later.', maskedPhone };
-    }
-};
-
-const completePasswordResetWithOtp = async ({ userId, otpCode, password, confirmPassword }) => {
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return { success: false, message: 'Password reset session expired. Please request a new OTP.' };
-        }
-
-        const approved = await otpService.verifyOtp({
-            phoneNumber: user.student_ph_no,
-            code: otpCode
-        });
-
-        if (!approved) {
-            return { success: false, message: 'Invalid or expired OTP. Please try again.' };
         }
 
         const passwordError = validatePasswordPair(password, confirmPassword);
@@ -249,16 +136,12 @@ const completePasswordResetWithOtp = async ({ userId, otpCode, password, confirm
 
         return { success: true, message: 'Password updated successfully. You can now log in.' };
     } catch (error) {
-        console.error('[completePasswordResetWithOtp] Failed to reset password:', error);
+        console.error('[resetPasswordByPhone] Failed to reset password:', error);
         return { success: false, message: 'Failed to reset password. Please try again later.' };
     }
 };
 
 module.exports = {
     handleUserRegistration,
-    sendSignupOtp,
-    verifySignupOtp,
-    requestPasswordResetOtp,
-    resendPasswordResetOtp,
-    completePasswordResetWithOtp
+    resetPasswordByPhone
 };

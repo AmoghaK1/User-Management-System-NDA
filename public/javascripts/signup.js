@@ -64,7 +64,7 @@ function validateForm() {
     const studentPhoneInput = document.getElementById('student_ph_no');
     const phoneRegex = /^[0-9+\-()\s]{7,15}$/;
     if (!phoneRegex.test(studentPhoneInput.value.trim())) {
-        showError('student_ph_no', 'Enter a valid parent/student phone number. OTP will be sent here.');
+        showError('student_ph_no', 'Enter a valid parent/student phone number so we can reach you if needed.');
         return false;
     }
 

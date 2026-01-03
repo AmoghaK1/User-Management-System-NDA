@@ -168,12 +168,12 @@
         
         <div class="verification-content">
             <% if (error) { %>
-                <h1 class="error-title">OTP Verification Failed</h1>
+                <h1 class="error-title">Verification Failed</h1>
                 <div class="error-icon">⚠️</div>
                 <p class="description"><%= message %></p>
-                <a href="/signup/verify-otp" class="action-button">Try Again</a>
+                <a href="/signup" class="action-button">Try Again</a>
             <% } else { %>
-                <h1 class="success-title">Phone Verified Successfully!</h1>
+                <h1 class="success-title">Account Verified Successfully!</h1>
                 <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                     <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
                     <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>

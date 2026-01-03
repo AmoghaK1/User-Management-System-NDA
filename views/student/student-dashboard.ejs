@@ -139,47 +139,47 @@
             </thead>
             <tbody>
               <tr>
-                <td><span class="exam-badge">Senior Batch</span></td>
+                <td>Senior Batch</td>
                 <td class="fee-amount">₹1,100</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Prarambhik - 1st Exam</span></td>
+                <td>Prarambhik - 1st Exam</td>
                 <td class="fee-amount">₹900</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Praveshika Pratham - 2nd Exam</span></td>
+                <td>Praveshika Pratham - 2nd Exam</td>
                 <td class="fee-amount">₹900</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Praveshika Purna - 3rd Exam</span></td>
+                <td>Praveshika Purna - 3rd Exam</td>
                 <td class="fee-amount">₹1,000</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Madhyama Pratham - 4th Exam</span></td>
+                <td>Madhyama Pratham - 4th Exam</td>
                 <td class="fee-amount">₹1,000</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Madhyama Purna - 5th Exam</span></td>
+                <td>Madhyama Purna - 5th Exam</td>
                 <td class="fee-amount">₹1,000</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Visharad Pratham - 6th Exam</span></td>
+                <td>Visharad Pratham - 6th Exam</td>
                 <td class="fee-amount">₹1,200</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Visharad Purna - 7th Exam</span></td>
+                <td>Visharad Purna - 7th Exam</td>
                 <td class="fee-amount">₹1,200</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Alankar Pratham - 8th Exam</span></td>
+                <td>Alankar Pratham - 8th Exam</td>
                 <td class="fee-amount">₹1,500</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">Alankar Purna - 9th Exam</span></td>
+                <td>Alankar Purna - 9th Exam</td>
                 <td class="fee-amount">₹1,500</td>
               </tr>
               <tr>
-                <td><span class="exam-badge">TMV-BA</span></td>
+                <td>TMV-BA</td>
                 <td class="fee-amount">₹1,200</td>
               </tr>
             </tbody>
@@ -213,15 +213,18 @@
         badge.style.display = 'flex';
       }
       
-      // Open modal when bell is clicked (always works)
-      bell.addEventListener('click', function() {
+      // Open modal when bell or badge is clicked (always works)
+      function openModal() {
         modal.style.display = 'flex';
         // Mark as seen and hide badge after first click
         if (hasSeenNotification !== 'true') {
           localStorage.setItem('feeNotificationSeen', 'true');
           badge.style.display = 'none';
         }
-      });
+      }
+      
+      bell.addEventListener('click', openModal);
+      badge.addEventListener('click', openModal);
       
       // Close modal functions
       function closeModal() {

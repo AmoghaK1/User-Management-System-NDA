@@ -1,0 +1,91 @@
+name: Google Drive Diagnose
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose-drive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install googleapis
+        run: |
+          npm init -y
+          npm install googleapis node-fetch@2
+
+      - name: Diagnose & Test
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          node <<'EOF'
+          const { google } = require("googleapis");
+
+          async function run() {
+            const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+
+            console.log("===================================");
+            console.log("SERVICE ACCOUNT BEING USED:");
+            console.log(creds.client_email);
+            console.log("===================================");
+
+            const auth = new google.auth.GoogleAuth({
+              credentials: creds,
+              scopes: ["https://www.googleapis.com/auth/drive"]
+            });
+
+            const drive = google.drive({ version: "v3", auth });
+
+            console.log("\nListing files visible to service account…");
+            const list = await drive.files.list({
+              pageSize: 25,
+              fields: "files(id,name,mimeType)"
+            });
+
+            console.log(list.data.files);
+
+            const folderId = "1GgM-l5HwU8Ql_Ap2nfc91Zn8yUkKG0eU";
+
+            console.log("\nChecking access to your folder…");
+            try {
+              const folderCheck = await drive.files.get({
+                fileId: folderId,
+                fields: "id,name",
+                supportsAllDrives: true
+              });
+
+              console.log("Folder FOUND and ACCESSIBLE:");
+              console.log(folderCheck.data);
+            } catch (err) {
+              console.log("❌ Cannot access folder");
+              console.log(err.message);
+            }
+
+            console.log("\nTrying upload test file…");
+
+            try {
+              await drive.files.create({
+                requestBody: {
+                  name: "TEST_UPLOAD.txt",
+                  parents: [folderId]
+                },
+                media: {
+                  mimeType: "text/plain",
+                  body: "Drive access test"
+                },
+                supportsAllDrives: true
+              });
+
+              console.log("🎉 UPLOAD SUCCESSFUL");
+            } catch (err) {
+              console.log("❌ UPLOAD FAILED");
+              console.log(err.message);
+            }
+          }
+
+          run();
+          EOF

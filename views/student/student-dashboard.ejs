@@ -17,10 +17,10 @@
   <meta name="apple-mobile-web-app-title" content="Nrutyashree" />
   <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
 </head>
-<body>
+<body data-is-verified="<%= user.is_verified ? 'true' : 'false' %>">
     <div class="my-navbar">
         <div class="user-profile">
-            <a href="/st-profile"><img id="user-pfp" src= <%= user.profilePicture %> alt="user-pfp"></a>
+          <a href="/st-profile"><img id="user-pfp" src="<%= user.profilePicture %>" alt="user-pfp"></a>
             <div class="user-name"><%= user.name %></div>
         </div>
         <div class="navbar-center-section">
@@ -48,7 +48,30 @@
        
     </div>
 
-   <div class="main-section">
+     <% if (!user.is_verified) { %>
+    <section class="verification-reminder" aria-live="polite">
+      <div class="reminder-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="reminder-copy">
+        <p class="reminder-eyebrow">Profile security pending</p>
+        <h2 class="reminder-title">Verify your profile with Google to unlock everything</h2>
+        <p class="reminder-body">
+          We need a quick Google sign-in to confirm your identity. Until then, password changes and
+          certain profile controls stay locked for safety.
+        </p>
+        <div class="reminder-actions">
+          <a href="/verification" class="verify-pill" data-verify-cta>
+            <span>Continue to verification</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <span class="reminder-note">Skipping this step keeps your account in read-only mode.</span>
+        </div>
+      </div>
+    </section>
+     <% } %>
+
+     <div class="main-section">
     <a href="/study">
     <div class="card">
         <div class="card-image">

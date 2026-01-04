@@ -2,7 +2,10 @@ const REQUIRED_ENV_VARS = [
     { key: 'SUPABASE_URL', mask: false },
     { key: 'SUPABASE_KEY', mask: true },
     { key: 'AUTH_EMAIL', mask: false },
-    { key: 'CURRENT_URL', mask: false }
+    { key: 'CURRENT_URL', mask: false },
+    { key: 'GOOGLE_CLIENT_ID', mask: true },
+    { key: 'GOOGLE_CLIENT_SECRET', mask: true },
+    { key: 'GOOGLE_CALLBACK_URL', mask: false }
 ];
 
 const maskValue = (value = '') => {

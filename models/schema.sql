@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS users (
     is_admin INTEGER NOT NULL,
     is_verified BOOLEAN DEFAULT FALSE,
     verifiedAt TIMESTAMP,
+    google_sub TEXT,
+    google_email TEXT,
     profilePicture TEXT DEFAULT 'https://res.cloudinary.com/dy2kitfup/image/upload/v1700000000/profile_pictures/oi0mzzlbzrjspastm3dl',
     resetPasswordToken TEXT,
     resetPasswordExpires TIMESTAMP,
@@ -96,3 +98,9 @@ CREATE TRIGGER update_payment_status_updated_at BEFORE UPDATE ON payment_status
 
 CREATE TRIGGER update_study_materials_updated_at BEFORE UPDATE ON study_materials
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Ensure Google OAuth columns exist on legacy databases
+ALTER TABLE IF EXISTS users
+    ADD COLUMN IF NOT EXISTS verifiedAt TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS google_sub TEXT,
+    ADD COLUMN IF NOT EXISTS google_email TEXT;

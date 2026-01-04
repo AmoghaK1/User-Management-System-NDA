@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap');
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -104,4 +106,113 @@
 
 #profilePicture {
     display: none;
+}
+
+.verification-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+}
+
+.chip-verified {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.chip-pending {
+    background: rgba(248, 113, 113, 0.2);
+    color: #f87171;
+}
+
+.profile-verification-banner {
+    margin: 1.5rem 0;
+    padding: 1.25rem 1.5rem;
+    border-radius: 1rem;
+    background: linear-gradient(120deg, rgba(250, 204, 21, 0.15), rgba(249, 115, 22, 0.1));
+    border: 1px solid rgba(250, 204, 21, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.banner-content {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+}
+
+.banner-content i {
+    color: #facc15;
+    font-size: 1.3rem;
+}
+
+.banner-title {
+    font-weight: 700;
+    margin: 0;
+    font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+}
+
+.banner-copy {
+    margin: 0;
+    color: #4b5563;
+}
+
+.banner-link {
+    color: #7c3aed;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.banner-link:hover {
+    text-decoration: underline;
+}
+
+.verification-hint-modal {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 0.9rem;
+    background: #fdf6b2;
+    border: 1px solid #fbbf24;
+    margin-bottom: 1rem;
+}
+
+.verification-hint-modal.hidden {
+    display: none;
+}
+
+.hint-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: #fcd34d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #78350f;
+}
+
+.hint-link {
+    margin-left: auto;
+    color: #7c3aed;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.hint-link:hover {
+    text-decoration: underline;
+}
+
+#changePasswordForm.locked {
+    opacity: 0.5;
+    pointer-events: none;
 }

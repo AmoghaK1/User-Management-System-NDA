@@ -118,8 +118,8 @@ const handleUserRegistration = async (data) => {
             exam_level,
             password: hashedPassword,
             is_admin: 0,
-            is_verified: true,
-            verifiedat: new Date().toISOString()
+            is_verified: false,
+            verifiedat: null
         });
 
         // Initialize payment status for the new user

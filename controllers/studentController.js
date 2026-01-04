@@ -5,6 +5,31 @@ const studentService = require('../services/studentService');
 const { upload } = require('../config/cloudinary');
 const StudyMaterial = require('../models/studyMaterialModel');
 
+const googleVerificationEnabled = Boolean(
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET &&
+    process.env.GOOGLE_CALLBACK_URL
+);
+
+const buildRedirectUrl = (base = '/verification', key = 'success', value = '') => {
+    const separator = base.includes('?') ? '&' : '?';
+    return `${base}${separator}${key}=${encodeURIComponent(value)}`;
+};
+
+const formatVerificationTimestamp = (value) => {
+    if (!value) return null;
+
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) {
+        return null;
+    }
+
+    return parsed.toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+    });
+};
+
 
 // Helper: Format dates
 const formatUserDates = (user) => {
@@ -130,6 +155,13 @@ const changePassword = async (req, res) => {
             return res.status(401).json({ success: false, error: "Not authenticated" });
         }
 
+        if (!req.user?.is_verified) {
+            return res.status(403).json({
+                success: false,
+                error: "Please complete Google verification before changing your password"
+            });
+        }
+
         const { currentPassword, newPassword, confirmPassword } = req.body;
 
         if (!currentPassword || !newPassword || !confirmPassword) {
@@ -162,6 +194,48 @@ const changePassword = async (req, res) => {
 
 const loadEventsPage = async (req, res) => {
     return res.render('student/events');
+};
+
+const loadVerificationPage = async (req, res) => {
+    try {
+        if (!req.isAuthenticated()) return res.redirect('/login');
+
+        const successMessage = req.query.success || null;
+        const errorMessage = req.query.error || null;
+        const verifiedDisplayDate = formatVerificationTimestamp(
+            req.user?.verifiedAt || req.user?.verifiedat
+        );
+
+        return res.render('student/verification', {
+            user: req.user,
+            success: successMessage,
+            error: errorMessage,
+            googleEnabled: googleVerificationEnabled,
+            verifiedDateLabel: verifiedDisplayDate
+        });
+    } catch (error) {
+        console.error('Verification page load error:', error);
+        return res.redirect('/st-dashboard');
+    }
+};
+
+const handleGoogleVerificationRedirect = async (req, res) => {
+    const redirectTo = req.session?.oauthReturnTo || '/verification';
+
+    if (req.session) {
+        req.session.oauthReturnTo = null;
+        req.session.verifyUserId = null;
+    }
+
+    if (!req.user?.is_verified) {
+        return res.redirect(
+            buildRedirectUrl(redirectTo, 'error', 'Google verification did not complete. Please try again.')
+        );
+    }
+
+    return res.redirect(
+        buildRedirectUrl(redirectTo, 'success', 'Your profile is now verified with Google!')
+    );
 };
 
 const loadStudyPage = async (req, res) => {
@@ -227,6 +301,8 @@ module.exports = {
     updateProfilePicture,
     changePassword,
     loadEventsPage,
+    loadVerificationPage,
+    handleGoogleVerificationRedirect,
     loadCertiPage,
     loadErrorPage,
     loadStudyPage,

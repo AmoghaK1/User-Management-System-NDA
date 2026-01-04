@@ -100,6 +100,14 @@ const changePasswordService = async (userId, currentPassword, newPassword, confi
         };
     }
 
+    if (!user.is_verified) {
+        return {
+            success: false,
+            status: 403,
+            error: "Google verification is required before changing your password"
+        };
+    }
+
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
         return {

@@ -15,7 +15,13 @@
     <!-- Add FontAwesome if not already present -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
-<body class="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4 md:p-8 flex items-center justify-center">
+<body class="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4 md:p-8 flex items-center justify-center" data-is-verified="<%= user.is_verified ? 'true' : 'false' %>">
+    <script>
+        window.__PROFILE_CONTEXT__ = {
+            isVerified: <%= user.is_verified ? 'true' : 'false' %>,
+            verificationUrl: '/verification'
+        };
+    </script>
     <script src="../javascripts/st-profile.js"></script>
     <div class="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
         <!-- Original content remains the same until the modal -->
@@ -54,6 +60,10 @@
                     <div class="text-center text-white space-y-2">
                         <h2 class="text-2xl md:text-3xl font-bold" data-field="name"><%= user.name %></h2>
                         <p class="text-white/90"><%= user.exam_level %></p>
+                        <div class="verification-chip <%= user.is_verified ? 'chip-verified' : 'chip-pending' %>">
+                            <i class="fa-solid <%= user.is_verified ? 'fa-circle-check' : 'fa-circle-xmark' %>"></i>
+                            <span><%= user.is_verified ? 'Verified via Google' : 'Verification pending' %></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -94,6 +104,19 @@
                             
                         </div>
                     </section>
+
+                    <% if (!user.is_verified) { %>
+                    <div class="profile-verification-banner" role="alert">
+                        <div class="banner-content">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <div>
+                                <p class="banner-title">One more step!</p>
+                                <p class="banner-copy">Verify with Google to manage security-sensitive settings like password changes.</p>
+                            </div>
+                        </div>
+                        <a href="/verification" class="banner-link">Verify now</a>
+                    </div>
+                    <% } %>
                     
                     <div class="bg-gray-50 p-6 rounded-xl text-center space-y-2">
                         <img src="../images/barcode.gif" alt="Barcode" class="mx-auto transition-transform duration-300 hover:scale-105">
@@ -111,8 +134,19 @@
                 <h2 class="text-xl font-bold">Edit Profile</h2>
                 <div class="space-x-2">
                     <button type="button" class="text-purple-600 hover:text-purple-800" onclick="showProfileForm()">Profile</button>
-                    <button type="button" class="text-purple-600 hover:text-purple-800" onclick="showPasswordForm()">Password</button>
+                    <button type="button" class="text-purple-600 hover:text-purple-800" onclick="showPasswordForm()" data-password-tab="true">Password</button>
                 </div>
+            </div>
+
+            <div id="passwordLockNotice" class="verification-hint-modal <%= user.is_verified ? 'hidden' : '' %>">
+                <div class="hint-icon">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div>
+                    <h4>Verification required</h4>
+                    <p>Complete Google verification to unlock password changes.</p>
+                </div>
+                <a href="/verification" class="hint-link">Verify now</a>
             </div>
 
             <!-- Profile Edit Form -->
@@ -136,7 +170,7 @@
             </form>
 
             <!-- Password Change Form -->
-            <form id="changePasswordForm" class="space-y-4 hidden">
+            <form id="changePasswordForm" class="space-y-4 hidden" data-requires-verification="true">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Current Password</label>
                     <div class="input-wrapper relative">

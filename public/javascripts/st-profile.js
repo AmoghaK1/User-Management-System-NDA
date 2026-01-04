@@ -1,5 +1,9 @@
 // Client-side JavaScript
 document.addEventListener('DOMContentLoaded', () => {
+    const profileContext = window.__PROFILE_CONTEXT__ || {};
+    const isVerified = profileContext.isVerified === true || profileContext.isVerified === 'true';
+    const verificationUrl = profileContext.verificationUrl || '/verification';
+
     // Format DOB
     const formatDate = (isoDate) => {
         const date = new Date(isoDate);
@@ -55,12 +59,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Form visibility toggling functions
+    const passwordLockNotice = document.getElementById('passwordLockNotice');
+    const passwordTabButton = document.querySelector('[data-password-tab="true"]');
+    const changePasswordFormEl = document.getElementById('changePasswordForm');
+
+    if (!isVerified) {
+        if (changePasswordFormEl) {
+            changePasswordFormEl.classList.add('locked');
+            changePasswordFormEl.querySelectorAll('input, button').forEach((field) => {
+                field.disabled = true;
+            });
+        }
+
+        if (passwordTabButton) {
+            passwordTabButton.setAttribute('aria-disabled', 'true');
+            passwordTabButton.title = 'Verify with Google to unlock password changes';
+        }
+    }
+
     window.showProfileForm = () => {
         document.getElementById('editProfileForm').classList.remove('hidden');
         document.getElementById('changePasswordForm').classList.add('hidden');
     };
 
     window.showPasswordForm = () => {
+        if (!isVerified) {
+            if (passwordLockNotice) {
+                passwordLockNotice.classList.remove('hidden');
+                passwordLockNotice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
         document.getElementById('editProfileForm').classList.add('hidden');
         document.getElementById('changePasswordForm').classList.remove('hidden');
     };
@@ -140,6 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        if (!isVerified) {
+            window.location.href = verificationUrl;
+            return;
+        }
+
         const formData = new FormData(e.target);
         const passwordData = {
             currentPassword: formData.get('currentPassword'),

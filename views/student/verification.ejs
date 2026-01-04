@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Verification | NDA</title>
+    <link rel="stylesheet" href="../stylesheets/verification.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="icon" type="image/png" href="../images/favicon-2.0.3/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="../images/favicon-2.0.3/favicon.svg" />
+    <link rel="shortcut icon" href="../images/favicon-2.0.3/favicon.ico" />
+</head>
+<body class="verification-body" data-is-verified="<%= user.is_verified ? 'true' : 'false' %>">
+    <main class="verification-wrapper">
+        <header class="verification-header">
+            <p class="eyebrow">Account security</p>
+            <h1>Verify your NDA profile with Google</h1>
+            <p>One quick Google sign-in keeps your student data safe and unlocks password management.</p>
+        </header>
+
+        <% if (error) { %>
+            <div class="alert alert-error" role="alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span><%= error %></span>
+            </div>
+        <% } %>
+
+        <% if (success) { %>
+            <div class="alert alert-success" role="status">
+                <i class="fa-solid fa-circle-check"></i>
+                <span><%= success %></span>
+            </div>
+        <% } %>
+
+        <section class="status-panel">
+            <div class="status-indicator <%= user.is_verified ? 'status-complete' : 'status-pending' %>">
+                <i class="fa-solid <%= user.is_verified ? 'fa-badge-check' : 'fa-clock' %>"></i>
+                <div>
+                    <p class="status-label"><%= user.is_verified ? 'Verified' : 'Verification pending' %></p>
+                    <p class="status-subtext">
+                        <% if (user.verifiedAt) { %>
+                            Verified on <%= new Date(user.verifiedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) %>
+                        <% } else { %>
+                            Google sign-in is still required.
+                        <% } %>
+                    </p>
+                </div>
+            </div>
+
+            <ol class="status-steps">
+                <li class="step <%= user.is_verified ? 'done' : 'active' %>">
+                    <span class="step-index">1</span>
+                    <p>Review your account email: <strong><%= user.email %></strong></p>
+                </li>
+                <li class="step <%= user.is_verified ? 'done' : '' %>">
+                    <span class="step-index">2</span>
+                    <p>Sign in with the same Google account to confirm it's really you.</p>
+                </li>
+                <li class="step <%= user.is_verified ? 'done' : '' %>">
+                    <span class="step-index">3</span>
+                    <p>Unlock password changes and future profile updates instantly.</p>
+                </li>
+            </ol>
+
+            <div class="cta-stack">
+                <% if (user.is_verified) { %>
+                    <div class="verified-note">
+                        <i class="fa-solid fa-lock-open"></i>
+                        <div>
+                            <p>Your account is secured.</p>
+                            <span>You can now manage passwords and sensitive details.</span>
+                        </div>
+                    </div>
+                    <a href="/st-dashboard" class="ghost-btn">Back to dashboard</a>
+                <% } else if (googleEnabled) { %>
+                    <a href="/auth/google" class="google-button" data-google-button>
+                        <span class="icon"><i class="fa-brands fa-google"></i></span>
+                        <div class="copy">
+                            <strong>Continue with Google</strong>
+                            <small>This uses the email above; keep it handy.</small>
+                        </div>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                <% } else { %>
+                    <div class="alert alert-error" role="alert">
+                        <i class="fa-solid fa-plug-circle-xmark"></i>
+                        <span>Google verification is temporarily unavailable. Please contact support.</span>
+                    </div>
+                <% } %>
+                <p class="disclaimer">
+                    <i class="fa-solid fa-info-circle"></i>
+                    If you do not verify your profile, you will <strong>not</strong> be able to change your password or edit security-sensitive information.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        window.__VERIFICATION_CONTEXT__ = {
+            isVerified: <%= user.is_verified ? 'true' : 'false' %>,
+            googleEnabled: <%= googleEnabled ? 'true' : 'false' %>
+        };
+    </script>
+    <script src="../javascripts/verification.js"></script>
+</body>
+</html>

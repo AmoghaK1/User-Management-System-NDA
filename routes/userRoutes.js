@@ -11,6 +11,12 @@ const loginController = require('../controllers/loginController');
 const studentController = require(`../controllers/studentController`);
 const passport = require('passport');
 
+const googleVerificationEnabled = Boolean(
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET &&
+    process.env.GOOGLE_CALLBACK_URL
+);
+
 
 // In userRoutes.js
 user_route.get('/signup', auth.redirectIfAuthenticated, (req, res) => {
@@ -83,6 +89,54 @@ user_route.get('/st-profile', auth.ensureAuthenticated, studentController.loadPr
 user_route.put('/api/profile/update', auth.ensureAuthenticated, studentController.updateProfile);
 user_route.post('/api/profile/update-picture', auth.ensureAuthenticated, studentController.updateProfilePicture);
 user_route.post('/api/profile/change-password', auth.ensureAuthenticated, studentController.changePassword);
+user_route.get('/verification', auth.ensureAuthenticated, studentController.loadVerificationPage);
+user_route.get(
+    '/auth/google',
+    auth.ensureAuthenticated,
+    (req, res, next) => {
+        if (!googleVerificationEnabled) {
+            return res.redirect('/verification?error=Google%20verification%20is%20unavailable%20right%20now');
+        }
+
+        req.session.verifyUserId = req.user.id;
+        req.session.oauthReturnTo = req.query.returnTo || req.headers.referer || '/verification';
+
+        return passport.authenticate('google-verify', {
+            scope: ['profile', 'email'],
+            prompt: 'select_account'
+        })(req, res, next);
+    }
+);
+
+user_route.get('/auth/google/callback', (req, res, next) => {
+    if (!googleVerificationEnabled) {
+        return res.redirect('/verification?error=Google%20verification%20is%20unavailable%20right%20now');
+    }
+
+    passport.authenticate('google-verify', (err, user, info) => {
+        if (err) {
+            console.error('[Google Verification] Strategy error:', err);
+            return res.redirect('/verification?error=' + encodeURIComponent('Unable to verify via Google. Please try again.'));
+        }
+
+        if (!user) {
+            console.warn('[Google Verification] Strategy returned no user', {
+                info,
+            });
+            const message = info?.message || 'Verification was cancelled. Please try again.';
+            return res.redirect('/verification?error=' + encodeURIComponent(message));
+        }
+
+        req.logIn(user, (loginErr) => {
+            if (loginErr) {
+                console.error('[Google Verification] Session refresh error:', loginErr);
+                return res.redirect('/verification?error=' + encodeURIComponent('We verified your Google account but could not refresh your session. Please log in again.'));
+            }
+
+            return studentController.handleGoogleVerificationRedirect(req, res);
+        });
+    })(req, res, next);
+});
 user_route.get('/events', auth.ensureAuthenticated, studentController.loadEventsPage);
 user_route.get('/study', auth.ensureAuthenticated, studentController.loadStudyPage);
 user_route.get('/api/study-materials', auth.ensureAuthenticated, studentController.getStudyMaterials);

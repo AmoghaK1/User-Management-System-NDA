@@ -49,7 +49,7 @@ jobs:
               const drive = google.drive({ version: "v3", auth })
 
               // IMPORTANT — your shared folder ID
-              const folderId = "1GgM-l5HwU8Ql_Ap2nfc91Zn8yUkKG0eU"
+              const folderId = "1GgM-I5hWu8QI_Ap2nfc91Zn8yuKkG0eU"
 
               await drive.files.create({
                 requestBody:{

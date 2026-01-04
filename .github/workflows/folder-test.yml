@@ -48,7 +48,7 @@ jobs:
 
             console.log(list.data.files);
 
-            const folderId = "1GgM-l5HwU8Ql_Ap2nfc91Zn8yUkKG0eU";
+            const folderId = "1GgM-I5hWu8QI_Ap2nfc91Zn8yuKkG0eU";
 
             console.log("\nChecking access to your folder…");
             try {

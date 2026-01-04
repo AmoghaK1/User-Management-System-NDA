@@ -29,6 +29,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
@@ -65,13 +66,17 @@ jobs:
           async function uploadToDrive(filename, content){
             const auth = new google.auth.GoogleAuth({
               credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON),
-              scopes: ["https://www.googleapis.com/auth/drive"]
+              scopes: ["https://www.googleapis.com/auth/drive.file"]
             })
 
             const drive = google.drive({ version: "v3", auth })
 
-            // 👇 Your already shared Google Drive folder ID
-            const folderId = "1GgM-I5hWu8QI_Ap2nfc91Zn8yuKkG0eU"
+            // Use the pre-shared folder ID from GitHub secrets
+            const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
+
+            if (!folderId) {
+              throw new Error("GOOGLE_DRIVE_FOLDER_ID not set in GitHub secrets")
+            }
 
             await drive.files.create({
               requestBody:{

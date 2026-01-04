@@ -1,19 +1,15 @@
-name: Supabase Backup to Google Drive
+name: Supabase Backup to Google Drive (OAuth Upload)
 
 on:
-  workflow_dispatch:   # allow manual runs
+  workflow_dispatch:
   schedule:
     - cron: "0 5 1,16 * *"
-    # Runs 5:00 UTC on 1st & 16th every month
 
 jobs:
   backup:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -22,61 +18,64 @@ jobs:
       - name: Install Dependencies
         run: |
           npm init -y
-          npm install node-fetch@2 json2csv googleapis
+          npm install googleapis node-fetch@2 json2csv
 
-      - name: Run Backup Script
+      - name: Run Backup
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
         run: |
           node <<'EOF'
           const fetch = require("node-fetch")
           const { Parser } = require("json2csv")
           const { google } = require("googleapis")
 
-          const SUPABASE_URL = process.env.SUPABASE_URL
-          const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
           const BOT = process.env.TELEGRAM_BOT_TOKEN
           const CHAT = process.env.TELEGRAM_CHAT_ID
 
-          async function sendTelegram(message){
+          async function sendTelegram(msg){
             await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ chat_id: CHAT, text: message })
+              body: JSON.stringify({ chat_id: CHAT, text: msg })
             })
           }
 
           async function fetchTable(table){
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
+            const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}?select=*`, {
               headers:{
-                apikey: KEY,
-                Authorization: `Bearer ${KEY}`
+                apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+                Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
               }
             })
             const data = await res.json()
-            if(!Array.isArray(data)) throw new Error(`Failed to fetch ${table}`)
+            if(!Array.isArray(data)) throw new Error("Failed to fetch " + table)
             return data
           }
 
-          async function uploadToDrive(filename, content){
-            const auth = new google.auth.GoogleAuth({
-              credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON),
-              scopes: ["https://www.googleapis.com/auth/drive.file"]
+          async function getOAuthDrive(){
+            const oauth2Client = new google.auth.OAuth2(
+              process.env.GOOGLE_CLIENT_ID,
+              process.env.GOOGLE_CLIENT_SECRET
+            )
+
+            oauth2Client.setCredentials({
+              refresh_token: process.env.GOOGLE_REFRESH_TOKEN
             })
 
-            const drive = google.drive({ version: "v3", auth })
+            return google.drive({ version:"v3", auth: oauth2Client })
+          }
 
-            // Use the pre-shared folder ID from GitHub secrets
-            const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
+          async function uploadToDrive(filename, content){
+            const drive = await getOAuthDrive()
 
-            if (!folderId) {
-              throw new Error("GOOGLE_DRIVE_FOLDER_ID not set in GitHub secrets")
-            }
+            // your folder
+            const folderId = "1GgM-I5hWu8QI_Ap2nfc91Zn8yuKkG0eU"
 
             await drive.files.create({
               requestBody:{
@@ -109,11 +108,11 @@ jobs:
                 `Backup SUCCESS 🎉\nDate: ${date}\nUsers: ${users.length}\nPayments: ${payments.length}\nUploaded to Google Drive ✔️`
               )
 
-              console.log("Backup Done")
-
-            } catch(err){
+              console.log("DONE")
+            }
+            catch(err){
               console.error(err)
-              await sendTelegram(`Backup FAILED ❌\nReason: ${err.message}`)
+              await sendTelegram("Backup FAILED ❌ " + err.message)
               process.exit(1)
             }
           })()

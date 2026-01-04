@@ -1,0 +1,133 @@
+name: Supabase Backup to Google Drive
+
+on:
+  workflow_dispatch:   # manual run whenever you want
+  schedule:
+    - cron: "0 5 1,16 * *"
+    # Runs at 5:00 UTC on 1st & 16th
+    # adjust time if you want
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: |
+          npm init -y
+          npm install node-fetch@2 json2csv googleapis
+
+      - name: Run Backup Script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          node <<'EOF'
+          const fetch = require("node-fetch")
+          const { Parser } = require("json2csv")
+          const { google } = require("googleapis")
+
+          const SUPABASE_URL = process.env.SUPABASE_URL
+          const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+          const BOT = process.env.TELEGRAM_BOT_TOKEN
+          const CHAT = process.env.TELEGRAM_CHAT_ID
+
+          async function sendTelegram(message){
+            await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: CHAT, text: message })
+            })
+          }
+
+          async function fetchTable(table){
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
+              headers:{
+                apikey: KEY,
+                Authorization: `Bearer ${KEY}`
+              }
+            })
+            const data = await res.json()
+            if(!Array.isArray(data)) throw new Error(`Failed to fetch ${table}`)
+            return data
+          }
+
+          async function uploadToDrive(filename, content){
+            const auth = new google.auth.GoogleAuth({
+              credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON),
+              scopes: ["https://www.googleapis.com/auth/drive"]
+            })
+            const drive = google.drive({version:"v3", auth})
+
+            const folderName = "Nrutyashree Backups"
+            let folderId = null
+
+            const search = await drive.files.list({
+              q: `name='${folderName}' and mimeType='application/vnd.google-apps.folder'`,
+              fields: "files(id)"
+            })
+
+            if(search.data.files.length){
+              folderId = search.data.files[0].id
+            } else {
+              const create = await drive.files.create({
+                resource:{
+                  name: folderName,
+                  mimeType: "application/vnd.google-apps.folder"
+                },
+                fields:"id"
+              })
+              folderId = create.data.id
+            }
+
+            await drive.files.create({
+              requestBody:{
+                name: filename,
+                parents:[folderId]
+              },
+              media:{
+                mimeType: "text/csv",
+                body: content
+              }
+            })
+          }
+
+          (async ()=>{
+            try{
+              const users = await fetchTable("users")
+              const payments = await fetchTable("payment_status")
+
+              const parser = new Parser()
+
+              const usersCSV = parser.parse(users)
+              const paymentsCSV = parser.parse(payments)
+
+              const date = new Date().toISOString().split("T")[0]
+
+              await uploadToDrive(`users_${date}.csv`, usersCSV)
+              await uploadToDrive(`payments_${date}.csv`, paymentsCSV)
+
+              await sendTelegram(
+                `Backup SUCCESS 🎉\nDate: ${date}\nUsers: ${users.length}\nPayments: ${payments.length}\nUploaded to Google Drive ✔️`
+              )
+
+              console.log("Backup Done")
+
+            } catch(err){
+              console.error(err)
+              await sendTelegram(`Backup FAILED ❌\nReason: ${err.message}`)
+              process.exit(1)
+            }
+          })()
+          EOF

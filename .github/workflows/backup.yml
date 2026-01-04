@@ -1,4 +1,4 @@
-name: Supabase Backup to Google Drive (OAuth Upload)
+name: Supabase Backup (Local Artifact)
 
 on:
   workflow_dispatch:
@@ -18,102 +18,55 @@ jobs:
       - name: Install Dependencies
         run: |
           npm init -y
-          npm install googleapis node-fetch@2 json2csv
+          npm install node-fetch@2 json2csv
 
-      - name: Run Backup
+      - name: Generate Backup Files
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
         run: |
           node <<'EOF'
           const fetch = require("node-fetch")
           const { Parser } = require("json2csv")
-          const { google } = require("googleapis")
+          const fs = require("fs")
 
-          const BOT = process.env.TELEGRAM_BOT_TOKEN
-          const CHAT = process.env.TELEGRAM_CHAT_ID
+          const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+          const URL = process.env.SUPABASE_URL
 
-          async function sendTelegram(msg){
-            await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ chat_id: CHAT, text: msg })
-            })
-          }
-
-          async function fetchTable(table){
-            const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${table}?select=*`, {
+          async function fetchTable(name){
+            const res = await fetch(`${URL}/rest/v1/${name}?select=*`, {
               headers:{
-                apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-                Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+                apikey: KEY,
+                Authorization:`Bearer ${KEY}`
               }
             })
             const data = await res.json()
-            if(!Array.isArray(data)) throw new Error("Failed to fetch " + table)
+            if(!Array.isArray(data)) throw new Error("Failed: "+name)
             return data
           }
 
-          async function getOAuthDrive(){
-            const oauth2Client = new google.auth.OAuth2(
-              process.env.GOOGLE_CLIENT_ID,
-              process.env.GOOGLE_CLIENT_SECRET
-            )
+          async function run(){
+            const users = await fetchTable("users")
+            const payments = await fetchTable("payment_status")
 
-            oauth2Client.setCredentials({
-              refresh_token: process.env.GOOGLE_REFRESH_TOKEN
-            })
+            const parser = new Parser()
+            const usersCSV = parser.parse(users)
+            const paymentsCSV = parser.parse(payments)
 
-            return google.drive({ version:"v3", auth: oauth2Client })
+            const date = new Date().toISOString().split("T")[0]
+
+            fs.mkdirSync("backup", { recursive:true })
+            fs.writeFileSync(`backup/users_${date}.csv`, usersCSV)
+            fs.writeFileSync(`backup/payments_${date}.csv`, paymentsCSV)
+
+            console.log("Backup files created 🎉")
           }
 
-          async function uploadToDrive(filename, content){
-            const drive = await getOAuthDrive()
-
-            // your folder
-            const folderId = "1GgM-I5hWu8QI_Ap2nfc91Zn8yuKkG0eU"
-
-            await drive.files.create({
-              requestBody:{
-                name: filename,
-                parents:[folderId]
-              },
-              media:{
-                mimeType: "text/csv",
-                body: content
-              }
-            })
-          }
-
-          (async ()=>{
-            try{
-              const users = await fetchTable("users")
-              const payments = await fetchTable("payment_status")
-
-              const parser = new Parser()
-
-              const usersCSV = parser.parse(users)
-              const paymentsCSV = parser.parse(payments)
-
-              const date = new Date().toISOString().split("T")[0]
-
-              await uploadToDrive(`users_${date}.csv`, usersCSV)
-              await uploadToDrive(`payments_${date}.csv`, paymentsCSV)
-
-              await sendTelegram(
-                `Backup SUCCESS 🎉\nDate: ${date}\nUsers: ${users.length}\nPayments: ${payments.length}\nUploaded to Google Drive ✔️`
-              )
-
-              console.log("DONE")
-            }
-            catch(err){
-              console.error(err)
-              await sendTelegram("Backup FAILED ❌ " + err.message)
-              process.exit(1)
-            }
-          })()
+          run()
           EOF
+
+      - name: Upload Backup Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nrutyashree-backup
+          path: backup

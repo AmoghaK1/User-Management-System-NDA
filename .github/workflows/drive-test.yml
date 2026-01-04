@@ -1,0 +1,76 @@
+name: Google Drive Upload Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-drive-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: |
+          npm init -y
+          npm install googleapis node-fetch@2
+
+      - name: Test Upload
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          node <<'EOF'
+          const { google } = require("googleapis")
+          const fetch = require("node-fetch")
+
+          const BOT = process.env.TELEGRAM_BOT_TOKEN
+          const CHAT = process.env.TELEGRAM_CHAT_ID
+
+          async function sendTelegram(msg){
+            await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: CHAT, text: msg })
+            })
+          }
+
+          async function upload(){
+            try {
+              const auth = new google.auth.GoogleAuth({
+                credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON),
+                scopes: ["https://www.googleapis.com/auth/drive"]
+              })
+
+              const drive = google.drive({ version: "v3", auth })
+
+              // IMPORTANT — your shared folder ID
+              const folderId = "1GgM-l5HwU8Ql_Ap2nfc91Zn8yUkKG0eU"
+
+              await drive.files.create({
+                requestBody:{
+                  name: "TEST_UPLOAD.txt",
+                  parents:[folderId]
+                },
+                media:{
+                  mimeType: "text/plain",
+                  body: "Google Drive Test Success 🚀"
+                }
+              })
+
+              await sendTelegram("Google Drive Upload SUCCESS 🎉 Test file uploaded.")
+              console.log("SUCCESS")
+            } 
+            catch (err){
+              console.error(err)
+              await sendTelegram("Google Drive Upload FAILED ❌ " + err.message)
+              process.exit(1)
+            }
+          }
+
+          upload()
+          EOF

@@ -1,11 +1,10 @@
 name: Supabase Backup to Google Drive
 
 on:
-  workflow_dispatch:   # manual run whenever you want
+  workflow_dispatch:   # allow manual runs
   schedule:
     - cron: "0 5 1,16 * *"
-    # Runs at 5:00 UTC on 1st & 16th
-    # adjust time if you want
+    # Runs 5:00 UTC on 1st & 16th every month
 
 jobs:
   backup:
@@ -30,7 +29,6 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
@@ -67,16 +65,13 @@ jobs:
           async function uploadToDrive(filename, content){
             const auth = new google.auth.GoogleAuth({
               credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON),
-              scopes: ["https://www.googleapis.com/auth/drive.file"]
+              scopes: ["https://www.googleapis.com/auth/drive"]
             })
-            const drive = google.drive({version:"v3", auth})
 
-            // Use the pre-shared folder ID from environment
-            const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
+            const drive = google.drive({ version: "v3", auth })
 
-            if (!folderId) {
-              throw new Error("GOOGLE_DRIVE_FOLDER_ID not set. Please create a folder in your Google Drive, share it with the service account, and add the folder ID to GitHub secrets.")
-            }
+            // 👇 Your already shared Google Drive folder ID
+            const folderId = "YOUR_FOLDER_ID_HERE"
 
             await drive.files.create({
               requestBody:{

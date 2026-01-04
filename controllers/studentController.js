@@ -242,7 +242,7 @@ const loadStudyPage = async (req, res) => {
     const levels = [
         'Senior Batch', 'Prarambhik', 'Praveshika Pratham', 'Praveshika Purna',
         'Madhyama Pratham', 'Madhyama Purna', 'Visharad Pratham',
-        'Visharad Purna', 'Alankar Pratham', 'Alankar Purna' , 'TMA-BA'
+        'Visharad Purna', 'Alankar Pratham', 'Alankar Purna' , 'TMV-BA'
     ];
 
     res.render('student/study', {

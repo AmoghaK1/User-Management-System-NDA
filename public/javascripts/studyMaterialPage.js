@@ -211,7 +211,7 @@ const form = document.getElementById('uploadForm');
         'Visharad Purna': '#EF4444',
         'Alankar Pratham': '#F59E0B',
         'Alankar Purna': '#10B981',
-        'TMA-BA': '#3bf6c7ff'
+        'TMV-BA': '#3bf6c7ff'
       };
       return colors[level] || '#6B7280';
     }

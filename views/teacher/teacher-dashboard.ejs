@@ -32,7 +32,10 @@
       <div>Teacher Dashboard</div>
     </div>
     <div class="navbar-icons">
-      <i class="fa-solid fa-bell nav-icon"></i>
+      <div class="notification-wrapper">
+        <i class="fa-solid fa-bell nav-icon" id="notification-bell"></i>
+        <span class="notification-badge" id="notification-badge" style="display: none;">1</span>
+      </div>
       <i class="fa-solid fa-phone nav-icon"></i>
       <button id="logout-btn"><a href="/logout">Logout</a></button>
     </div>
@@ -129,6 +132,86 @@
 
     
     
+  <!-- Fee Structure Notification Modal -->
+  <div id="feeModal" class="fee-modal" style="display: none;">
+    <div class="fee-modal-content">
+      <div class="fee-modal-header">
+        <h2 style="color: white;"><i class="fa-solid fa-bullhorn" style="color: white;"></i> Updated Fee Structure Announcement</h2>
+        <span class="fee-modal-close" id="closeFeeModal">&times;</span>
+      </div>
+      <div class="fee-modal-body">
+        <p class="fee-announcement-text">
+          Dear Teacher,<br>
+          The monthly fee structure for the academic year has been updated. 
+          Please find the details below:
+        </p>
+        <div class="fee-table-container">
+          <table class="fee-table">
+            <thead>
+              <tr>
+                <th>Exam Level</th>
+                <th>Monthly Fee</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Senior Batch</td>
+                <td class="fee-amount">₹1,100</td>
+              </tr>
+              <tr>
+                <td>Prarambhik - 1st Exam</td>
+                <td class="fee-amount">₹900</td>
+              </tr>
+              <tr>
+                <td>Praveshika Pratham - 2nd Exam</td>
+                <td class="fee-amount">₹900</td>
+              </tr>
+              <tr>
+                <td>Praveshika Purna - 3rd Exam</td>
+                <td class="fee-amount">₹1,000</td>
+              </tr>
+              <tr>
+                <td>Madhyama Pratham - 4th Exam</td>
+                <td class="fee-amount">₹1,000</td>
+              </tr>
+              <tr>
+                <td>Madhyama Purna - 5th Exam</td>
+                <td class="fee-amount">₹1,000</td>
+              </tr>
+              <tr>
+                <td>Visharad Pratham - 6th Exam</td>
+                <td class="fee-amount">₹1,200</td>
+              </tr>
+              <tr>
+                <td>Visharad Purna - 7th Exam</td>
+                <td class="fee-amount">₹1,200</td>
+              </tr>
+              <tr>
+                <td>Alankar Pratham - 8th Exam</td>
+                <td class="fee-amount">₹1,500</td>
+              </tr>
+              <tr>
+                <td>Alankar Purna - 9th Exam</td>
+                <td class="fee-amount">₹1,500</td>
+              </tr>
+              <tr>
+                <td>TMV-BA</td>
+                <td class="fee-amount">₹1,200</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fee-note">
+          <i class="fa-solid fa-info-circle"></i> 
+          For any queries regarding the fee structure, please contact the administration.
+        </p>
+      </div>
+      <div class="fee-modal-footer">
+        <button class="fee-modal-btn" id="acknowledgeBtn">I Understand</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Fee Collection Modal -->
   <div id="feeCollectionModal" class="modal">
     <div class="modal-content">
@@ -206,6 +289,52 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
   
   <!-- Dashboard JavaScript -->
+  <script>
+    // Permanent Fee Structure Notification Modal
+    (function() {
+      const modal = document.getElementById('feeModal');
+      const bell = document.getElementById('notification-bell');
+      const badge = document.getElementById('notification-badge');
+      const closeBtn = document.getElementById('closeFeeModal');
+      const acknowledgeBtn = document.getElementById('acknowledgeBtn');
+      
+      // Check if user has seen the notification
+      const hasSeenNotification = localStorage.getItem('teacherFeeNotificationSeen');
+      
+      // Show badge only if user hasn't seen it
+      if (hasSeenNotification !== 'true') {
+        badge.style.display = 'flex';
+      }
+      
+      // Open modal when bell or badge is clicked (always works)
+      function openModal() {
+        modal.style.display = 'flex';
+        // Mark as seen and hide badge after first click
+        if (hasSeenNotification !== 'true') {
+          localStorage.setItem('teacherFeeNotificationSeen', 'true');
+          badge.style.display = 'none';
+        }
+      }
+      
+      bell.addEventListener('click', openModal);
+      badge.addEventListener('click', openModal);
+      
+      // Close modal functions
+      function closeModal() {
+        modal.style.display = 'none';
+      }
+      
+      closeBtn.addEventListener('click', closeModal);
+      acknowledgeBtn.addEventListener('click', closeModal);
+      
+      // Close when clicking outside modal
+      window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+    })();
+  </script>
  
   <script src="../javascripts/tr-dashboard.js"></script>
   

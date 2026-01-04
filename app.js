@@ -132,7 +132,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server started on Port ${port}`);
+  console.log(`Server started on Port http://localhost:${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 

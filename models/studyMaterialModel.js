@@ -14,7 +14,7 @@ const validLevels = [
     'Visharad Purna',
     'Alankar Pratham',
     'Alankar Purna',
-    'TMA-BA'
+    'TMV-BA'
 ];
 
 const validTypes = ['image', 'pdf'];

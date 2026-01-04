@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS study_materials (
         'Visharad Purna',
         'Alankar Pratham',
         'Alankar Purna',
-        'TMA-BA'
+        'TMV-BA'
     )),
     createdAt TIMESTAMP DEFAULT NOW(),
     updatedAt TIMESTAMP DEFAULT NOW()

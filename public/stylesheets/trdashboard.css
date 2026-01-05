@@ -247,6 +247,72 @@ body {
  
 }
 
+/* Happy New Year Marquee */
+.new-year-marquee {
+  background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 50%, #9b59b6 100%);
+  padding: 12px 0;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+  margin-bottom: 1.5rem;
+}
+
+.marquee-content {
+  display: flex;
+  animation: scroll 25s linear infinite;
+  white-space: nowrap;
+}
+
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  padding: 0 3rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.marquee-item i {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes sparkle {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .new-year-marquee {
+    padding: 10px 0;
+  }
+
+  .marquee-item {
+    font-size: 0.95rem;
+    padding: 0 2rem;
+  }
+}
+
 .quick-title {
   font-weight: 500;
 }

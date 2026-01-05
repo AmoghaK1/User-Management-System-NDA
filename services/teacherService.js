@@ -4,6 +4,55 @@ const PaymentStatus = require('../models/paymentModel');
 const StudyMaterial = require('../models/studyMaterialModel');
 const StudyMaterialDTO = require('../dtos/studyMaterialDTO');
 
+const LATEST_FEE_STRUCTURE = {
+    "Senior Batch": 1100,
+    "Prarambhik": 900,
+    "Praveshika Pratham": 900,
+    "Praveshika Purna": 1000,
+    "Madhyama Pratham": 1000,
+    "Madhyama Purna": 1000,
+    "Visharad Pratham": 1200,
+    "Visharad Purna": 1200,
+    "Alankar Pratham": 1500,
+    "Alankar Purna": 1500,
+    "TMV-BA": 1200
+};
+
+const QUARTER_DEFINITIONS = [
+    { index: 1, label: 'Q1 (Jan-Mar)', months: [0, 1, 2] },
+    { index: 2, label: 'Q2 (Apr-Jun)', months: [3, 4, 5] },
+    { index: 3, label: 'Q3 (Jul-Sep)', months: [6, 7, 8] },
+    { index: 4, label: 'Q4 (Oct-Dec)', months: [9, 10, 11] }
+];
+
+const getEffectiveMonthlyFee = (student) => {
+    const structuredFee = LATEST_FEE_STRUCTURE[student.exam_level];
+    if (structuredFee) {
+        return structuredFee;
+    }
+    const storedFee = parseFloat(student.exam_fee);
+    return Number.isFinite(storedFee) ? storedFee : 0;
+};
+
+const isQuarterPaid = (payment, quarterDef) => {
+    if (!payment) {
+        return false;
+    }
+
+    const { index, months } = quarterDef;
+    const quarterKey = String(index);
+
+    if (payment.quarters && payment.quarters[quarterKey] === 'Paid') {
+        return true;
+    }
+
+    if (payment.months) {
+        return months.every(monthIndex => payment.months[String(monthIndex)] === 'Paid');
+    }
+
+    return false;
+};
+
 
 const getAllStudents = async () => {
     try{    
@@ -118,114 +167,94 @@ const getStudentDetailsWithPayment = async (studentId) => {
     return { student, payment };
 };
 
-const getMonthlyFeeCollection = async (year) => {
+const getQuarterlyFeeCollection = async (year) => {
     try {
         const currentYear = year || new Date().getFullYear();
         console.log(`🔄 Fetching fee collection data for year: ${currentYear} at ${new Date().toLocaleString()}`);
         
-        // Get all students with their fee amounts
         const students = await User.find({ is_admin: 0 });
         console.log(`📊 Found ${students.length} students in database`);
         
-        // Get all payment statuses for the current year
         const paymentStatuses = await PaymentStatus.find({ year: currentYear });
         console.log(`💰 Found ${paymentStatuses.length} payment records for year ${currentYear}`);
         
-        // Create a map for easy lookup
         const paymentMap = new Map();
         paymentStatuses.forEach(payment => {
             paymentMap.set(payment.userid, payment);
         });
-        
-        // Calculate monthly collections
-        const monthNames = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ];
-        
-        const monthlyData = [];
+        const quarterlyData = [];
         let totalYearCollection = 0;
-        let currentMonth = new Date().getMonth();
-        let currentMonthCollection = 0;
+        let currentQuarterIndex = Math.floor(new Date().getMonth() / 3);
+        let currentQuarterCollection = 0;
         let totalPendingAmount = 0;
-        
-        // Find the highest month that has any paid status
-        let maxMonthToShow = currentMonth;
+
+        let maxQuarterToShow = currentQuarterIndex + 1; // quarters are 1-indexed
         paymentStatuses.forEach(payment => {
-            if (payment && payment.months) {
-                Object.keys(payment.months).forEach(monthKey => {
-                    const monthIndex = parseInt(monthKey);
-                    if (payment.months[monthKey] === 'Paid' && monthIndex > maxMonthToShow) {
-                        maxMonthToShow = monthIndex;
-                    }
-                });
-            }
+            QUARTER_DEFINITIONS.forEach(def => {
+                if (isQuarterPaid(payment, def) && def.index > maxQuarterToShow) {
+                    maxQuarterToShow = def.index;
+                }
+            });
         });
-        
-        // Show months from January up to either current month or the highest paid month, whichever is greater
-        for (let month = 0; month <= maxMonthToShow; month++) {
-            let monthlyCollection = 0;
-            let studentsCount = 0;
+
+        QUARTER_DEFINITIONS.forEach(def => {
+            let quarterCollection = 0;
             let paidStudents = 0;
-            
+            let pendingAmountForQuarter = 0;
+
             students.forEach(student => {
                 const payment = paymentMap.get(student.id);
-                const studentFee = parseFloat(student.exam_fee) || 0;
-                
-                // Handle JSONB months object from PostgreSQL
-                let monthStatus = 'Pending';
-                if (payment && payment.months) {
-                    monthStatus = payment.months[String(month)] || 'Pending';
-                }
-                
-                if (monthStatus === 'Paid') {
-                    monthlyCollection += studentFee;
+                const monthlyFee = getEffectiveMonthlyFee(student);
+                const quarterFee = monthlyFee * def.months.length;
+                const quarterPaid = isQuarterPaid(payment, def);
+
+                if (quarterPaid) {
+                    quarterCollection += quarterFee;
                     paidStudents++;
-                }
-                studentsCount++;
-                
-                // Calculate pending for current month and future months
-                if (month >= currentMonth && monthStatus !== 'Paid') {
-                    totalPendingAmount += studentFee;
+                } else {
+                    pendingAmountForQuarter += quarterFee;
                 }
             });
-            
-            totalYearCollection += monthlyCollection;
-            
-            if (month === currentMonth) {
-                currentMonthCollection = monthlyCollection;
+
+            const entry = {
+                quarter: def.label,
+                quarterIndex: def.index,
+                collection: quarterCollection,
+                totalStudents: students.length,
+                paidStudents,
+                pendingStudents: students.length - paidStudents,
+                collectionPercentage: students.length > 0 ? Math.round((paidStudents / students.length) * 100) : 0
+            };
+
+            if (def.index <= maxQuarterToShow) {
+                totalPendingAmount += pendingAmountForQuarter;
+                totalYearCollection += quarterCollection;
+                quarterlyData.push(entry);
             }
-            
-            monthlyData.push({
-                month: monthNames[month],
-                monthIndex: month,
-                collection: monthlyCollection,
-                totalStudents: studentsCount,
-                paidStudents: paidStudents,
-                pendingStudents: studentsCount - paidStudents,
-                collectionPercentage: studentsCount > 0 ? Math.round((paidStudents / studentsCount) * 100) : 0
-            });
-        }
-        
-        // Debug: Log the order of months being returned
-        console.log(`📅 Month order generated:`, monthlyData.map(m => `${m.monthIndex}-${m.month}`).join(', '));
-        
-        console.log(`✅ Calculated fee collection data - Total: ₹${totalYearCollection}, Current Month: ₹${currentMonthCollection}, Pending: ₹${totalPendingAmount}`);
-        
+
+            if (def.index - 1 === currentQuarterIndex) {
+                currentQuarterCollection = quarterCollection;
+            }
+        });
+
+        console.log(`✅ Calculated quarterly fee collection data - Total: ₹${totalYearCollection}, Current Quarter: ₹${currentQuarterCollection}, Pending: ₹${totalPendingAmount}`);
+
+        const quartersIncluded = quarterlyData.length;
+
         return {
             year: currentYear,
-            monthlyData,
+            quarterlyData,
             summary: {
                 totalYearCollection,
-                currentMonthCollection,
+                currentQuarterCollection,
                 totalPendingAmount,
                 totalStudents: students.length,
-                averageMonthlyCollection: totalYearCollection / 12
+                averageQuarterlyCollection: quartersIncluded > 0 ? totalYearCollection / quartersIncluded : 0
             }
         };
         
     } catch (error) {
-        console.error("❌ Error calculating monthly fee collection:", error);
+        console.error("❌ Error calculating quarterly fee collection:", error);
         throw error;
     }
 };
@@ -238,5 +267,5 @@ module.exports = {
     getAllUniqueCategories,
     deleteMaterial,
     getStudentDetailsWithPayment,
-    getMonthlyFeeCollection,
+    getQuarterlyFeeCollection,
 };

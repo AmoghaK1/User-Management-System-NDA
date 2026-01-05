@@ -31,12 +31,14 @@
                 <i class="fa-solid fa-bell nav-icon" id="notification-bell"></i>
                 <span class="notification-badge" id="notification-badge" style="display: none;">1</span>
             </div>
-            <a href="tel:+919822155819"><i class="fa-solid fa-phone nav-icon"></i></a>
+            <a href="/contact" aria-label="Contact developer support">
+              <i class="fa-solid fa-phone nav-icon"></i>
+            </a>
             <button id="logout-btn"><a href="logout">Logout</a></button>
         </div>
     </div>
     <div class="navbar-mobile">
-        <div class="exam-name"><%= user.exam_level %></div>
+      <div class="exam-name"><%= user.exam_level %></div>
     </div>
 
     <!-- Happy New Year Marquee -->
@@ -103,23 +105,51 @@
      <% } %>
 
      <div class="main-section">
-    <a href="/study">
-    <div class="card">
+    <a href="/study" class="card-link" aria-label="Open study material">
+      <div class="card">
         <div class="card-image">
-            <img src="../images/study-material.png" alt="study material img">
+          <img src="../images/study-material.png" alt="Study material icon">
         </div>
-        <div class="card-text" id="studymaterial"><button>Study Material<br></button></div>
-    </div>
-  </a>
-    <a href="/accounts">
-    <div class="card">
+        <div class="card-text">
+          <div class="card-title">Study Material</div>
+          <p class="card-subtext">Notes, recordings, and guides.</p>
+        </div>
+      </div>
+    </a>
+    <a href="/accounts" class="card-link" aria-label="Go to fees and payment">
+      <div class="card">
         <div class="card-image">
-            <img src="../images/bank.png" alt="accounts img">
+          <img src="../images/bank.png" alt="Accounts icon">
         </div>
-        <div class="card-text">Fees and Payment</div>
-    </div>
-  </a>
-</div>
+        <div class="card-text">
+          <div class="card-title">Fees and Payment</div>
+          <p class="card-subtext">Pay dues and view statements.</p>
+        </div>
+      </div>
+    </a>
+    <a href="#announcements" class="card-link" data-open-fee-modal aria-controls="feeModal" aria-label="Open announcements">
+      <div class="card">
+        <div class="card-image">
+          <img src="../images/announcement-icon.svg" alt="Announcements icon">
+        </div>
+        <div class="card-text">
+          <div class="card-title">Announcements</div>
+          <p class="card-subtext">Same updates as the bell icon.</p>
+        </div>
+      </div>
+    </a>
+    <a href="/contact" class="card-link" aria-label="Contact support team">
+      <div class="card">
+        <div class="card-image">
+          <img src="../images/support-icon.svg" alt="Contact support icon">
+        </div>
+        <div class="card-text">
+          <div class="card-title">Contact Support</div>
+          <p class="card-subtext">Report issues or request help.</p>
+        </div>
+      </div>
+    </a>
+   </div>
 
 <footer>
   <div class="footer-container">
@@ -136,6 +166,7 @@
               <li><a href="/study">Study Material</a></li>
               <li><a href="/events">Events</a></li>
               <li><a href="/accounts">Accounts</a></li>
+                <li><a href="/contact">Contact Support</a></li>
           </ul>
       </div>
       
@@ -258,6 +289,7 @@
       const badge = document.getElementById('notification-badge');
       const closeBtn = document.getElementById('closeFeeModal');
       const acknowledgeBtn = document.getElementById('acknowledgeBtn');
+      const announcementTriggers = document.querySelectorAll('[data-open-fee-modal]');
       const userId = document.body.getAttribute('data-user-id') || 'global';
       const storageKey = 'feeNotificationSeen:' + userId;
 
@@ -287,6 +319,12 @@
 
       bell.addEventListener('click', openModal);
       badge.addEventListener('click', openModal);
+      announcementTriggers.forEach(function(trigger) {
+        trigger.addEventListener('click', function(event) {
+          event.preventDefault();
+          openModal();
+        });
+      });
 
       function closeModal() {
         modal.style.display = 'none';

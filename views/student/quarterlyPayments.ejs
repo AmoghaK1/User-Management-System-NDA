@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quarterly Fee Payment | NDA</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../stylesheets/dashboard-back-button.css">
     <link rel="icon" type="image/png" href="../images/favicon-2.0.3/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="../images/favicon-2.0.3/favicon.svg" />
     <link rel="shortcut icon" href="../images/favicon-2.0.3/favicon.ico" />
@@ -47,6 +48,7 @@
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 p-6">
+    <%- include('../partials/dashboard-back-button', { fallbackHref: '/student-dashboard' }) %>
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <div class="flex items-center mb-6">

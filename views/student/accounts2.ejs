@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fee Payment | NDA</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../stylesheets/dashboard-back-button.css">
     <link rel="icon" type="image/png" href="../images/favicon-2.0.3/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="../images/favicon-2.0.3/favicon.svg" />
     <link rel="shortcut icon" href="../images/favicon-2.0.3/favicon.ico" />
@@ -13,6 +14,7 @@
     <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
 </head>
 <body class="min-h-screen bg-gray-50 p-6">
+    <%- include('../partials/dashboard-back-button', { fallbackHref: '/student-dashboard' }) %>
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <div class="flex items-center mb-8">
@@ -46,14 +48,6 @@
                 </a>
             </div>
             
-            <!-- Back to Home Button -->
-            <div class="text-center mt-8">
-                <button 
-                    class="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-lg font-medium"
-                    onclick="window.location.href = '/st-dashboard'">
-                    Back to Home
-                </button>
-            </div>
         </div>
     </div>
 </body>

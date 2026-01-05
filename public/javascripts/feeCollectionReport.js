@@ -198,21 +198,21 @@ function displayFeeCollectionData(data) {
     summaryCards.style.display = 'grid';
     
     // Create chart
-    createFeeCollectionChart(data.monthlyData);
+    createFeeCollectionChart(data.quarterlyData, data.year);
     chartContainer.style.display = 'block';
     
     // Create table
-    createFeeCollectionTable(data.monthlyData);
+    createFeeCollectionTable(data.quarterlyData);
     tableContainer.style.display = 'block';
 }
 
 function updateSummaryCards(summary) {
     document.getElementById('totalCollection').textContent = `₹${formatCurrency(summary.totalYearCollection)}`;
-    document.getElementById('currentMonthCollection').textContent = `₹${formatCurrency(summary.currentMonthCollection)}`;
+    document.getElementById('currentQuarterCollection').textContent = `₹${formatCurrency(summary.currentQuarterCollection || 0)}`;
     document.getElementById('pendingCollection').textContent = `₹${formatCurrency(summary.totalPendingAmount)}`;
 }
 
-function createFeeCollectionChart(monthlyData) {
+function createFeeCollectionChart(quarterlyData, year) {
     const ctx = document.getElementById('feeCollectionChart').getContext('2d');
     
     // Destroy existing chart if it exists
@@ -220,9 +220,9 @@ function createFeeCollectionChart(monthlyData) {
         feeCollectionChart.destroy();
     }
     
-    const months = monthlyData.map(data => data.month.substring(0, 3)); // Short month names
-    const collections = monthlyData.map(data => data.collection);
-    const percentages = monthlyData.map(data => data.collectionPercentage);
+    const quarters = quarterlyData.map(data => data.quarter);
+    const collections = quarterlyData.map(data => data.collection);
+    const percentages = quarterlyData.map(data => data.collectionPercentage);
     
     // Mobile-specific chart configuration
     const isMobile = window.innerWidth <= 768;
@@ -230,7 +230,7 @@ function createFeeCollectionChart(monthlyData) {
     feeCollectionChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: months,
+            labels: quarters,
             datasets: [{
                 label: 'Fee Collection (₹)',
                 data: collections,
@@ -260,7 +260,7 @@ function createFeeCollectionChart(monthlyData) {
             plugins: {
                 title: {
                     display: true,
-                    text: `Monthly Fee Collection Report - ${new Date().getFullYear()}`,
+                    text: `Quarterly Fee Collection Report - ${year || new Date().getFullYear()}`,
                     font: {
                         size: isMobile ? 12 : 16,
                         weight: 'bold'
@@ -292,7 +292,7 @@ function createFeeCollectionChart(monthlyData) {
                     display: true,
                     title: {
                         display: !isMobile,
-                        text: 'Months'
+                        text: 'Quarters'
                     },
                     ticks: {
                         font: {
@@ -342,27 +342,24 @@ function createFeeCollectionChart(monthlyData) {
     });
 }
 
-function createFeeCollectionTable(monthlyData) {
-    // Debug: Log the order of data received
-    console.log('📅 Frontend received months in order:', monthlyData.map(m => `${m.monthIndex}-${m.month}`).join(', '));
+function createFeeCollectionTable(quarterlyData) {
+    console.log('📅 Frontend received quarters in order:', quarterlyData.map(q => `${q.quarterIndex}-${q.quarter}`).join(', '));
     
-    // Destroy existing DataTable if it exists
     if ($.fn.DataTable.isDataTable('#feeCollectionTable')) {
         $('#feeCollectionTable').DataTable().destroy();
     }
     
-    // Clear existing table content
     $('#feeCollectionTable').empty();
     
-    // Sort the monthlyData by monthIndex to ensure correct order
-    const sortedMonthlyData = monthlyData.sort((a, b) => a.monthIndex - b.monthIndex);
-    console.log('📅 After sorting by monthIndex:', sortedMonthlyData.map(m => `${m.monthIndex}-${m.month}`).join(', '));
+    const sortedQuarterlyData = [...quarterlyData].sort((a, b) => a.quarterIndex - b.quarterIndex);
+    console.log('📅 After sorting by quarterIndex:', sortedQuarterlyData.map(q => `${q.quarterIndex}-${q.quarter}`).join(', '));
     
-    const tableData = sortedMonthlyData.map((data, index) => {
+    const tableData = sortedQuarterlyData.map((data) => {
         const percentageClass = getPercentageClass(data.collectionPercentage);
+        const quarterLabel = `<div class="month-cell">${data.quarter}</div>`;
         
         return [
-            `<div class="month-cell">${data.month}</div>`,
+            quarterLabel,
             `<div class="collection-cell">
                 <span class="collection-amount">₹${formatCurrency(data.collection)}</span>
             </div>`,
@@ -378,10 +375,12 @@ function createFeeCollectionTable(monthlyData) {
         ];
     });
     
+    const defaultPageLength = sortedQuarterlyData.length || 4;
+
     const dataTable = $('#feeCollectionTable').DataTable({
         data: tableData,
         columns: [
-            { title: 'Month', orderable: false },
+            { title: 'Quarter', orderable: false },
             { title: 'Collection Amount', orderable: true },
             { title: 'Total Students', orderable: true },
             { title: 'Paid Students', orderable: true },
@@ -402,18 +401,17 @@ function createFeeCollectionTable(monthlyData) {
             }
         ],
         responsive: true,
-        pageLength: window.innerWidth > 768 ? 12 : 8,
+        pageLength: defaultPageLength,
         ordering: false,
         language: {
-            search: 'Search months:',
-            lengthMenu: 'Show _MENU_ months per page',
-            info: 'Showing _START_ to _END_ of _TOTAL_ months',
-            searchPlaceholder: 'Search...'
+            search: 'Search quarters:',
+            lengthMenu: 'Show _MENU_ quarters per page',
+            info: 'Showing _START_ to _END_ of _TOTAL_ quarters',
+            searchPlaceholder: 'Search quarters...'
         },
         drawCallback: function() {
-            // Ensure mobile optimizations after each redraw
             if (window.innerWidth <= 768) {
-                $('.dataTables_filter input').attr('placeholder', 'Search months...');
+                $('.dataTables_filter input').attr('placeholder', 'Search quarters...');
                 $('.dt-button').addClass('btn-sm');
             }
         }

@@ -1,0 +1,65 @@
+.dashboard-back-container {
+  width: min(1100px, 92%);
+  margin: 0.75rem auto 1.25rem;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 0.75rem;
+}
+
+.dashboard-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(31, 41, 55, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.dashboard-back-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.15);
+}
+
+.dashboard-back-btn:focus-visible {
+  outline: 3px solid rgba(99, 102, 241, 0.4);
+  outline-offset: 2px;
+}
+
+.dashboard-back-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .dashboard-back-container {
+    width: 100%;
+    padding: 0 1rem;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .dashboard-back-btn {
+    font-size: 0.9rem;
+    padding: 0.45rem 1rem;
+    gap: 0.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-back-container {
+    padding: 0 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .dashboard-back-btn {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.9rem;
+  }
+}

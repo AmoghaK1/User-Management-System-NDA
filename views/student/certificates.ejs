@@ -10,9 +10,11 @@
     <meta name="apple-mobile-web-app-title" content="Nrutyashree" />
     <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
     <title>Certificate | NDA</title>
-   <link rel="stylesheet" href="../stylesheets/certificates.css">
+    <link rel="stylesheet" href="../stylesheets/certificates.css">
+    <link rel="stylesheet" href="../stylesheets/dashboard-back-button.css">
 </head>
 <body>
+     <%- include('../partials/dashboard-back-button', { fallbackHref: '/student-dashboard' }) %>
     <div class="container">
         <div class="no-events-card">
             <div class="calendar-icon">
@@ -36,7 +38,6 @@
             </div>
             <h2 class="no-events-title">No Certificate available currently</h2>
             <p class="no-events-message">Check back later for updates.</p>
-            <button class="back-btn" onclick="history.back()">Back to Dashboard</button>
         </div>
     </div>
 </body>

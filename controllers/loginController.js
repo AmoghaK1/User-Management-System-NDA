@@ -1,7 +1,7 @@
 require('dotenv').config();
 const {
     handleUserRegistration,
-    resetPasswordByPhone
+    resetPasswordByEmail
 } = require('../services/loginService');
 
 const loadRegister = async(req,res)=> {
@@ -61,7 +61,7 @@ const loadForgotPassword = async (req, res) => {
         res.render('login/forgot-password', {
             error: null,
             success: null,
-            phoneValue: ''
+            emailValue: ''
         });
     } catch (error) {
         console.error('Forgot password load error:', error);
@@ -74,14 +74,14 @@ const loadForgotPassword = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
     try {
-        const { phoneNumber, password, confirmPassword } = req.body;
-        const result = await resetPasswordByPhone({ phoneNumber, password, confirmPassword });
+        const { email, password, confirmPassword } = req.body;
+        const result = await resetPasswordByEmail({ email, password, confirmPassword });
 
         if (!result.success) {
             return res.render('login/forgot-password', {
                 error: result.message,
                 success: null,
-                phoneValue: phoneNumber || ''
+                emailValue: email || ''
             });
         }
 
@@ -92,7 +92,7 @@ const forgotPassword = async (req, res) => {
         return res.render('login/forgot-password', {
             error: 'Error processing your request',
             success: null,
-            phoneValue: req.body?.phoneNumber || ''
+            emailValue: req.body?.email || ''
         });
     }
 };

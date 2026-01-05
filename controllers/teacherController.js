@@ -278,7 +278,7 @@ const updateStudentFee = async (req, res) => {
 const getFeeCollectionData = async (req, res) => {
     try {
         const { year } = req.query;
-        const collectionData = await teacherService.getMonthlyFeeCollection(year);
+        const collectionData = await teacherService.getQuarterlyFeeCollection(year);
         
         res.status(200).json({
             success: true,

@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const PaymentStatus = require('../models/paymentModel');
 
 const PASSWORD_REGEX = /^(?=.*\d).{5,}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const validatePasswordPair = (password, confirmPassword) => {
     if (password !== confirmPassword) {
@@ -62,6 +63,7 @@ const initializePaymentStatus = async (userId, userName) => {
 const PHONE_REGEX = /^[0-9+\-()\s]{7,15}$/;
 
 const normalizePhoneInput = (value = '') => value.toString().trim();
+const normalizeEmailInput = (value = '') => value.toString().trim();
 
 const handleUserRegistration = async (data) => {
     try {
@@ -133,16 +135,27 @@ const handleUserRegistration = async (data) => {
         throw error;
     }
 };
-const resetPasswordByPhone = async ({ phoneNumber, password, confirmPassword }) => {
+const resetPasswordByEmail = async ({ email, password, confirmPassword }) => {
     try {
-        const normalizedPhone = normalizePhoneInput(phoneNumber);
-        if (!normalizedPhone) {
-            return { success: false, message: 'Phone number is required.' };
+        const normalizedEmail = normalizeEmailInput(email);
+        if (!normalizedEmail) {
+            return { success: false, message: 'Email is required.' };
         }
 
-        const user = await User.findOne({ student_ph_no: normalizedPhone });
+        if (!EMAIL_REGEX.test(normalizedEmail)) {
+            return { success: false, message: 'Enter a valid email address.' };
+        }
+
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
-            return { success: false, message: 'No account found for that phone number.' };
+            return { success: false, message: 'No account found for that email.' };
+        }
+
+        if (!user.is_verified) {
+            return {
+                success: false,
+                message: 'This email is not verified yet. Complete Google verification from your dashboard to enable password resets.'
+            };
         }
 
         const passwordError = validatePasswordPair(password, confirmPassword);
@@ -151,18 +164,16 @@ const resetPasswordByPhone = async ({ phoneNumber, password, confirmPassword }) 
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // Update user password in Supabase
         await User.updateById(user.id, { password: hashedPassword });
 
         return { success: true, message: 'Password updated successfully. You can now log in.' };
     } catch (error) {
-        console.error('[resetPasswordByPhone] Failed to reset password:', error);
+        console.error('[resetPasswordByEmail] Failed to reset password:', error);
         return { success: false, message: 'Failed to reset password. Please try again later.' };
     }
 };
 
 module.exports = {
     handleUserRegistration,
-    resetPasswordByPhone
+    resetPasswordByEmail
 };

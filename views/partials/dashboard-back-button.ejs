@@ -1,0 +1,7 @@
+<% const fallback = (typeof fallbackHref === 'string' && fallbackHref.trim().length > 0) ? fallbackHref : '/'; %>
+<div class="dashboard-back-container">
+  <a href="<%= fallback %>" class="dashboard-back-btn" onclick="if (window.history.length > 1) { window.history.back(); return false; }">
+    <span class="dashboard-back-icon" aria-hidden="true">&larr;</span>
+    <span>Back</span>
+  </a>
+</div>

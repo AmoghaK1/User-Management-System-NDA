@@ -149,8 +149,21 @@ const getMonthlyFeeCollection = async (year) => {
         let currentMonthCollection = 0;
         let totalPendingAmount = 0;
         
-        // Only show months from January to current month (not future months)
-        for (let month = 0; month <= currentMonth; month++) {
+        // Find the highest month that has any paid status
+        let maxMonthToShow = currentMonth;
+        paymentStatuses.forEach(payment => {
+            if (payment && payment.months) {
+                Object.keys(payment.months).forEach(monthKey => {
+                    const monthIndex = parseInt(monthKey);
+                    if (payment.months[monthKey] === 'Paid' && monthIndex > maxMonthToShow) {
+                        maxMonthToShow = monthIndex;
+                    }
+                });
+            }
+        });
+        
+        // Show months from January up to either current month or the highest paid month, whichever is greater
+        for (let month = 0; month <= maxMonthToShow; month++) {
             let monthlyCollection = 0;
             let studentsCount = 0;
             let paidStudents = 0;

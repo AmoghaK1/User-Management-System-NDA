@@ -57,11 +57,12 @@
         <p class="reminder-eyebrow">Profile security pending</p>
         <h2 class="reminder-title">Verify your profile with Google to unlock everything</h2>
         <p class="reminder-body">
-          Click on "Continue to verification" to verify your account using Google OAuth.
+          Your registered email: <strong><%= user.email %></strong>
+          <br>Please use the same email to verify your account with Google.
         </p>
         <div class="reminder-actions">
-          <a href="/verification" class="verify-pill" data-verify-cta>
-            <span>Continue to verification</span>
+          <a href="/auth/google" class="verify-pill" data-verify-cta>
+            <span>Continue with Google</span>
             <i class="fa-solid fa-arrow-right"></i>
           </a>
           <span class="reminder-note">You will still be able to make payments without verification. But if you forget your password, unverified accounts <b>CANNOT</b> be recovered.</span>

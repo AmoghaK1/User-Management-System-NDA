@@ -16,8 +16,12 @@
     <main class="verification-wrapper">
         <header class="verification-header">
             <p class="eyebrow">Account security</p>
-            <h1>Verify your NDA profile with Google</h1>
-            <p>One quick Google sign-in keeps your student data safe and unlocks password management.</p>
+            <% if (user.is_verified) { %>
+                <h1>Account Verified!</h1>
+            <% } else { %>
+                <h1>Verify your NDA profile with Google</h1>
+                <p>One quick Google sign-in keeps your student data safe and unlocks password management.</p>
+            <% } %>
         </header>
 
         <% if (error) { %>
@@ -54,15 +58,20 @@
                     <span class="step-index">1</span>
                     <p>Review your account email: <strong><%= user.email %></strong></p>
                 </li>
-                <li class="step <%= user.is_verified ? 'done' : '' %>">
+                <li class="step step-mobile-hide <%= user.is_verified ? 'done' : '' %>">
                     <span class="step-index">2</span>
                     <p>Sign in with the same Google account to confirm it's really you.</p>
                 </li>
-                <li class="step <%= user.is_verified ? 'done' : '' %>">
+                <li class="step step-mobile-hide <%= user.is_verified ? 'done' : '' %>">
                     <span class="step-index">3</span>
                     <p>Unlock password changes and future profile updates instantly.</p>
                 </li>
             </ol>
+            
+            <div class="mobile-email-note">
+                
+                <p>Please use the same email address shown above to verify with Google.<b> Click the button below to continue.</b></p>
+            </div>
 
             <div class="cta-stack">
                 <% if (user.is_verified) { %>
@@ -79,7 +88,7 @@
                         <span class="icon"><i class="fa-brands fa-google"></i></span>
                         <div class="copy">
                             <strong>Continue with Google</strong>
-                            <small>This uses the email above; keep it handy.</small>
+                           
                         </div>
                         <i class="fa-solid fa-arrow-right"></i>
                     </a>
@@ -89,10 +98,11 @@
                         <span>Google verification is temporarily unavailable. Please contact support.</span>
                     </div>
                 <% } %>
+                <% if (!user.is_verified) { %>
                 <p class="disclaimer">
-                    <i class="fa-solid fa-info-circle"></i>
                     If you do not verify your profile, you will <strong>not</strong> be able to change your password or edit security-sensitive information.
                 </p>
+                <% } %>
             </div>
         </section>
     </main>

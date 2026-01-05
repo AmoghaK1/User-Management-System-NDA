@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-title" content="Nrutyashree" />
   <link rel="manifest" href="../images/favicon-2.0.3/site.webmanifest" />
 </head>
-<body data-is-verified="<%= user.is_verified ? 'true' : 'false' %>">
+<body data-is-verified="<%= user.is_verified ? 'true' : 'false' %>" data-user-id="<%= user.id || user.userid || '' %>">
     <div class="my-navbar">
         <div class="user-profile">
           <a href="/st-profile"><img id="user-pfp" src="<%= user.profilePicture %>" alt="user-pfp"></a>
@@ -226,37 +226,44 @@
       const badge = document.getElementById('notification-badge');
       const closeBtn = document.getElementById('closeFeeModal');
       const acknowledgeBtn = document.getElementById('acknowledgeBtn');
-      
-      // Check if user has seen the notification
-      const hasSeenNotification = localStorage.getItem('feeNotificationSeen');
-      
-      // Show badge only if user hasn't seen it
-      if (hasSeenNotification !== 'true') {
-        badge.style.display = 'flex';
+      const userId = document.body.getAttribute('data-user-id') || 'global';
+      const storageKey = 'feeNotificationSeen:' + userId;
+
+      if (!modal || !bell || !badge || !closeBtn || !acknowledgeBtn) {
+        return;
       }
-      
-      // Open modal when bell or badge is clicked (always works)
+
+      let hasSeenNotification = localStorage.getItem(storageKey) === 'true';
+
+      if (!hasSeenNotification) {
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+
       function openModal() {
         modal.style.display = 'flex';
-        // Mark as seen and hide badge after first click
-        if (hasSeenNotification !== 'true') {
-          localStorage.setItem('feeNotificationSeen', 'true');
-          badge.style.display = 'none';
-        }
       }
-      
+
+      function markNotificationAsSeen() {
+        if (hasSeenNotification) return;
+
+        localStorage.setItem(storageKey, 'true');
+        hasSeenNotification = true;
+        badge.style.display = 'none';
+      }
+
       bell.addEventListener('click', openModal);
       badge.addEventListener('click', openModal);
-      
-      // Close modal functions
+
       function closeModal() {
         modal.style.display = 'none';
+        markNotificationAsSeen();
       }
-      
+
       closeBtn.addEventListener('click', closeModal);
       acknowledgeBtn.addEventListener('click', closeModal);
-      
-      // Close when clicking outside modal
+
       window.addEventListener('click', function(event) {
         if (event.target === modal) {
           closeModal();

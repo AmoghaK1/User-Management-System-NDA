@@ -79,10 +79,15 @@ jobs:
         env:
           BOT: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CHAT2: ${{ secrets.TELEGRAM_CHAT_ID2 }}
         run: |
           TEXT="🎉 *Backup SUCCESS*\nProject: Nrutyashree NDA\nDate: $(date)\nArtifact ready in GitHub Actions."
           curl -s -X POST https://api.telegram.org/bot$BOT/sendMessage \
           -d chat_id=$CHAT \
+          -d parse_mode="Markdown" \
+          -d text="$TEXT"
+          curl -s -X POST https://api.telegram.org/bot$BOT/sendMessage \
+          -d chat_id=$CHAT2 \
           -d parse_mode="Markdown" \
           -d text="$TEXT"
 
@@ -91,9 +96,14 @@ jobs:
         env:
           BOT: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CHAT2: ${{ secrets.TELEGRAM_CHAT_ID2 }}
         run: |
           TEXT="❌ *Backup FAILED*\nProject: Nrutyashree NDA\nDate: $(date)\nCheck GitHub Actions logs."
           curl -s -X POST https://api.telegram.org/bot$BOT/sendMessage \
           -d chat_id=$CHAT \
+          -d parse_mode="Markdown" \
+          -d text="$TEXT"
+          curl -s -X POST https://api.telegram.org/bot$BOT/sendMessage \
+          -d chat_id=$CHAT2 \
           -d parse_mode="Markdown" \
           -d text="$TEXT"

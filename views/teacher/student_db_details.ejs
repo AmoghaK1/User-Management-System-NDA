@@ -46,10 +46,10 @@
                 <div class="profile-header__name">
                     <h1 class="profile-name">
                         <%= student.name %>
-                        <span class="exam-level" style="display:inline-block;margin-left:1rem;background:linear-gradient(135deg,#6c5ce7 0%,#8e44ad 100%);color:white;padding:0.3rem 1rem;border-radius:25px;font-size:0.9rem;font-weight:600;vertical-align:middle;">
-                            <%= student.exam_level %>
-                        </span>
                     </h1>
+                    <span class="exam-level" style="display:inline-block;margin-top:0.5rem;background:linear-gradient(135deg,#6c5ce7 0%,#8e44ad 100%);color:white;padding:0.3rem 0.9rem;border-radius:20px;font-size:0.85rem;font-weight:600;">
+                        <%= student.exam_level %>
+                    </span>
                 </div>
             </div>
             
@@ -103,10 +103,10 @@
                     <span class="meta-label">Current Fee</span>
                     <span class="meta-value">₹ <%= student.exam_fee %></span>
                 </div>
-                <div class="meta-card highlight">
+                <!-- <div class="meta-card highlight">
                     <span class="meta-label">Showing Year</span>
                     <span class="meta-value"><%= year %></span>
-                </div>
+                </div> -->
             </div>
             <% if (!payment) { %>
                 <div role="status" style="margin-top:0.75rem;padding:0.85rem 1rem;border-radius:12px;background:#fff8e1;border:1px solid #ffd98c;color:#8a6d3b;font-weight:500;">

@@ -97,6 +97,11 @@ app.get('/', (req, res) => {
   res.render('student/landing2');
 });
 
+// Public Contact Page
+app.get('/contact-us', (req, res) => {
+  res.render('misc/contact-public');
+});
+
 // 404 Handler - Must be after all other routes
 app.use((req, res, next) => {
   res.status(404).render('misc/404', { 

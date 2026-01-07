@@ -1,7 +1,43 @@
 <% const fallback = (typeof fallbackHref === 'string' && fallbackHref.trim().length > 0) ? fallbackHref : '/'; %>
-<div class="dashboard-back-container">
+<div class="dashboard-back-container" data-dashboard-back>
   <a href="<%= fallback %>" class="dashboard-back-btn" onclick="if (window.history.length > 1) { window.history.back(); return false; }">
     <span class="dashboard-back-icon" aria-hidden="true">&larr;</span>
     <span>Back</span>
   </a>
 </div>
+<script>
+  (function relocateBackButtons() {
+    function placeButtons() {
+      var containers = document.querySelectorAll('[data-dashboard-back]:not([data-back-positioned])');
+      if (!containers.length) {
+        return;
+      }
+
+      containers.forEach(function(container) {
+        var footer = document.querySelector('footer');
+        if (footer && footer.parentNode) {
+          footer.parentNode.insertBefore(container, footer);
+        } else {
+          var anchors = ['[data-dashboard-main]', 'main', '.main-section', '.page-content', '.content-wrapper', '.container'];
+          var target = null;
+          for (var i = 0; i < anchors.length; i++) {
+            target = document.querySelector(anchors[i]);
+            if (target) break;
+          }
+          if (target && target.parentNode) {
+            target.parentNode.appendChild(container);
+          } else {
+            document.body.appendChild(container);
+          }
+        }
+        container.dataset.backPositioned = 'true';
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', placeButtons, { once: true });
+    } else {
+      placeButtons();
+    }
+  })();
+</script>

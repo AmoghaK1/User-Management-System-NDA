@@ -545,6 +545,9 @@ body {
 @media screen and (max-width: 768px) {
   .my-navbar {
     height: 60px;
+    justify-content: space-between;
+    padding: 0 16px;
+    column-gap: 16px;
   }
   
   .navbar-center-section {
@@ -561,6 +564,11 @@ body {
   
   .navbar-icons {
     gap: 15px;
+    margin-left: auto;
+  }
+
+  .navbar-icons #logout-btn {
+    margin-left: 12px;
   }
   
   #logout-btn {
@@ -616,6 +624,10 @@ body {
 @media screen and (max-width: 480px) {
   .user-name {
     display: none;
+  }
+  
+  .navbar-icons #logout-btn {
+    margin-left: 16px;
   }
   
   .main-section {

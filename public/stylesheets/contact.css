@@ -86,6 +86,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 20px;
     padding: 20px 10%;
     background-color: rgba(255, 255, 255, 0.9);
     position: fixed;
@@ -124,6 +125,9 @@ body {
     display: flex;
     list-style: none;
     align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    min-width: 0;
 }
 
 .nav-links li {
@@ -169,6 +173,13 @@ body {
 }
 
 /* Mobile menu */
+.nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
 .menu-btn {
     display: none;
     cursor: pointer;
@@ -197,10 +208,21 @@ body {
 
 /* Theme toggle */
 .theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1001;
+    position: relative;
+    top: auto;
+    right: auto;
+    z-index: 1;
+    margin-right: 15px;
+    margin-top: 14px;
+}
+
+.nav-links .nav-login-item {
+    display: flex;
+    align-items: center;
+}
+
+.nav-links .nav-login-item #login-btn {
+    margin-left: 20px;
 }
 
 .darkmode-input {
@@ -256,7 +278,7 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding-top: 90px;
+    padding-top: 116px;
     padding-bottom: 20px;
 }
 
@@ -309,6 +331,7 @@ body {
     max-width: 1000px;
     margin-left: auto;
     margin-right: auto;
+    justify-items: center;
 }
 
 /* Contact Cards */
@@ -319,8 +342,14 @@ body {
     box-shadow: 0 10px 30px rgba(106, 45, 192, 0.1);
     transition: all 0.3s ease;
     border: 1px solid rgba(106, 45, 192, 0.1);
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    margin-left: auto;
+    margin-right: auto;
 }
-
 .contact-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 20px 40px rgba(106, 45, 192, 0.15);
@@ -419,16 +448,19 @@ body {
     gap: 2rem;
     max-width: 1000px;
     margin: 0 auto;
+    justify-items: center;
 }
 
 .help-item {
+    width: 100%;
+    max-width: 420px;
     background: rgba(255, 255, 255, 0.9);
-    padding: 2rem;
     border-radius: 12px;
+    padding: 1.5rem;
     text-align: center;
     box-shadow: 0 5px 20px rgba(106, 45, 192, 0.08);
-    transition: all 0.3s ease;
     border: 1px solid rgba(106, 45, 192, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .help-item:hover {
@@ -909,7 +941,30 @@ body.dark-mode .footer-bottom {
 
 @media screen and (max-width: 768px) {
     .myNavbar {
-        padding: 15px 5%;
+        padding: 10px 5%;
+        background: rgba(7, 0, 19, 0.95);
+        box-shadow: 0 12px 35px rgba(43, 3, 82, 0.45);
+    }
+
+    body:not(.dark-mode) .logo {
+        color: #f4f0ff;
+    }
+
+    .nav-controls {
+        margin-left: auto;
+    }
+
+    .darkmode-label {
+        width: 36px;
+        height: 36px;
+    }
+
+    .menu-btn .bar {
+        background-color: #f4f0ff;
+    }
+
+    .menu-btn {
+        display: block;
     }
     
     .nav-links {
@@ -920,56 +975,78 @@ body.dark-mode .footer-bottom {
         left: 0;
         width: 100%;
         height: 100vh;
-        background-color: rgba(255, 255, 255, 0.95);
-        padding-top: 80px;
+        background-color: rgba(7, 0, 19, 0.98);
+        padding-top: 110px;
         align-items: center;
         justify-content: flex-start;
         backdrop-filter: blur(10px);
         transform: translateY(-100%);
         transition: transform 0.5s ease;
+        flex: none;
     }
     
     .nav-links.active {
         display: flex;
         transform: translateY(0);
     }
+
+    .nav-links a {
+        color: #f4f0ff;
+        font-size: 1.1rem;
+    }
+
+    body.dark-mode .nav-links a {
+        color: #f4f0ff;
+    }
     
     .nav-links li {
         margin: 15px 0;
         text-align: center;
+        width: 100%;
     }
-    
-    .menu-btn {
-        display: block;
+
+    .nav-links .nav-login-item {
+        justify-content: center;
     }
-    
+
+    .nav-links .nav-login-item #login-btn {
+        margin: 10px auto 0;
+        border-color: #f4f0ff;
+        color: #f4f0ff;
+    }
+
+    .nav-links .nav-login-item #login-btn span {
+        color: inherit;
+    }
+
     body.dark-mode .nav-links {
-        background-color: rgba(26, 22, 37, 0.95);
+        background-color: rgba(4, 0, 12, 0.98);
     }
-    
-    .theme-toggle {
-        top: 20px;
-        right: 90px;
+
+    .contact-card{
+        margin-left: -21px;
+        margin-right: 9px;
     }
-    
-    .darkmode-label {
-        width: 36px;
-        height: 36px;
+
+    .help-item,
+    .emergency-banner {
+        margin-left: auto;
+        margin-right: auto;
     }
-    
+
     .contact-section {
-        padding: 40px 5%;
+        padding: 0px 3% 40px;
+    }
+
+    body.dark-mode .myNavbar {
+        background-color: rgba(4, 0, 12, 0.9);
+        box-shadow: 0 10px 30px rgba(157, 107, 243, 0.35);
     }
     
     .help-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
-    
-    .emergency-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
+
     .footer-section {
         flex: 0 0 100%;
         text-align: center;
@@ -988,11 +1065,6 @@ body.dark-mode .footer-bottom {
 }
 
 @media screen and (max-width: 480px) {
-    .theme-toggle {
-        top: 12px;
-        right: 50px;
-    }
-    
     .darkmode-label {
         width: 32px;
         height: 32px;
@@ -1005,10 +1077,6 @@ body.dark-mode .footer-bottom {
     
     .help-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .contact-card {
-        padding: 1.5rem;
     }
     
     .section-title {

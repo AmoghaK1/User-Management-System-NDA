@@ -6,14 +6,14 @@ const multer = require('multer');
 const studyMaterialStorage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    // Remove file extension for public_id to avoid issues
     const nameWithoutExt = file.originalname.replace(/\.[^/.]+$/, "");
+    const isPdf = file.mimetype === 'application/pdf';
+
     return {
       folder: 'study_materials',
-      resource_type: 'auto', // allows pdfs, images, etc.
+      resource_type: isPdf ? 'raw' : 'image',
       public_id: `${Date.now()}-${nameWithoutExt}`,
-      // For PDFs, ensure they're stored as raw files
-      raw_convert: file.mimetype === 'application/pdf' ? 'aspose' : undefined
+      format: isPdf ? 'pdf' : undefined
     };
   },
 });

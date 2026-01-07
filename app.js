@@ -37,7 +37,6 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
-console.log("✅ Connected to Supabase!");
 
 // Make supabase available globally (optional)
 global.supabase = supabase;
@@ -131,9 +130,6 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server started on Port http://localhost:${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+app.listen(port);
 
 module.exports = app;

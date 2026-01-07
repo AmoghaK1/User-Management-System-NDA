@@ -186,6 +186,18 @@ class StudyMaterial {
         if (error) throw error;
         return count;
     }
+
+    static async distinct(field) {
+        const { data, error } = await supabase
+            .from(this.tableName)
+            .select(field);
+
+        if (error) throw error;
+        
+        // Extract unique values from the field
+        const uniqueValues = [...new Set(data.map(item => item[field]))].filter(val => val && val.trim() !== '');
+        return uniqueValues.sort();
+    }
 }
 
 module.exports = StudyMaterial;

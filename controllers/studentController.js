@@ -57,7 +57,6 @@ const load_stDashboard = async (req, res) => {
         if (!req.isAuthenticated()) return res.redirect('/login');
         return res.render('student/student-dashboard', { user: req.user });
     } catch (error) {
-        console.log(error.message);
         return res.redirect('/login');
     }
 };
@@ -104,17 +103,25 @@ const updateProfile = async (req, res) => {
         const result = await studentService.updateProfileService(req.body, req.user.id);
 
         if (result.error) {
-            return res.status(400).json({ error: result.error });
+            const status = /email/i.test(result.error) && /in use/i.test(result.error)
+                ? 409
+                : 400;
+            return res.status(status).json({ error: result.error });
         }
+
+        const message = result.needsVerification
+            ? "Email updated. Please complete Google verification again to enable sensitive actions."
+            : "Profile updated successfully";
 
         return res.status(200).json({
             success: true,
-            message: "Profile updated successfully",
-            user: result
+            message,
+            user: result,
+            ...result
         });
     } catch (error) {
         console.error("Profile update error:", error);
-        return res.status(400).json({ error: error.message });
+        return res.status(500).json({ error: error.message || 'Unable to update profile right now.' });
     }
 };
 
@@ -151,7 +158,6 @@ const updateProfilePicture = async (req, res) => {
 const changePassword = async (req, res) => {
     try {
         if (!req.isAuthenticated()) {
-            console.log('Unauthorized password change attempt');
             return res.status(401).json({ success: false, error: "Not authenticated" });
         }
 

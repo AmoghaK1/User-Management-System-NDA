@@ -127,8 +127,6 @@ const handleUserRegistration = async (data) => {
         // Initialize payment status for the new user
         await initializePaymentStatus(userData.id, userData.name);
 
-        console.log(`✅ SUCCESS: User ${userData.email} registered successfully (phone verification skipped)`);
-
         return { success: true, user: userData };
     } catch (error) {
         console.error('Service error in handleUserRegistration:', error);

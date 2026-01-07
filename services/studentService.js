@@ -20,7 +20,6 @@ const updateProfileService = async (body, stud_id) => {
         const allUsers = await User.find({ email: body.email });
         const existingUser = allUsers.find(u => u.id !== stud_id);
         if (existingUser) {
-            console.warn(`Email already in use: ${body.email}`);
             return { error: 'Email already in use' };
         }
     }
@@ -35,7 +34,31 @@ const updateProfileService = async (body, stud_id) => {
         updateData[update] = body[update];
     });
 
-    const updatedUser = await User.updateById(stud_id, updateData);
+    // If the email is changing, require re-verification and clear previous Google linkage
+    const emailIsChanging = Boolean(body.email && body.email !== user.email);
+    if (emailIsChanging) {
+        updateData.is_verified = false;
+        updateData.verifiedat = null;
+        // These columns may not exist in all deployments; Supabase will ignore unknown keys
+        updateData.google_sub = null;
+        updateData.google_email = null;
+    }
+
+    let updatedUser;
+    try {
+        updatedUser = await User.updateById(stud_id, updateData);
+    } catch (error) {
+        const message = error?.message || '';
+        const missingGoogleColumns = message.includes('google_sub') || message.includes('google_email');
+
+        if (missingGoogleColumns) {
+            delete updateData.google_sub;
+            delete updateData.google_email;
+            updatedUser = await User.updateById(stud_id, updateData);
+        } else {
+            throw error;
+        }
+    }
 
     if (updatedUser.birthdate) {
         updatedUser.birthdate = new Date(updatedUser.birthdate).toLocaleDateString('en-GB');
@@ -44,6 +67,10 @@ const updateProfileService = async (body, stud_id) => {
         updatedUser.createdat = new Date(updatedUser.createdat).toLocaleDateString('en-GB');
     }
 
+    // Attach helper flag so callers can prompt re-verification in UI
+    if (emailIsChanging) {
+        updatedUser.needsVerification = true;
+    }
     return updatedUser;
 };
 

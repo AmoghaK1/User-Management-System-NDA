@@ -45,7 +45,6 @@ const updatePaymentService = async (userId, year, month, quarter, isQuarterly, h
     let paymentStatus = await PaymentStatus.findOne({ userid: userId, year });
 
     if (!paymentStatus) {
-        console.log('No existing payment status found, creating new one.');
         const user = await User.findById(userId);
         if (!user) throw new Error('User not found');
         
@@ -122,18 +121,39 @@ const updatePaymentService = async (userId, year, month, quarter, isQuarterly, h
     return updatedPayment;
 };
 
-const getStudentPaymentDetailsService = async () => {
-    // Get all users
-        const users = await User.find({}); 
+const getStudentPaymentDetailsService = async (year) => {
+    const users = await User.find({}); 
 
-        // Get payment statuses for current year
-        const currentYear = new Date().getFullYear();
-        const currentMonth = new Date().getMonth(); // 0-based (0 = January, 11 = December)
-        const currentQuarter = Math.floor(currentMonth / 3) + 1; // Calculate current quarter (1-4)
-        
-        const paymentStatuses = await PaymentStatus.find({ year: currentYear }); 
-        
-        return formatStudentPaymentDetails(users, paymentStatuses, currentYear, currentMonth, currentQuarter);
+    const now = new Date();
+    const availableYearsRaw = await PaymentStatus.listYears();
+    let availableYears = availableYearsRaw && availableYearsRaw.length
+        ? availableYearsRaw
+        : [now.getFullYear()];
+
+    const requestedYear = parseInt(year, 10) || availableYears.sort((a, b) => b - a)[0] || now.getFullYear();
+    if (!availableYears.includes(requestedYear)) {
+        availableYears.push(requestedYear);
+    }
+    availableYears = Array.from(new Set(availableYears)).sort((a, b) => b - a);
+
+    const isCurrentYear = requestedYear === now.getFullYear();
+    const currentMonth = isCurrentYear ? now.getMonth() : 11;
+    const currentQuarter = isCurrentYear ? Math.floor(currentMonth / 3) + 1 : 4;
+
+    const paymentStatuses = await PaymentStatus.find({ year: requestedYear }); 
+    const formattedPayments = formatStudentPaymentDetails(
+        users,
+        paymentStatuses,
+        requestedYear,
+        currentMonth,
+        currentQuarter
+    );
+
+    return {
+        payments: formattedPayments,
+        year: requestedYear,
+        availableYears
+    };
 };
 
 const createOrderService = async (body, userId) => {

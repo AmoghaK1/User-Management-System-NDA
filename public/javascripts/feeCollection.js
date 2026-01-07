@@ -1,30 +1,42 @@
 // feeCollection.js
 let paymentDetailsTable;
+let paymentDetailsYear = new Date().getFullYear();
 
 // In feeCollection.js
-async function fetchPaymentDetails() {
+async function fetchPaymentDetails(year) {
     try {
-        const response = await fetch('/student-payment-details', { credentials: 'include' });
+        const params = new URLSearchParams();
+        if (year) {
+            params.set('year', year);
+        }
+        const query = params.toString();
+        const response = await fetch(`/student-payment-details${query ? `?${query}` : ''}`, { credentials: 'include' });
         if (!response.ok) throw new Error('Network error');
         
         const data = await response.json();
         
         console.log('Raw payment details received:', data); // Debug log
-        
         if (data.success) {
             console.log('Formatted payments:', data.payments); // Debug log
-            return data.payments;
+            return {
+                payments: data.payments,
+                year: data.year,
+                availableYears: data.availableYears || []
+            };
         } else {
             console.error('Failed to fetch payment details');
-            return [];
+            return { payments: [], year, availableYears: [] };
         }
     } catch (error) {
         console.error('Fetch error:', error);
-        return [];
+        return { payments: [], year, availableYears: [] };
     }
 }
 
 function initializeDataTable(data) {
+    if (!document.getElementById('paymentDetailsTable')) {
+        return;
+    }
     console.log('Initializing DataTable with data:', data); // Debug log
     
     if (paymentDetailsTable) {
@@ -90,42 +102,50 @@ function initializeDataTable(data) {
 
 function openFeeCollectionModal() {
     const modal = document.getElementById('feeCollectionModal');
-    if (modal) {
+    const hasStudentTable = document.getElementById('paymentDetailsTable');
+    if (modal && hasStudentTable) {
         modal.style.display = 'block';
+        loadPaymentDetails();
     }
-    
-    loadPaymentDetails();
 }
 
 async function loadPaymentDetails() {
-    // Show loading spinner
-    document.getElementById('paymentDetailsLoading').style.display = 'block';
-    document.getElementById('paymentDetailsTable').style.display = 'none';
+    const loadingEl = document.getElementById('paymentDetailsLoading');
+    const tableEl = document.getElementById('paymentDetailsTable');
+    if (!loadingEl || !tableEl) {
+        return;
+    }
+    loadingEl.style.display = 'block';
+    tableEl.style.display = 'none';
     
-    // Fetch payment details
-    const paymentDetails = await fetchPaymentDetails();
+    const result = await fetchPaymentDetails(paymentDetailsYear);
+    paymentDetailsYear = result.year || paymentDetailsYear;
     
-    // Hide loading spinner
-    document.getElementById('paymentDetailsLoading').style.display = 'none';
-    document.getElementById('paymentDetailsTable').style.display = 'block';
+    loadingEl.style.display = 'none';
+    tableEl.style.display = 'block';
     
-    // Initialize DataTable with the fetched data
-    initializeDataTable(paymentDetails);
+    initializeDataTable(result.payments);
 }
 
 // Initialize when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Add event listener to the Fee Collection button
     const feeCollectionBtn = document.querySelector('.fee-collection-btn');
-    if (feeCollectionBtn) {
+    if (feeCollectionBtn && document.getElementById('paymentDetailsTable')) {
         feeCollectionBtn.addEventListener('click', openFeeCollectionModal);
     }
     
-    // Add event listener to close modal
     const closeModalBtn = document.querySelector('.close-modal');
-    if (closeModalBtn) {
+    if (closeModalBtn && document.getElementById('paymentDetailsTable')) {
         closeModalBtn.addEventListener('click', function() {
             document.getElementById('feeCollectionModal').style.display = 'none';
         });
+    }
+});
+
+document.addEventListener('fee-year-change', (event) => {
+    if (event?.detail?.year) {
+        paymentDetailsYear = event.detail.year;
+        loadPaymentDetails();
     }
 });

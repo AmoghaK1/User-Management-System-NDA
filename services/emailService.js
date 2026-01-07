@@ -41,8 +41,7 @@ const sendVerification = async (user) => {
             });
         }
     } catch (err) {
-        console.warn('Failed to attach logo:', err);
-    }
+            // Silently continue without logo if it fails
 
     // Save verification data first
     const hashedUniqueString = await bcrypt.hash(uniqueString, 10);
@@ -65,7 +64,6 @@ const sendVerification = async (user) => {
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log('Verification email sent successfully to:', user.email);
     } catch (error) {
         console.error('Failed to send verification email:', error.message || error);
         throw error;

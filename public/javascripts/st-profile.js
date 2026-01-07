@@ -3,6 +3,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileContext = window.__PROFILE_CONTEXT__ || {};
     const isVerified = profileContext.isVerified === true || profileContext.isVerified === 'true';
     const verificationUrl = profileContext.verificationUrl || '/verification';
+    const profileFormFeedback = document.getElementById('profileFormFeedback');
+    let profileFormFeedbackTimer = null;
+    const feedbackStyles = {
+        error: ['bg-red-50', 'border-red-200', 'text-red-700'],
+        success: ['bg-green-50', 'border-green-200', 'text-green-700']
+    };
+
+    const removeFeedbackStyles = () => {
+        if (!profileFormFeedback) return;
+        Object.values(feedbackStyles).forEach((styleList) => {
+            styleList.forEach(cls => profileFormFeedback.classList.remove(cls));
+        });
+    };
+
+    const clearProfileFormFeedback = () => {
+        if (!profileFormFeedback) return;
+        if (profileFormFeedbackTimer) {
+            clearTimeout(profileFormFeedbackTimer);
+            profileFormFeedbackTimer = null;
+        }
+        removeFeedbackStyles();
+        profileFormFeedback.classList.add('hidden');
+        profileFormFeedback.textContent = '';
+    };
+
+    const showProfileFormFeedback = (message, type = 'error') => {
+        if (!profileFormFeedback) return;
+        if (profileFormFeedbackTimer) {
+            clearTimeout(profileFormFeedbackTimer);
+            profileFormFeedbackTimer = null;
+        }
+        removeFeedbackStyles();
+        profileFormFeedback.textContent = message;
+        const palette = feedbackStyles[type] || feedbackStyles.error;
+        palette.forEach(cls => profileFormFeedback.classList.add(cls));
+        profileFormFeedback.classList.remove('hidden');
+        profileFormFeedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
 
     // Format DOB
     const formatDate = (isoDate) => {
@@ -109,12 +147,15 @@ document.addEventListener('DOMContentLoaded', () => {
             input.value = currentValue;
         });
 
+        clearProfileFormFeedback();
+
         // Show profile form by default when opening modal
         showProfileForm();
     };
 
     window.closeEditModal = () => {
         document.getElementById('editModal').classList.add('hidden');
+        clearProfileFormFeedback();
     };
 
     // Handle profile form submission
@@ -122,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
+        clearProfileFormFeedback();
 
         try {
             const response = await fetch('/api/profile/update', {
@@ -132,22 +174,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(data)
             });
 
-            if (response.ok) {
-                const updatedData = await response.json();
-                // Update UI with new values
-                Object.keys(updatedData).forEach(field => {
+            let payload = null;
+            try {
+                payload = await response.json();
+            } catch (parseError) {
+                console.warn('Profile update response could not be parsed as JSON.', parseError);
+            }
+
+            if (response.ok && payload) {
+                const updatedFields = payload.user || payload;
+                Object.keys(updatedFields).forEach(field => {
                     const element = document.querySelector(`[data-field="${field}"]`);
                     if (element) {
-                        element.textContent = updatedData[field];
+                        element.textContent = updatedFields[field];
                     }
                 });
-                closeEditModal();
-            } else {
-                throw new Error('Failed to update profile');
+
+                if (payload.message) {
+                    showProfileFormFeedback(payload.message, 'success');
+                    profileFormFeedbackTimer = setTimeout(() => {
+                        clearProfileFormFeedback();
+                        closeEditModal();
+                    }, 1600);
+                } else {
+                    closeEditModal();
+                }
+                return;
             }
+
+            const errorMessage = payload?.error || 'Failed to update profile. Please try again.';
+            showProfileFormFeedback(errorMessage, 'error');
         } catch (error) {
             console.error('Error updating profile:', error);
-            alert('Failed to update profile. Please try again.');
+            showProfileFormFeedback(error.message || 'Failed to update profile. Please try again.', 'error');
         }
     });
 

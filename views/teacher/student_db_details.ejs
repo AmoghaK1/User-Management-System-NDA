@@ -23,12 +23,13 @@
     </div>
 
     <div class="container">
-         <%
-      const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      const year = payment && payment.year ? payment.year : new Date().getFullYear();
+                 <%
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            const selectedYearValue = typeof selectedYear !== 'undefined' ? selectedYear : (payment && payment.year ? payment.year : new Date().getFullYear());
+            const year = selectedYearValue || new Date().getFullYear();
       const quarterNames = ['Q1 (Jan-Mar)', 'Q2 (Apr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Oct-Dec)'];
       const halfYearlyNames = [
         { id: 'half1', name: 'H1 (Jan-Jun)', months: 'January, February, March, April, May, June' },
@@ -42,14 +43,28 @@
             </div>
             
             <div class="profile-header">
-                
-                <div>
+                <div class="profile-header__name">
                     <h1 class="profile-name">
                         <%= student.name %>
                         <span class="exam-level" style="display:inline-block;margin-left:1rem;background:linear-gradient(135deg,#6c5ce7 0%,#8e44ad 100%);color:white;padding:0.3rem 1rem;border-radius:25px;font-size:0.9rem;font-weight:600;vertical-align:middle;">
                             <%= student.exam_level %>
                         </span>
                     </h1>
+                </div>
+            </div>
+            
+            <div class="year-selector" aria-label="Select academic year">
+                <div class="year-selector__label">
+                    <span>Academic Year</span>
+                    <small>Switch between batches</small>
+                </div>
+                <div class="year-selector__control">
+                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                    <select id="yearSelect">
+                        <% (availableYears && availableYears.length ? availableYears : [year]).forEach(function(y) { %>
+                            <option value="<%= y %>" <%= y === year ? 'selected' : '' %>><%= y %></option>
+                        <% }) %>
+                    </select>
                 </div>
             </div>
 
@@ -83,7 +98,21 @@
                     <button class="toggle-btn" id="halfYearlyBtn">Half-Yearly</button>
                 </div>
             </div>
-            <div class="fee-amount">Current fee: <%= student.exam_fee %></div>
+            <div class="fee-meta">
+                <div class="meta-card">
+                    <span class="meta-label">Current Fee</span>
+                    <span class="meta-value">₹ <%= student.exam_fee %></span>
+                </div>
+                <div class="meta-card highlight">
+                    <span class="meta-label">Showing Year</span>
+                    <span class="meta-value"><%= year %></span>
+                </div>
+            </div>
+            <% if (!payment) { %>
+                <div role="status" style="margin-top:0.75rem;padding:0.85rem 1rem;border-radius:12px;background:#fff8e1;border:1px solid #ffd98c;color:#8a6d3b;font-weight:500;">
+                    No payment records found for <strong><%= year %></strong>. Select another year to review historical payments.
+                </div>
+            <% } %>
             <div class="fee-list" id="monthsList">
                 <% for(let i = 0; i < 12; i++) { 
                     const status = payment && payment.months && (payment.months[i] || (payment.months.get && payment.months.get(String(i)))) || 'Pending';
@@ -149,6 +178,7 @@
             const monthsList = document.getElementById('monthsList');
             const quartersList = document.getElementById('quartersList');
             const halfYearlyList = document.getElementById('halfYearlyList');
+            const yearSelect = document.getElementById('yearSelect');
             
             monthsBtn.addEventListener('click', function() {
                 monthsBtn.classList.add('active');
@@ -176,6 +206,14 @@
                 quartersList.style.display = 'none';
                 halfYearlyList.style.display = '';
             });
+
+            if (yearSelect) {
+                yearSelect.addEventListener('change', function() {
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('year', yearSelect.value);
+                    window.location.href = `/student-db-details/<%= student.id %>?${params.toString()}`;
+                });
+            }
         });
     </script>
     

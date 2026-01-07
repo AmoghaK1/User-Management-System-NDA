@@ -136,6 +136,20 @@ class PaymentStatus {
         if (error) throw error;
         return count;
     }
+
+    static async listYears(query = {}) {
+        let queryBuilder = supabase.from(this.tableName).select('year');
+
+        Object.keys(query).forEach(key => {
+            queryBuilder = queryBuilder.eq(key, query[key]);
+        });
+
+        const { data, error } = await queryBuilder;
+        if (error) throw error;
+
+        const years = Array.from(new Set((data || []).map(record => record.year))).filter(Boolean);
+        return years;
+    }
 }
 
 module.exports = PaymentStatus;

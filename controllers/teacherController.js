@@ -169,12 +169,18 @@ const loadStudentDatabaseMain = async (req, res) => {
 const loadStudentDbDetails = async (req, res) => {
     try {
         const studentId = req.params.id;
-        const details = await teacherService.getStudentDetailsWithPayment(studentId);
+    const requestedYear = req.query.year ? parseInt(req.query.year, 10) : undefined;
+    const details = await teacherService.getStudentDetailsWithPayment(studentId, requestedYear);
         if (!details || !details.student) {
             req.flash('error', 'Student not found');
             return res.redirect('/student_database');
         }
-        res.render('teacher/student_db_details', { student: details.student, payment: details.payment });
+    res.render('teacher/student_db_details', {
+      student: details.student,
+      payment: details.payment,
+      availableYears: details.availableYears,
+      selectedYear: details.selectedYear
+    });
     } catch (error) {
         console.error('Error loading student details:', error);
         req.flash('error', 'Could not load student details');

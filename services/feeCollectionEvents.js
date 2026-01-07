@@ -9,17 +9,14 @@ class FeeCollectionEventEmitter extends EventEmitter {
 
     addClient(res) {
         this.clients.add(res);
-        console.log(`📡 SSE client connected. Total clients: ${this.clients.size}`);
         
         // Remove client when connection closes
         res.on('close', () => {
             this.clients.delete(res);
-            console.log(`📡 SSE client disconnected. Total clients: ${this.clients.size}`);
         });
     }
 
     broadcast(event, data) {
-        console.log(`📡 Broadcasting ${event} to ${this.clients.size} clients`);
         const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
         
         // Send to all connected clients

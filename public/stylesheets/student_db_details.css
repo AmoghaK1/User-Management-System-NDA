@@ -59,10 +59,91 @@
             display: flex;
             align-items: center;
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             position: relative;
             z-index: 2;
-        }        .profile-avatar {
+        }
+
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1.25rem;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(18px);
+            position: relative;
+            z-index: 2;
+            margin-bottom: 1.5rem;
+        }
+
+        .year-selector__label {
+            display: flex;
+            flex-direction: column;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.2;
+        }
+
+        .year-selector__label small {
+            font-weight: 400;
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .year-selector__control {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            border-radius: 14px;
+            padding: 0.4rem 0.75rem 0.4rem 0.9rem;
+            min-width: 170px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .year-selector__control i {
+            color: #6c5ce7;
+            font-size: 1rem;
+        }
+
+        .year-selector__control select {
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #2c3e50;
+            padding-right: 1.5rem;
+            appearance: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .year-selector__control::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.75rem;
+            color: #8e44ad;
+            position: absolute;
+            right: 0.85rem;
+            pointer-events: none;
+        }
+
+        .year-selector__control select:focus {
+            outline: none;
+        }
+        
+        .year-selector__control select option {
+            background: white;
+            color: #2c3e50;
+            padding: 0.5rem;
+        }
+                .profile-avatar {
             width: 80px;
             height: 80px;
             background: linear-gradient(135deg, #4a148c 0%, #7b1fa2 100%);
@@ -157,10 +238,52 @@
             color: #2c3e50;
         }
 
-        .fee-amount {
-            font-size: 1.2rem;
-            color: #666;
+        .fee-meta {
+            display: flex;
+            gap: 1rem;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-card {
+            flex: 1 1 220px;
+            background: #f8f7ff;
+            border-radius: 18px;
+            padding: 1rem 1.25rem;
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-card.highlight {
+            background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 12px 30px rgba(108, 92, 231, 0.25);
+        }
+
+        .meta-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+
+        .meta-card.highlight .meta-label {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .meta-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 0.35rem;
+        }
+
+        .meta-card.highlight .meta-value {
+            color: white;
         }
 
         .fee-toggle {
@@ -322,6 +445,23 @@
                 text-align: left;
                 gap: 1rem;
                 align-items: center;
+                margin-bottom: 1rem;
+            }
+
+            .year-selector {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+
+            .year-selector__label {
+                text-align: left;
+            }
+
+            .year-selector__control {
+                width: 100%;
+                min-width: unset;
             }
 
             .profile-name {
@@ -370,6 +510,14 @@
 
             .fee-item {
                 padding: 1rem;
+            }
+
+            .fee-meta {
+                flex-direction: column;
+            }
+
+            .meta-card {
+                width: 100%;
             }
 
             .detail-item {

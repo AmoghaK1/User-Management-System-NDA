@@ -159,24 +159,49 @@ const deleteMaterial = async (materialId) => {
   }
 };
 
-const getStudentDetailsWithPayment = async (studentId) => {
+const getStudentDetailsWithPayment = async (studentId, year) => {
     const student = await User.findById(studentId);
     if (!student) return null;
+
+    const paymentRecords = await PaymentStatus.find({ userid: studentId });
+    let availableYears = Array.from(new Set(paymentRecords.map(record => record.year))).filter(Boolean);
     const currentYear = new Date().getFullYear();
-    const payment = await PaymentStatus.findOne({ userid: studentId, year: currentYear });
-    return { student, payment };
+    const selectedYear = parseInt(year, 10) || currentYear;
+
+    let payment = paymentRecords.find(record => record.year === selectedYear);
+
+    if (!payment && selectedYear === currentYear) {
+        payment = await PaymentStatus.create({
+            userid: studentId,
+            username: student.name,
+            year: currentYear
+        });
+        availableYears.push(currentYear);
+    }
+
+    if (!availableYears.includes(currentYear)) {
+        availableYears.push(currentYear);
+    }
+
+    availableYears = Array.from(new Set(availableYears)).filter(Boolean).sort((a, b) => b - a);
+
+    return { student, payment, availableYears, selectedYear };
 };
 
 const getQuarterlyFeeCollection = async (year) => {
     try {
-        const currentYear = year || new Date().getFullYear();
-        console.log(`🔄 Fetching fee collection data for year: ${currentYear} at ${new Date().toLocaleString()}`);
+        const now = new Date();
+        const requestedYear = parseInt(year, 10) || now.getFullYear();
         
         const students = await User.find({ is_admin: 0 });
-        console.log(`📊 Found ${students.length} students in database`);
         
-        const paymentStatuses = await PaymentStatus.find({ year: currentYear });
-        console.log(`💰 Found ${paymentStatuses.length} payment records for year ${currentYear}`);
+        const paymentStatuses = await PaymentStatus.find({ year: requestedYear });
+        
+        let availableYears = await PaymentStatus.listYears();
+        if (!availableYears.includes(requestedYear)) {
+            availableYears.push(requestedYear);
+        }
+        availableYears = availableYears.filter(Boolean).sort((a, b) => b - a);
         
         const paymentMap = new Map();
         paymentStatuses.forEach(payment => {
@@ -184,11 +209,12 @@ const getQuarterlyFeeCollection = async (year) => {
         });
         const quarterlyData = [];
         let totalYearCollection = 0;
-        let currentQuarterIndex = Math.floor(new Date().getMonth() / 3);
+        const isCurrentYear = requestedYear === now.getFullYear();
+        let currentQuarterIndex = isCurrentYear ? Math.floor(now.getMonth() / 3) : 3;
         let currentQuarterCollection = 0;
         let totalPendingAmount = 0;
 
-        let maxQuarterToShow = currentQuarterIndex + 1; // quarters are 1-indexed
+        let maxQuarterToShow = isCurrentYear ? currentQuarterIndex + 1 : 4; // quarters are 1-indexed
         paymentStatuses.forEach(payment => {
             QUARTER_DEFINITIONS.forEach(def => {
                 if (isQuarterPaid(payment, def) && def.index > maxQuarterToShow) {
@@ -232,17 +258,17 @@ const getQuarterlyFeeCollection = async (year) => {
                 quarterlyData.push(entry);
             }
 
-            if (def.index - 1 === currentQuarterIndex) {
+            const targetQuarterIndex = isCurrentYear ? currentQuarterIndex : 3;
+            if (def.index - 1 === targetQuarterIndex) {
                 currentQuarterCollection = quarterCollection;
             }
         });
 
-        console.log(`✅ Calculated quarterly fee collection data - Total: ₹${totalYearCollection}, Current Quarter: ₹${currentQuarterCollection}, Pending: ₹${totalPendingAmount}`);
-
         const quartersIncluded = quarterlyData.length;
 
         return {
-            year: currentYear,
+            year: requestedYear,
+            availableYears,
             quarterlyData,
             summary: {
                 totalYearCollection,

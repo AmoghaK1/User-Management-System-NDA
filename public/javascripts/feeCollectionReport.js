@@ -3,12 +3,29 @@
 let feeCollectionChart = null;
 let eventSource = null;
 let isModalOpen = false;
+let selectedFeeYear = new Date().getFullYear();
+let feeYearSelectEl = null;
+let feeYearFilterEl = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Handle fee collection card click
     const feeCollectionBtn = document.querySelector('.fee-collection-btn');
     const modal = document.getElementById('feeCollectionModal');
     const closeModal = document.querySelector('.close-modal');
+    feeYearSelectEl = document.getElementById('feeYearSelect');
+    feeYearFilterEl = document.getElementById('feeYearFilter');
+    if (feeYearSelectEl) {
+        feeYearSelectEl.addEventListener('change', function() {
+            const nextYear = parseInt(feeYearSelectEl.value, 10);
+            if (!isNaN(nextYear)) {
+                selectedFeeYear = nextYear;
+                if (isModalOpen) {
+                    fetchFeeCollectionData();
+                }
+                document.dispatchEvent(new CustomEvent('fee-year-change', { detail: { year: selectedFeeYear } }));
+            }
+        });
+    }
     
     if (feeCollectionBtn) {
         feeCollectionBtn.addEventListener('click', function(e) {
@@ -168,7 +185,7 @@ async function fetchFeeCollectionData() {
         console.log(`🌐 Making API call to fetch fee collection data at: ${fetchTime.toLocaleString()}`);
         
         // Add cache-busting parameter to ensure fresh data
-        const response = await fetch(`/fee-collection-data?t=${Date.now()}`);
+        const response = await fetch(`/fee-collection-data?year=${selectedFeeYear}&t=${Date.now()}`);
         const result = await response.json();
         
         if (result.success) {
@@ -192,6 +209,7 @@ function displayFeeCollectionData(data) {
     
     // Hide loading
     loading.style.display = 'none';
+    updateYearFilter(data.availableYears || [], data.year);
     
     // Update summary cards
     updateSummaryCards(data.summary);
@@ -431,4 +449,19 @@ function formatCurrency(amount) {
 function showError(message) {
     const loading = document.getElementById('feeCollectionLoading');
     loading.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+}
+
+function updateYearFilter(years, activeYear) {
+    const normalizedYears = (years && years.length ? years : [activeYear]).filter(Boolean).sort((a, b) => b - a);
+    selectedFeeYear = activeYear;
+    if (feeYearSelectEl) {
+        feeYearSelectEl.innerHTML = normalizedYears
+            .map(year => `<option value="${year}">${year}</option>`)
+            .join('');
+        feeYearSelectEl.value = activeYear;
+    }
+    if (feeYearFilterEl) {
+        feeYearFilterEl.style.display = 'flex';
+    }
+    document.dispatchEvent(new CustomEvent('fee-year-change', { detail: { year: activeYear } }));
 }

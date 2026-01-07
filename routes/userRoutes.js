@@ -39,8 +39,6 @@ user_route.get('/forgot-password', auth.redirectIfAuthenticated, loginController
 user_route.post('/forgot-password', loginController.forgotPassword);
 
 user_route.post('/login', (req, res, next) => {
-    console.log('[Login Route] Login attempt:', { email: req.body.email });
-    
     passport.authenticate("local", (err, user, info) => {
         if (err) {
             console.error('[Login Route] Error:', err);
@@ -49,7 +47,6 @@ user_route.post('/login', (req, res, next) => {
         
         // If no user found or authentication fails
         if (!user) {
-            console.log('[Login Route] Authentication failed:', info?.message);
             return res.render("login/login", { error: info.message, success: null });
         }
 
@@ -59,19 +56,11 @@ user_route.post('/login', (req, res, next) => {
                 return next(err);
             }
 
-            console.log('[Login Route] Login successful:', {
-                email: user.email,
-                sessionID: req.sessionID,
-                isAuthenticated: req.isAuthenticated()
-            });
-
             // Existing admin/user routing logic
             if (user.email === "rajjii11@gmail.com") {
-                console.log('[Login Route] Redirecting to teacher dashboard');
                 return res.redirect("/tr-dashboard");
             }
 
-            console.log('[Login Route] Redirecting to student dashboard');
             return res.redirect("/st-dashboard");
         });
     })(req, res, next);
@@ -120,9 +109,6 @@ user_route.get('/auth/google/callback', (req, res, next) => {
         }
 
         if (!user) {
-            console.warn('[Google Verification] Strategy returned no user', {
-                info,
-            });
             const message = info?.message || 'Verification was cancelled. Please try again.';
             return res.redirect('/verification?error=' + encodeURIComponent(message));
         }

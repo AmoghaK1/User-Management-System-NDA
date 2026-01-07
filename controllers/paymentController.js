@@ -111,11 +111,13 @@ const getPaymentStatus = async (req, res) => {
 
 const getStudentPaymentDetails = async (req, res) => {
     try {
-        
-        const formattedPayments = await getStudentPaymentDetailsService();
+        const requestedYear = req.query.year ? parseInt(req.query.year, 10) : undefined;
+        const { payments, year, availableYears } = await getStudentPaymentDetailsService(requestedYear);
         res.status(200).json({
             success: true,
-            payments: formattedPayments
+            payments,
+            year,
+            availableYears
         });
     } catch (error) {
         console.error('Error fetching payment details:', error);

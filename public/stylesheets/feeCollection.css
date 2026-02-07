@@ -249,6 +249,41 @@
     color: #555;
 }
 
+.pending-cell-simple {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.pending-count-num {
+    font-weight: 600;
+    color: #6d28d9;
+    font-size: 0.95rem;
+}
+
+.pending-count-zero {
+    font-weight: 500;
+    color: #22c55e;
+    font-size: 0.95rem;
+}
+
+.pending-view-btn {
+    border: none;
+    background: #667eea;
+    color: #ffffff;
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.pending-view-btn:hover {
+    background: #5a67d8;
+}
+
 /* Remove complex DataTable styling and animations */
 .dataTables_wrapper {
     margin-top: 15px;
@@ -280,6 +315,28 @@
     background: #667eea;
     border-radius: 2px;
     transition: width 0.5s ease;
+}
+
+.pending-months {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pending-month-badge {
+    background: #ede9fe;
+    color: #6d28d9;
+    border: 1px solid #c4b5fd;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    line-height: 1.4;
+}
+
+.pending-month-badge-empty {
+    background: #f3f4f6;
+    color: #6b7280;
+    border-color: #d1d5db;
 }
 
 /* Mobile Responsive Styles */
@@ -395,6 +452,15 @@
         font-weight: 500;
         color: #555;
         text-align: center;
+    }
+    
+    .pending-cell-simple {
+        gap: 6px;
+    }
+    
+    .pending-view-btn {
+        padding: 3px 8px;
+        font-size: 0.65rem;
     }
     
     .percentage-badge {
@@ -604,6 +670,181 @@
     box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
 }
 
+body.pending-modal-open {
+    overflow: hidden;
+}
+
+.pending-roster-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 2000;
+}
+
+.pending-roster-modal.visible {
+    display: flex;
+}
+
+.pending-roster-dialog {
+    background: #ffffff;
+    width: min(500px, 100%);
+    max-height: 90vh;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pending-roster-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.pending-roster-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+.pending-roster-count {
+    margin: 4px 0 0 0;
+    color: #e0e7ff;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.pending-roster-close {
+    border: none;
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    font-size: 1.3rem;
+    line-height: 1;
+    border-radius: 999px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+.pending-roster-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.pending-roster-search {
+    width: 100%;
+    border: 2px solid #e0e7ff;
+    border-radius: 999px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+.pending-roster-search:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.pending-roster-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pending-roster-item {
+    border: 1px solid #e0e7ff;
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: #f5f3ff;
+}
+
+.pending-roster-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.pending-roster-name {
+    font-weight: 600;
+    color: #4c1d95;
+}
+
+.pending-roster-empty {
+    text-align: center;
+    color: #9ca3af;
+    padding: 20px;
+}
+
+.pending-roster-footer {
+    border-top: 1px solid #e5e7eb;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafc;
+}
+
+.pending-roster-nav {
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.pending-roster-nav:hover {
+    opacity: 0.9;
+}
+
+.pending-roster-nav:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #d1d5db;
+}
+
+.pending-roster-page-info {
+    font-weight: 600;
+    color: #6d28d9;
+}
+
+@media (max-width: 600px) {
+    .pending-roster-dialog {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+    .pending-roster-body {
+        padding: 16px;
+    }
+    .pending-roster-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .pending-roster-nav,
+    .pending-roster-page-info {
+        width: 100%;
+        text-align: center;
+    }
+}
+
 /* Loading Animation */
 .table-loading {
     position: relative;
@@ -637,6 +878,10 @@
     
     .collection-amount {
         font-size: 1rem;
+    }
+    
+    .pending-view-btn {
+        padding: 3px 8px;
     }
     
     .percentage-badge {

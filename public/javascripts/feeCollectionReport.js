@@ -6,6 +6,15 @@ let isModalOpen = false;
 let selectedFeeYear = new Date().getFullYear();
 let feeYearSelectEl = null;
 let feeYearFilterEl = null;
+let pendingDetailsIdCounter = 0;
+const pendingRosterData = new Map();
+const pendingRosterModalState = {
+    rosterId: null,
+    page: 1,
+    search: ''
+};
+const PENDING_MODAL_PAGE_SIZE = 6;
+let pendingViewListenerAttached = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Handle fee collection card click
@@ -372,9 +381,12 @@ function createFeeCollectionTable(quarterlyData) {
     const sortedQuarterlyData = [...quarterlyData].sort((a, b) => a.quarterIndex - b.quarterIndex);
     console.log('📅 After sorting by quarterIndex:', sortedQuarterlyData.map(q => `${q.quarterIndex}-${q.quarter}`).join(', '));
     
+    pendingDetailsIdCounter = 0;
+    pendingRosterData.clear();
     const tableData = sortedQuarterlyData.map((data) => {
         const percentageClass = getPercentageClass(data.collectionPercentage);
         const quarterLabel = `<div class="month-cell">${data.quarter}</div>`;
+        const pendingStudentsCell = createPendingStudentsCell(data.pendingDetails, data.pendingStudents, data.quarter);
         
         return [
             quarterLabel,
@@ -383,7 +395,7 @@ function createFeeCollectionTable(quarterlyData) {
             </div>`,
             `<div class="student-count">${data.totalStudents}</div>`,
             `<div class="student-count">${data.paidStudents}</div>`,
-            `<div class="student-count">${data.pendingStudents}</div>`,
+            pendingStudentsCell,
             `<div class="percentage-container">
                 <span class="percentage-badge ${percentageClass}">${data.collectionPercentage}%</span>
                 <div class="progress-bar-mini">
@@ -432,6 +444,7 @@ function createFeeCollectionTable(quarterlyData) {
                 $('.dataTables_filter input').attr('placeholder', 'Search quarters...');
                 $('.dt-button').addClass('btn-sm');
             }
+            attachPendingRosterListeners();
         }
     });
 }
@@ -444,6 +457,240 @@ function getPercentageClass(percentage) {
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN').format(amount);
+}
+
+function createPendingStudentsCell(pendingDetails, pendingCount, quarterLabel) {
+    const normalizedCount = typeof pendingCount === 'number' ? pendingCount : 0;
+    const details = Array.isArray(pendingDetails) ? pendingDetails : [];
+
+    if (details.length === 0) {
+        return `<div class="pending-cell-simple"><span class="pending-count-zero">${normalizedCount}</span></div>`;
+    }
+
+    const rosterId = `pending-roster-${++pendingDetailsIdCounter}`;
+    pendingRosterData.set(rosterId, {
+        quarterLabel,
+        pendingCount: normalizedCount,
+        students: details.map(detail => ({
+            studentName: detail.studentName || 'Unknown Student',
+            pendingMonths: Array.isArray(detail.pendingMonths) ? detail.pendingMonths : []
+        }))
+    });
+
+    return `
+        <div class="pending-cell-simple">
+            <span class="pending-count-num">${normalizedCount}</span>
+            <button type="button" class="pending-view-btn" data-roster-id="${rosterId}">View</button>
+        </div>
+    `;
+}
+
+function createPendingPreview(details) {
+    const previewLimit = getPendingPreviewLimit();
+    const previewDetails = details.slice(0, previewLimit);
+    if (previewDetails.length === 0) {
+        return '<div class="pending-empty">No preview available</div>';
+    }
+
+    return previewDetails.map(detail => {
+        const studentName = escapeHtml(detail.studentName || 'Unknown Student');
+        const firstMonth = Array.isArray(detail.pendingMonths) && detail.pendingMonths.length
+            ? detail.pendingMonths[0]
+            : 'Month N/A';
+        return `
+            <div class="pending-preview-item">
+                <span class="pending-preview-name">${studentName}</span>
+                <span class="pending-preview-month">${escapeHtml(firstMonth)}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function getPendingPreviewLimit() {
+    return window.innerWidth <= 768 ? 1 : 3;
+}
+
+function escapeHtml(unsafe) {
+    if (unsafe === null || unsafe === undefined) {
+        return '';
+    }
+
+    return String(unsafe).replace(/[&<>"']/g, (char) => {
+        const escapeMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        return escapeMap[char] || char;
+    });
+}
+
+function attachPendingRosterListeners() {
+    if (pendingViewListenerAttached) {
+        return;
+    }
+
+    document.addEventListener('click', (event) => {
+        const viewButton = event.target.closest('.pending-view-btn');
+        if (viewButton) {
+            const rosterId = viewButton.getAttribute('data-roster-id');
+            if (rosterId) {
+                openPendingRosterModal(rosterId);
+            }
+            return;
+        }
+
+        const modalEl = document.getElementById('pendingRosterModal');
+        if (modalEl && modalEl.classList.contains('visible')) {
+            if (event.target.matches('[data-action="pending-modal-close"]') || event.target === modalEl) {
+                closePendingRosterModal();
+            } else if (event.target.matches('[data-action="pending-prev"]')) {
+                changePendingRosterPage(-1);
+            } else if (event.target.matches('[data-action="pending-next"]')) {
+                changePendingRosterPage(1);
+            }
+        }
+    });
+
+    pendingViewListenerAttached = true;
+}
+
+function ensurePendingRosterModal() {
+    if (document.getElementById('pendingRosterModal')) {
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'pendingRosterModal';
+    modal.className = 'pending-roster-modal';
+    modal.innerHTML = `
+        <div class="pending-roster-dialog" role="dialog" aria-modal="true" aria-labelledby="pendingRosterTitle">
+            <div class="pending-roster-header">
+                <div>
+                    <h3 id="pendingRosterTitle" class="pending-roster-title">Pending Students</h3>
+                    <p class="pending-roster-count"></p>
+                </div>
+                <button type="button" class="pending-roster-close" data-action="pending-modal-close" aria-label="Close">×</button>
+            </div>
+            <div class="pending-roster-body">
+                <input type="search" class="pending-roster-search" placeholder="Search by name or month" aria-label="Search pending students" />
+                <ul class="pending-roster-list"></ul>
+            </div>
+            <div class="pending-roster-footer">
+                <button type="button" class="pending-roster-nav" data-action="pending-prev">Previous</button>
+                <span class="pending-roster-page-info"></span>
+                <button type="button" class="pending-roster-nav" data-action="pending-next">Next</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelector('.pending-roster-search').addEventListener('input', (event) => {
+        pendingRosterModalState.search = event.target.value;
+        pendingRosterModalState.page = 1;
+        renderPendingRosterModal();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modal.classList.contains('visible')) {
+            closePendingRosterModal();
+        }
+    });
+}
+
+function openPendingRosterModal(rosterId) {
+    const data = pendingRosterData.get(rosterId);
+    if (!data) {
+        return;
+    }
+
+    ensurePendingRosterModal();
+    pendingRosterModalState.rosterId = rosterId;
+    pendingRosterModalState.page = 1;
+    pendingRosterModalState.search = '';
+
+    const modal = document.getElementById('pendingRosterModal');
+    modal.querySelector('.pending-roster-search').value = '';
+    renderPendingRosterModal();
+    modal.classList.add('visible');
+    document.body.classList.add('pending-modal-open');
+}
+
+function closePendingRosterModal() {
+    const modal = document.getElementById('pendingRosterModal');
+    if (!modal) {
+        return;
+    }
+    modal.classList.remove('visible');
+    document.body.classList.remove('pending-modal-open');
+}
+
+function renderPendingRosterModal() {
+    const modal = document.getElementById('pendingRosterModal');
+    if (!modal || !pendingRosterModalState.rosterId) {
+        return;
+    }
+
+    const data = pendingRosterData.get(pendingRosterModalState.rosterId);
+    if (!data) {
+        return;
+    }
+
+    const titleEl = modal.querySelector('.pending-roster-title');
+    const countEl = modal.querySelector('.pending-roster-count');
+    const listEl = modal.querySelector('.pending-roster-list');
+    const pageInfoEl = modal.querySelector('.pending-roster-page-info');
+
+    titleEl.textContent = `${data.quarterLabel} Pending Fees`;
+    countEl.textContent = `${data.pendingCount} student${data.pendingCount === 1 ? '' : 's'} pending`;
+
+    const normalizedSearch = pendingRosterModalState.search.trim().toLowerCase();
+    const filteredStudents = data.students.filter(student => {
+        if (!normalizedSearch) {
+            return true;
+        }
+        const nameMatch = (student.studentName || '').toLowerCase().includes(normalizedSearch);
+        const monthsMatch = (student.pendingMonths || []).some(month => (month || '').toLowerCase().includes(normalizedSearch));
+        return nameMatch || monthsMatch;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(filteredStudents.length / PENDING_MODAL_PAGE_SIZE));
+    pendingRosterModalState.page = Math.min(pendingRosterModalState.page, totalPages);
+    const startIndex = (pendingRosterModalState.page - 1) * PENDING_MODAL_PAGE_SIZE;
+    const paginated = filteredStudents.slice(startIndex, startIndex + PENDING_MODAL_PAGE_SIZE);
+
+    if (paginated.length === 0) {
+        listEl.innerHTML = '<li class="pending-roster-empty">No students match your search.</li>';
+    } else {
+        listEl.innerHTML = paginated.map(student => {
+            const months = student.pendingMonths && student.pendingMonths.length
+                ? student.pendingMonths.map(month => `<span class="pending-month-badge">${escapeHtml(month)}</span>`).join('')
+                : '<span class="pending-month-badge pending-month-badge-empty">Month N/A</span>';
+            return `
+                <li class="pending-roster-item">
+                    <div class="pending-roster-item-head">
+                        <span class="pending-roster-name">${escapeHtml(student.studentName || 'Unknown Student')}</span>
+                    </div>
+                    <div class="pending-months">${months}</div>
+                </li>
+            `;
+        }).join('');
+    }
+
+    pageInfoEl.textContent = `Page ${pendingRosterModalState.page} of ${totalPages}`;
+    modal.querySelector('[data-action="pending-prev"]').disabled = pendingRosterModalState.page <= 1;
+    modal.querySelector('[data-action="pending-next"]').disabled = pendingRosterModalState.page >= totalPages;
+}
+
+function changePendingRosterPage(delta) {
+    const modal = document.getElementById('pendingRosterModal');
+    if (!modal || !modal.classList.contains('visible')) {
+        return;
+    }
+    pendingRosterModalState.page = Math.max(1, pendingRosterModalState.page + delta);
+    renderPendingRosterModal();
 }
 
 function showError(message) {

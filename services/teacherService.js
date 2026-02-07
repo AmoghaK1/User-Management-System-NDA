@@ -25,6 +25,11 @@ const QUARTER_DEFINITIONS = [
     { index: 4, label: 'Q4 (Oct-Dec)', months: [9, 10, 11] }
 ];
 
+const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 const getEffectiveMonthlyFee = (student) => {
     const structuredFee = LATEST_FEE_STRUCTURE[student.exam_level];
     if (structuredFee) {
@@ -42,15 +47,30 @@ const isQuarterPaid = (payment, quarterDef) => {
     const { index, months } = quarterDef;
     const quarterKey = String(index);
 
-    if (payment.quarters && payment.quarters[quarterKey] === 'Paid') {
+    if (payment.quarters && normalizeStatus(payment.quarters[quarterKey]) === 'paid') {
         return true;
     }
 
     if (payment.months) {
-        return months.every(monthIndex => payment.months[String(monthIndex)] === 'Paid');
+        return months.every(monthIndex => normalizeStatus(payment.months[String(monthIndex)]) === 'paid');
     }
 
     return false;
+};
+
+const normalizeStatus = (value) => typeof value === 'string' ? value.trim().toLowerCase() : '';
+
+const getPendingMonthsForQuarter = (payment, quarterMonths) => {
+    if (!payment || !payment.months) {
+        return quarterMonths.map(index => MONTH_NAMES[index] || `Month ${index + 1}`);
+    }
+
+    const pendingMonths = quarterMonths.filter(monthIndex => {
+        const status = payment.months[String(monthIndex)];
+        return normalizeStatus(status) !== 'paid';
+    });
+
+    return pendingMonths.map(index => MONTH_NAMES[index] || `Month ${index + 1}`);
 };
 
 
@@ -227,6 +247,7 @@ const getQuarterlyFeeCollection = async (year) => {
             let quarterCollection = 0;
             let paidStudents = 0;
             let pendingAmountForQuarter = 0;
+            const pendingDetails = [];
 
             students.forEach(student => {
                 const payment = paymentMap.get(student.id);
@@ -239,7 +260,18 @@ const getQuarterlyFeeCollection = async (year) => {
                     paidStudents++;
                 } else {
                     pendingAmountForQuarter += quarterFee;
+                    pendingDetails.push({
+                        studentId: student.id,
+                        studentName: student.name,
+                        pendingMonths: getPendingMonthsForQuarter(payment, def.months)
+                    });
                 }
+            });
+
+            pendingDetails.sort((a, b) => {
+                if (!a.studentName) return 1;
+                if (!b.studentName) return -1;
+                return a.studentName.localeCompare(b.studentName);
             });
 
             const entry = {
@@ -249,6 +281,7 @@ const getQuarterlyFeeCollection = async (year) => {
                 totalStudents: students.length,
                 paidStudents,
                 pendingStudents: students.length - paidStudents,
+                pendingDetails,
                 collectionPercentage: students.length > 0 ? Math.round((paidStudents / students.length) * 100) : 0
             };
 

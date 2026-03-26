@@ -158,6 +158,15 @@
         <div class="quick-title">Events</div>
       </div>
     </a>
+
+      <a>
+        <div class="quick-card" id="fee-settings-btn">
+          <div class="quick-icon">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <div class="quick-title">Settings</div>
+        </div>
+      </a>
     </div>
   </div>
 
@@ -239,6 +248,25 @@
       </div>
       <div class="fee-modal-footer">
         <button class="fee-modal-btn" id="acknowledgeBtn">I Understand</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fee Month Settings Modal -->
+  <div id="feeSettingsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="color: white;">Fee Month Settings</h2>
+        <span class="fee-settings-close" id="closeFeeSettingsModal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 16px; color: #4b5563;">
+          Set each month as Full, Half, or Skip. Full is the default mode.
+        </p>
+        <div id="feeSettingsRows" class="fee-settings-grid"></div>
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button id="saveFeeSettingsBtn" class="btn btn-primary">Save Settings</button>
+        </div>
       </div>
     </div>
   </div>

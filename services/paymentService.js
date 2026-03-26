@@ -2,6 +2,12 @@ const PaymentStatus = require('../models/paymentModel');
 const User = require('../models/userModel');
 const razorpayInstance = require('../utils/razorpayInstance');
 const { formatStudentPaymentDetails } = require('../dtos/paymentDTO');
+const {
+    getMonthFeeSettings,
+    getQuarterMonthIndices,
+    getHalfYearMonthIndices,
+    calculateAmountForMonths
+} = require('./feeModeService');
 
 
 const { RAZORPAY_ID_KEY } = process.env;
@@ -157,7 +163,7 @@ const getStudentPaymentDetailsService = async (year) => {
 };
 
 const createOrderService = async (body, userId) => {
-    const { name, amount, description, email, contact, year, month, quarter, isQuarterly, halfId, isHalfYearly } = body;
+    const { name, description, email, contact, year, month, quarter, isQuarterly, halfId, isHalfYearly, lateFee } = body;
     const user = await User.findById(userId);
     if (!user) throw new Error('User not found');
        
@@ -209,7 +215,31 @@ const createOrderService = async (body, userId) => {
         }
     }
 
-    const amountInPaise = Math.round(amount * 100);
+    const targetYear = year || new Date().getFullYear();
+    const settings = await getMonthFeeSettings(targetYear);
+    const monthlyFee = Number(user.exam_fee) || 0;
+    const lateFeeAmount = Number(lateFee) || 0;
+    let baseAmount = 0;
+
+    if (isHalfYearly) {
+        const monthIndices = getHalfYearMonthIndices(halfId);
+        baseAmount = calculateAmountForMonths(monthlyFee, monthIndices, settings);
+    } else if (isQuarterly) {
+        const monthIndices = getQuarterMonthIndices(quarter);
+        baseAmount = calculateAmountForMonths(monthlyFee, monthIndices, settings);
+    } else {
+        const monthIndex = Number(month);
+        baseAmount = calculateAmountForMonths(monthlyFee, [monthIndex], settings);
+    }
+
+    const finalAmount = Math.round((baseAmount + lateFeeAmount) * 100) / 100;
+    if (finalAmount <= 0) {
+        const error = new Error('No payable fee amount for the selected period.');
+        error.status = 400;
+        throw error;
+    }
+
+    const amountInPaise = Math.round(finalAmount * 100);
     const options = {
         amount: amountInPaise,
         currency: 'INR',

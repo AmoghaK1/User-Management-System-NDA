@@ -230,10 +230,10 @@ function calculateHalfYearlyLateFee(halfId, year) {
 function processHalfYearlyPayment(halfId, year) {
     const lateFeeVariable = calculateHalfYearlyLateFee(halfId, year);
     const lateFee = parseInt(lateFeeVariable, 10) || 0;
-    const halfYearlyFee = parseInt(window.halfYearlyFee, 10) || 0;
-    const totalAmount = halfYearlyFee + lateFee;
-    
     const period = halfYearlyPeriods.find(h => h.id === halfId);
+    const halfYearlyFee = calculateAmountForMonthIndices(period.monthIndices);
+    const totalAmount = halfYearlyFee + lateFee;
+
     
     $.ajax({
         url: '/createOrder',

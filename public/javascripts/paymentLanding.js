@@ -13,6 +13,12 @@ var paymentStatus = {
     halfYearly: {}
 };
 
+const feeModeFactor = {
+    full: 1,
+    half: 0.5,
+    skip: 0
+};
+
 // Fetch the user's payment status from the server
 async function fetchPaymentStatus(year = null) {
     try {
@@ -38,6 +44,28 @@ function getCurrentDate() {
         year: currentDate.getFullYear(),
         month: currentDate.getMonth()
     };
+}
+
+function getMonthModeFromSettings(monthIndex) {
+    if (!window.monthFeeSettings || !Array.isArray(window.monthFeeSettings.months)) {
+        return 'full';
+    }
+
+    const monthItem = window.monthFeeSettings.months.find((month) => month.index === monthIndex);
+    if (!monthItem || !feeModeFactor.hasOwnProperty(monthItem.mode)) {
+        return 'full';
+    }
+
+    return monthItem.mode;
+}
+
+function calculateAmountForMonthIndices(monthIndices) {
+    const monthlyFee = parseFloat(window.monthlyFee) || 0;
+    return monthIndices.reduce((total, monthIndex) => {
+        const mode = getMonthModeFromSettings(monthIndex);
+        const multiplier = feeModeFactor[mode] || 1;
+        return total + (monthlyFee * multiplier);
+    }, 0);
 }
 
 // Initialize payment status when DOM is loaded

@@ -99,9 +99,14 @@
                 </div>
             </div>
             <div class="fee-meta">
-                <div class="meta-card">
+                <div class="meta-card" style="position: relative;">
                     <span class="meta-label">Current Fee</span>
-                    <span class="meta-value">₹ <%= student.exam_fee %></span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="meta-value">₹ <span id="currentFeeDisplay"><%= student.exam_fee %></span></span>
+                        <button id="editFeeBtn" style="background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 100%); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; transition: transform 0.2s, box-shadow 0.2s;">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
                 </div>
                 <!-- <div class="meta-card highlight">
                     <span class="meta-label">Showing Year</span>
@@ -168,6 +173,73 @@
                 <% }); %>
             </div>
         </div>
+
+        <!-- Edit Fee Modal -->
+        <div id="editFeeModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 1000; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); max-width: 400px; width: 90%; animation: slideUp 0.3s ease-out;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0; font-size: 1.3rem; color: #333;">Update Student Fee</h3>
+                    <button id="closeFeeModal" type="button" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">✕</button>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555;">Student Name:</label>
+                    <p style="margin: 0; color: #333; font-weight: 500;"><%= student.name %></p>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="newFeeInput" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555;">New Fee Amount (₹):</label>
+                    <input type="number" id="newFeeInput" min="0" step="10" style="width: 100%; padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; box-sizing: border-box; transition: border-color 0.2s;" value="<%= student.exam_fee %>">
+                    <small style="color: #999; margin-top: 0.3rem; display: block;">Enter the new fee amount</small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button id="cancelFeeBtn" type="button" style="background: #e0e0e0; color: #333; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s;">Cancel</button>
+                    <button id="saveFeeBtn" type="button" style="background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 100%); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: transform 0.2s, box-shadow 0.2s;">Save Fee</button>
+                </div>
+
+                <div id="feeErrorMsg" style="margin-top: 1rem; padding: 0.8rem; border-radius: 8px; background: #fee; color: #c33; display: none; font-size: 0.9rem;"></div>
+                <div id="feeSuccessMsg" style="margin-top: 1rem; padding: 0.8rem; border-radius: 8px; background: #efe; color: #3c3; display: none; font-size: 0.9rem;"></div>
+            </div>
+        </div>
+
+        <style>
+            @keyframes slideUp {
+                from {
+                    transform: translateY(20px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            #editFeeModal.show {
+                display: flex !important;
+            }
+
+            #editFeeBtn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+            }
+
+            #newFeeInput:focus {
+                outline: none;
+                border-color: #6c5ce7;
+                box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+            }
+
+            #saveFeeBtn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+            }
+
+            #cancelFeeBtn:hover {
+                background: #d0d0d0;
+            }
+        </style>
+
     </div>
     <script>
         // Toggle between months, quarters, and half-yearly
@@ -214,6 +286,108 @@
                     window.location.href = `/student-db-details/<%= student.id %>?${params.toString()}`;
                 });
             }
+
+            // Fee Edit Modal Logic
+            const editFeeBtn = document.getElementById('editFeeBtn');
+            const editFeeModal = document.getElementById('editFeeModal');
+            const closeFeeModal = document.getElementById('closeFeeModal');
+            const cancelFeeBtn = document.getElementById('cancelFeeBtn');
+            const saveFeeBtn = document.getElementById('saveFeeBtn');
+            const newFeeInput = document.getElementById('newFeeInput');
+            const feeErrorMsg = document.getElementById('feeErrorMsg');
+            const feeSuccessMsg = document.getElementById('feeSuccessMsg');
+            const currentFeeDisplay = document.getElementById('currentFeeDisplay');
+
+            // Open modal
+            editFeeBtn.addEventListener('click', function() {
+                newFeeInput.value = '<%= student.exam_fee %>';
+                feeErrorMsg.style.display = 'none';
+                feeSuccessMsg.style.display = 'none';
+                editFeeModal.classList.add('show');
+            });
+
+            // Close modal functions
+            function closeModal() {
+                editFeeModal.classList.remove('show');
+                feeErrorMsg.style.display = 'none';
+                feeSuccessMsg.style.display = 'none';
+            }
+
+            closeFeeModal.addEventListener('click', closeModal);
+            cancelFeeBtn.addEventListener('click', closeModal);
+
+            // Close modal when clicking outside
+            editFeeModal.addEventListener('click', function(e) {
+                if (e.target === editFeeModal) {
+                    closeModal();
+                }
+            });
+
+            // Save fee
+            saveFeeBtn.addEventListener('click', async function() {
+                const newFee = parseFloat(newFeeInput.value);
+
+                // Validation
+                if (!newFeeInput.value.trim()) {
+                    showError('Please enter a fee amount');
+                    return;
+                }
+
+                if (newFee <= 0) {
+                    showError('Fee must be a positive number');
+                    return;
+                }
+
+                saveFeeBtn.disabled = true;
+                saveFeeBtn.innerText = 'Saving...';
+
+                try {
+                    const response = await fetch(`/student-db-details/<%= student.id %>/update-exam-fee`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            newFee: newFee 
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        currentFeeDisplay.innerText = newFee;
+                        showSuccess(`Fee updated successfully to ₹ ${newFee}`);
+                        setTimeout(closeModal, 1500);
+                    } else {
+                        showError(data.message || 'Failed to update fee');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError('An error occurred. Please try again.');
+                } finally {
+                    saveFeeBtn.disabled = false;
+                    saveFeeBtn.innerText = 'Save Fee';
+                }
+            });
+
+            function showError(msg) {
+                feeErrorMsg.innerText = msg;
+                feeErrorMsg.style.display = 'block';
+                feeSuccessMsg.style.display = 'none';
+            }
+
+            function showSuccess(msg) {
+                feeSuccessMsg.innerText = msg;
+                feeSuccessMsg.style.display = 'block';
+                feeErrorMsg.style.display = 'none';
+            }
+
+            // Allow Enter key to save
+            newFeeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    saveFeeBtn.click();
+                }
+            });
         });
     </script>
     

@@ -4,6 +4,7 @@ const {
     updatePaymentService, 
     getStudentPaymentDetailsService 
 } = require('../services/paymentService');
+const { getMonthFeeSettings } = require('../services/feeModeService');
 const { formatPaymentStatusDto } = require('../dtos/paymentDTO');
 const feeCollectionEvents = require('../services/feeCollectionEvents');
 
@@ -22,7 +23,8 @@ const renderDashboard = async (req, res) => {
 
 const renderQuarterlyPayments = async (req, res) => {
     try {
-        res.render('student/quarterlyPayments');
+        const monthFeeSettings = await getMonthFeeSettings();
+        res.render('student/quarterlyPayments', { monthFeeSettings });
     } catch (err) {
         console.error('Error rendering quarterly payments page:', err.message);
         if (err.status) {
@@ -34,7 +36,8 @@ const renderQuarterlyPayments = async (req, res) => {
 
 const renderHalfYearlyPayments = async (req, res) => {
     try {
-        res.render('student/halfYearlyPayments');
+        const monthFeeSettings = await getMonthFeeSettings();
+        res.render('student/halfYearlyPayments', { monthFeeSettings });
     } catch (err) {
         console.error('Error rendering half-yearly payments page:', err.message);
         if (err.status) {

@@ -1,17 +1,57 @@
 const teacherService = require('../services/teacherService');
 const { getAllStudents} = require('../services/teacherService');
 const PaymentStatus = require('../models/paymentModel');
+const User = require('../models/userModel');
 const feeCollectionEvents = require('../services/feeCollectionEvents');
+const { getMonthFeeSettings, updateMonthFeeSettings, listMonthFeeSettingYears } = require('../services/feeModeService');
+
+const isTeacherUser = (user) => user && user.email === 'rajjii11@gmail.com';
 
 const load_trDashboard = async(req,res)=>{
-    if(req.user.email !== "rajjii11@gmail.com"){
+  if (!isTeacherUser(req.user)) {
         return res.redirect('/st-dashboard')
     }
     res.render('teacher/teacher-dashboard');
 }
 
+const getFeeMonthSettings = async (req, res) => {
+  try {
+    if (!isTeacherUser(req.user)) {
+      return res.status(403).json({ success: false, msg: 'Unauthorized' });
+    }
+
+    const year = req.query.year ? parseInt(req.query.year, 10) : new Date().getFullYear();
+    const settings = await getMonthFeeSettings(year);
+    const years = await listMonthFeeSettingYears();
+    return res.status(200).json({ success: true, settings, years });
+  } catch (error) {
+    console.error('Error fetching fee month settings:', error);
+    return res.status(500).json({ success: false, msg: 'Failed to fetch settings' });
+  }
+};
+
+const updateFeeMonthSettings = async (req, res) => {
+  try {
+    if (!isTeacherUser(req.user)) {
+      return res.status(403).json({ success: false, msg: 'Unauthorized' });
+    }
+
+    const { year, monthModes } = req.body;
+    if (!monthModes || typeof monthModes !== 'object') {
+      return res.status(400).json({ success: false, msg: 'Invalid monthModes payload' });
+    }
+
+    const settings = await updateMonthFeeSettings(year, monthModes);
+    const years = await listMonthFeeSettingYears();
+    return res.status(200).json({ success: true, settings, years });
+  } catch (error) {
+    console.error('Error updating fee month settings:', error);
+    return res.status(500).json({ success: false, msg: 'Failed to update settings' });
+  }
+};
+
 const loadUploadMaterial = (req, res) => {
-  res.render('teacher/studyMaterialPage'); 
+  res.render('teacher/studyMaterialPage');
 };
 
 const Teacher_getAllStudents = async (req, res) => {
@@ -325,8 +365,60 @@ const getFeeCollectionSSE = (req, res) => {
     });
 };
 
+const updateStudentExamFee = async (req, res) => {
+    try {
+        if (!isTeacherUser(req.user)) {
+            return res.status(403).json({ success: false, message: 'Unauthorized: Only teachers can update fees' });
+        }
+
+        const { id } = req.params;
+        const { newFee } = req.body;
+
+        // Validate inputs
+        if (!id) {
+            return res.status(400).json({ success: false, message: 'Student ID is required' });
+        }
+
+        if (newFee === undefined || newFee === null) {
+            return res.status(400).json({ success: false, message: 'New fee amount is required' });
+        }
+
+        const feeAmount = parseFloat(newFee);
+        if (isNaN(feeAmount) || feeAmount <= 0) {
+            return res.status(400).json({ success: false, message: 'Fee must be a positive number' });
+        }
+
+        // Check if student exists
+        const student = await User.findById(id);
+        if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+
+        // Update the exam_fee in the database
+        await User.updateById(id, { exam_fee: feeAmount });
+
+        console.log(`💰 Exam fee updated - Student: ${student.name} (ID: ${id}), New Fee: ₹${feeAmount}`);
+
+        return res.status(200).json({ 
+            success: true, 
+            message: `Fee updated successfully to ₹ ${feeAmount}`,
+            newFee: feeAmount
+        });
+
+    } catch (error) {
+        console.error('Error updating student exam fee:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'An error occurred while updating the fee',
+            error: error.message 
+        });
+    }
+};
+
 module.exports = {
     load_trDashboard,
+  getFeeMonthSettings,
+  updateFeeMonthSettings,
     Teacher_getAllStudents,
     Teacher_deleteStudent,
     uploadMaterial,
@@ -338,6 +430,7 @@ module.exports = {
     loadStudentDbDetails,
     loadUpdateFee,
     updateStudentFee,
+    updateStudentExamFee,
     getFeeCollectionData,
     getFeeCollectionSSE
 }

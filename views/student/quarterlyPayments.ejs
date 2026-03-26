@@ -119,7 +119,8 @@
         // Initialize quarterly payment data
         document.addEventListener('DOMContentLoaded', async function() {
             window.userId = "<%= user.id %>";
-            window.quarterlyFee = "<%= user.exam_fee * 3 %>";
+            window.monthlyFee = "<%= user.exam_fee %>";
+            window.monthFeeSettings = <%- JSON.stringify(monthFeeSettings || null) %>;
             window.phoneNumber = "<%= user.student_ph_no %>";
             window.email = "<%= user.email %>";
             

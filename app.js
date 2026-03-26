@@ -104,6 +104,10 @@ app.get('/contact-us', (req, res) => {
 
 // 404 Handler - Must be after all other routes
 app.use((req, res, next) => {
+  if (req.path.startsWith('/teacher/fee-month-settings') || req.path.startsWith('/fee-month-settings')) {
+    return res.status(404).json({ success: false, msg: 'API route not found' });
+  }
+
   res.status(404).render('misc/404', { 
     error: 'Page not found',
     url: req.originalUrl 
@@ -118,6 +122,13 @@ app.use((err, req, res, next) => {
   const isDevelopment = process.env.NODE_ENV === 'development';
   
   res.status(err.status || 500);
+
+  if (req.path.startsWith('/teacher/fee-month-settings') || req.path.startsWith('/fee-month-settings')) {
+    return res.json({
+      success: false,
+      msg: isDevelopment ? err.message : 'Internal Server Error'
+    });
+  }
   
   // Try to render error page, fallback to JSON if rendering fails
   try {

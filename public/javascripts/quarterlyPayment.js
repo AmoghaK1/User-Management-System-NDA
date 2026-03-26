@@ -194,7 +194,8 @@ function calculateQuarterlyLateFee(quarter, year) {
 function processQuarterlyPayment(quarter, year) {
     const lateFeeVariable = calculateQuarterlyLateFee(quarter, year);
     const lateFee = parseInt(lateFeeVariable, 10) || 0;
-    const quarterlyFee = parseInt(window.quarterlyFee, 10) || 0;
+    const startMonth = (quarter - 1) * 3;
+    const quarterlyFee = calculateAmountForMonthIndices([startMonth, startMonth + 1, startMonth + 2]);
     const totalAmount = quarterlyFee + lateFee;
     $.ajax({
         url: '/createOrder',

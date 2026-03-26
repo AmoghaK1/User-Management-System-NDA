@@ -119,8 +119,8 @@
         // Initialize half-yearly payment data
         document.addEventListener('DOMContentLoaded', async function() {
             window.userId = "<%= user.id %>";
-            window.halfYearlyFee = "<%= user.exam_fee * 6 %>";
             window.monthlyFee = "<%= user.exam_fee %>";
+            window.monthFeeSettings = <%- JSON.stringify(monthFeeSettings || null) %>;
             window.phoneNumber = "<%= user.student_ph_no %>";
             window.email = "<%= user.email %>";
             

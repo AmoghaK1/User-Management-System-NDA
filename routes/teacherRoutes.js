@@ -14,6 +14,8 @@ const { studyMaterialUpload } = require('../config/studyMaterial');
 const passport = require('passport');
 
 teacher_route.get('/tr-dashboard', auth.ensureAuthenticated, teacherController.load_trDashboard);
+teacher_route.get('/teacher/fee-month-settings', auth.ensureAuthenticated, teacherController.getFeeMonthSettings);
+teacher_route.post('/teacher/fee-month-settings', auth.ensureAuthenticated, teacherController.updateFeeMonthSettings);
 teacher_route.get('/student_database',auth.ensureAuthenticated, teacherController.loadStudentDatabaseMain);
 
 teacher_route.get('/student-db-details/:id', auth.ensureAuthenticated, teacherController.loadStudentDbDetails);
@@ -38,6 +40,9 @@ teacher_route.delete('/students/:id', auth.ensureAuthenticated, teacherControlle
 
 // Update student fee status (month/quarter paid)
 teacher_route.post('/student-db-details/:id/update-fee', auth.ensureAuthenticated, teacherController.updateStudentFee);
+
+// Update student exam fee (full fee amount)
+teacher_route.post('/student-db-details/:id/update-exam-fee', auth.ensureAuthenticated, teacherController.updateStudentExamFee);
 
 // Get fee collection data
 teacher_route.get('/fee-collection-data', auth.ensureAuthenticated, teacherController.getFeeCollectionData);

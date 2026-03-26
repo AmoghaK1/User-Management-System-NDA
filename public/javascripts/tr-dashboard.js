@@ -1,4 +1,113 @@
 document.addEventListener('DOMContentLoaded', function () {
+
+    const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const feeSettingsBtn = document.getElementById('fee-settings-btn');
+    const feeSettingsModal = document.getElementById('feeSettingsModal');
+    const closeFeeSettingsModal = document.getElementById('closeFeeSettingsModal');
+    const feeSettingsRows = document.getElementById('feeSettingsRows');
+    const saveFeeSettingsBtn = document.getElementById('saveFeeSettingsBtn');
+    let latestFeeSettings = null;
+
+    function renderFeeSettingsRows(settings) {
+        if (!feeSettingsRows || !settings || !Array.isArray(settings.months)) {
+            return;
+        }
+
+        feeSettingsRows.innerHTML = settings.months.map((month) => {
+            return `
+                <div class="fee-settings-row">
+                    <label for="month-mode-${month.index}">${month.name || monthNames[month.index]}</label>
+                    <select id="month-mode-${month.index}" data-month-index="${month.index}">
+                        <option value="full" ${month.mode === 'full' ? 'selected' : ''}>Full</option>
+                        <option value="half" ${month.mode === 'half' ? 'selected' : ''}>Half</option>
+                        <option value="skip" ${month.mode === 'skip' ? 'selected' : ''}>Skip</option>
+                    </select>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function fetchFeeSettings() {
+        const response = await fetch('/teacher/fee-month-settings', { credentials: 'include' });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.msg || 'Failed to fetch settings');
+        }
+        latestFeeSettings = payload.settings;
+        renderFeeSettingsRows(payload.settings);
+    }
+
+    function collectMonthModesFromForm() {
+        const monthModes = {};
+        if (!feeSettingsRows) {
+            return monthModes;
+        }
+
+        feeSettingsRows.querySelectorAll('select[data-month-index]').forEach((selectElement) => {
+            const monthIndex = selectElement.getAttribute('data-month-index');
+            monthModes[monthIndex] = selectElement.value;
+        });
+
+        return monthModes;
+    }
+
+    async function saveFeeSettings() {
+        const monthModes = collectMonthModesFromForm();
+        const response = await fetch('/teacher/fee-month-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ monthModes })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.msg || 'Failed to save settings');
+        }
+        latestFeeSettings = payload.settings;
+        renderFeeSettingsRows(payload.settings);
+    }
+
+    if (feeSettingsBtn && feeSettingsModal) {
+        feeSettingsBtn.addEventListener('click', async () => {
+            feeSettingsModal.style.display = 'block';
+            try {
+                await fetchFeeSettings();
+            } catch (error) {
+                console.error('Error loading fee settings:', error);
+                alert(error.message || 'Unable to load fee settings.');
+            }
+        });
+    }
+
+    if (closeFeeSettingsModal && feeSettingsModal) {
+        closeFeeSettingsModal.addEventListener('click', () => {
+            feeSettingsModal.style.display = 'none';
+        });
+    }
+
+    if (saveFeeSettingsBtn && feeSettingsModal) {
+        saveFeeSettingsBtn.addEventListener('click', async () => {
+            try {
+                await saveFeeSettings();
+                alert('Fee month settings saved successfully.');
+                feeSettingsModal.style.display = 'none';
+            } catch (error) {
+                console.error('Error saving fee settings:', error);
+                alert(error.message || 'Unable to save settings.');
+            }
+        });
+    }
+
+    window.addEventListener('click', (event) => {
+        if (feeSettingsModal && event.target === feeSettingsModal) {
+            feeSettingsModal.style.display = 'none';
+        }
+    });
     
     const thoughts = [
         { text: "Believe in yourself. You are braver than you think.", author: "Roy T. Bennett" },

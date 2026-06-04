@@ -5,7 +5,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const feeStructure = {
     "Senior Batch": 1100,
-    "Prarambhik": 900,
+    "Prarambhik": 800,
     "Praveshika Pratham": 900,
     "Praveshika Purna": 1000,
     "Madhyama Pratham": 1000,

@@ -7,7 +7,7 @@ const feeStructure = {
     "Senior Batch": 1100,
     "Prarambhik": 800,
     "Praveshika Pratham": 900,
-    "Praveshika Purna": 1000,
+    "Praveshika Purna": 900,
     "Madhyama Pratham": 1000,
     "Madhyama Purna": 1000,
     "Visharad Pratham": 1200,
